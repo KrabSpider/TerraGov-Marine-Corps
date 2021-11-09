@@ -919,6 +919,7 @@ datum/ammo/bullet/revolver/tp44
 	penetration = 60
 	sundering = 15
 
+
 /datum/ammo/bullet/sniper/incendiary
 	name = "incendiary sniper bullet"
 	hud_state = "sniper_fire"
@@ -935,12 +936,13 @@ datum/ammo/bullet/revolver/tp44
 /datum/ammo/bullet/sniper/flak
 	name = "flak sniper bullet"
 	hud_state = "sniper_flak"
-	damage = 90
-	penetration = 0
-	sundering = 25
+	damage = 80
+	penetration = 20
+	sundering = 10
 
 /datum/ammo/bullet/sniper/flak/on_hit_mob(mob/victim, obj/projectile/proj)
 	airburst(victim, proj)
+	staggerstun(M, P, stagger = 1, slowdown = 2, knockback = 2)
 
 /datum/ammo/bullet/sniper/svd
 	name = "crude sniper bullet"
