@@ -115,7 +115,7 @@
 /datum/action/xeno_action/activable/scatter_spit/use_ability(atom/target)
 	var/mob/living/carbon/xenomorph/X = owner
 
-	if(!do_after(X, 0.5 SECONDS, TRUE, target, BUSY_ICON_DANGER))
+	if(!do_after(X, 0.75 SECONDS, TRUE, target, BUSY_ICON_DANGER))
 		return fail_activate()
 
 	//Shoot at the thing
