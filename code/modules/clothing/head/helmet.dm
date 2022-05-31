@@ -221,7 +221,8 @@
 						/obj/item/clothing/glasses/mgoggles = "goggles",
 						/obj/item/clothing/glasses/mgoggles/prescription = "goggles",
 						/obj/item/clothing/glasses/hud/medgoggles = "goggles",
-						/obj/item/clothing/glasses/hud/medgoggles/prescription = "goggles")
+						/obj/item/clothing/glasses/hud/medgoggles/prescription = "goggles",
+						/obj/item/clothing/head/hairflower = "flower_pin")
 
 /obj/item/storage/internal/marinehelmet
 	storage_slots = 2
@@ -292,7 +293,7 @@
 	for(var/i in helmet_overlays)
 		I = helmet_overlays[i]
 		if(I)
-			I = image('icons/mob/helmet_garb.dmi',src,I.icon_state)
+			I = image('icons/mob/modular/modular_helmet_storage.dmi',src,I.icon_state)
 			standing.overlays += I
 
 
@@ -410,6 +411,15 @@ obj/item/clothing/head/helmet/marine/pilot/green
 	flags_inv_hide = HIDEEARS|HIDETOPHAIR
 	flags_marine_helmet = NONE
 	flags_item_map_variant = (ITEM_ICE_VARIANT)
+
+/obj/item/clothing/head/helmet/marine/riot
+	name = "M8 riot helmet"
+	desc = "It's a modified version of the widely used Riot Helmets for use against angry jarheads. Boasts high ballistic protection"
+	icon_state = "marine_riot"
+	soft_armor = list("melee" = 65, "bullet" = 110, "laser" = 110, "energy" = 5, "bomb" = 50, "bio" = 50, "rad" = 50, "fire" = 50, "acid" = 30)
+	flags_inventory = COVEREYES|BLOCKSHARPOBJ
+	flags_inv_hide = HIDEEARS|HIDEEYES|HIDETOPHAIR
+	flags_item = SYNTH_RESTRICTED
 
 /*=============================PMCS==================================
 =======================================================================*/

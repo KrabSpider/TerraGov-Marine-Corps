@@ -23,7 +23,7 @@
 	max_chamber_items = 7
 	allowed_ammo_types = list(/obj/item/ammo_magazine/revolver)
 
-	movement_acc_penalty_mult = 2
+	movement_acc_penalty_mult = 3
 	fire_delay = 2
 	accuracy_mult_unwielded = 0.85
 	scatter_unwielded = 25
@@ -80,6 +80,10 @@
 		return
 	invisibility = 0
 	playsound(user, thud_sound, 25, 1)
+
+	if(user.get_active_held_item() != src)
+		return
+
 	if(user.get_inactive_held_item())
 		user.visible_message("[user] catches [src] with the same hand!",span_notice(" You catch [src] as it spins in to your hand!"))
 		return
@@ -148,11 +152,11 @@
 	if(loc && user) playsound(user, thud_sound, 25, 1)
 
 //-------------------------------------------------------
-//TP-44 COMBAT REVOLVER
+//R-44 COMBAT REVOLVER
 
 /obj/item/weapon/gun/revolver/standard_revolver
-	name = "\improper TP-44 combat revolver"
-	desc = "The TP-44 standard combat revolver, produced by Terran Armories. A sturdy and hard hitting firearm that loads .44 Magnum rounds. Holds 7 rounds in the cylinder. Due to an error in the cylinder rotation system the fire rate of the gun is much faster than intended, it ended up being billed as a feature of the system."
+	name = "\improper R-44 combat revolver"
+	desc = "The R-44 standard combat revolver, produced by Terran Armories. A sturdy and hard hitting firearm that loads .44 Magnum rounds. Holds 7 rounds in the cylinder. Due to an error in the cylinder rotation system the fire rate of the gun is much faster than intended, it ended up being billed as a feature of the system."
 	icon_state = "tp44"
 	item_state = "tp44"
 	caliber =  CALIBER_44 //codex
@@ -174,13 +178,21 @@
 		/obj/item/attachable/shoulder_mount,
 	)
 	attachable_offset = list("muzzle_x" = 33, "muzzle_y" = 19,"rail_x" = 13, "rail_y" = 23, "under_x" = 22, "under_y" = 14, "stock_x" = 22, "stock_y" = 19)
-	fire_delay = 0.2 SECONDS
+	fire_delay = 0.15 SECONDS
+	akimbo_additional_delay = 0.6 // Ends up as 0.249, so it'll get moved up to 0.25.
 	accuracy_mult_unwielded = 0.85
 	accuracy_mult = 1
 	scatter_unwielded = 15
-	scatter = 0
+	scatter = -1
 	recoil = 0
 	recoil_unwielded = 0.75
+
+/obj/item/weapon/gun/revolver/standard_revolver/Initialize(mapload, spawn_empty)
+	. = ..()
+	if(round(rand(1, 10), 1) != 1)
+		return
+	base_gun_icon = "tp44cool"
+	update_icon()
 
 //-------------------------------------------------------
 //RUSSIAN REVOLVER //Based on the 7.62mm Russian revolvers.
@@ -245,8 +257,8 @@
 //Mateba is pretty well known. The cylinder folds up instead of to the side. This has a non-marine version and a marine version.
 
 /obj/item/weapon/gun/revolver/mateba
-	name = "\improper TL-24 autorevolver"
-	desc = "The TL-24 is the rather rare autorevolver used by the TGMC issued in rather small numbers to backline personnel and officers it uses recoil to spin the cylinder. Uses heavy .454 rounds."
+	name = "\improper R-24 autorevolver"
+	desc = "The R-24 is the rather rare autorevolver used by the TGMC issued in rather small numbers to backline personnel and officers it uses recoil to spin the cylinder. Uses heavy .454 rounds."
 	icon_state = "mateba"
 	item_state = "mateba"
 	fire_animation = "mateba_fire"
@@ -280,7 +292,7 @@
 	aim_fire_delay = 0.3 SECONDS
 	recoil = 0
 	accuracy_mult = 1.1
-	scatter = 10
+	scatter = 5
 	accuracy_mult_unwielded = 0.6
 	scatter_unwielded = 20
 
@@ -290,7 +302,7 @@
 
 
 /obj/item/weapon/gun/revolver/mateba/captain
-	name = "\improper TL-24 autorevolver special"
+	name = "\improper R-24 autorevolver special"
 	desc = "The Mateba is a powerful, fast-firing revolver that uses its own recoil to rotate the cylinders. This one appears to have had more love and care put into it. Uses .454 rounds."
 	icon_state = "mateba"
 	item_state = "mateba"
@@ -361,7 +373,7 @@
 
 	fire_delay = 0.35 SECONDS
 	recoil = 0
-	scatter = 9 // Only affects buckshot considering marksman has -15 scatter.
+	scatter = 8 // Only affects buckshot considering marksman has -15 scatter.
 	damage_falloff_mult = 1.2
 
 
@@ -382,10 +394,10 @@
 
 
 //-------------------------------------------------------
-//M-44, based off the SAA.
+//R-44, based off the SAA.
 
 /obj/item/weapon/gun/revolver/single_action/m44
-	name = "\improper M-44 SAA revolver"
+	name = "\improper R-44 SAA revolver"
 	desc = "A uncommon revolver occasionally carried by civilian law enforcement that's very clearly based off a modernized Single Action Army. Has to be manully primed with each shot. Uses .44 Magnum rounds."
 	icon_state = "m44"
 	item_state = "m44"

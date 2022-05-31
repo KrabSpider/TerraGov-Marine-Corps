@@ -4,7 +4,7 @@
 	icon = 'icons/mob/human.dmi'
 	icon_state = "body_m_s"
 	blocks_emissive = EMISSIVE_BLOCK_UNIQUE
-	hud_possible = list(HEALTH_HUD, STATUS_HUD_SIMPLE, STATUS_HUD, XENO_EMBRYO_HUD, XENO_REAGENT_HUD, WANTED_HUD, SQUAD_HUD_TERRAGOV, SQUAD_HUD_REBEL, ORDER_HUD, PAIN_HUD, XENO_DEBUFF_HUD)
+	hud_possible = list(HEALTH_HUD, STATUS_HUD_SIMPLE, STATUS_HUD, XENO_EMBRYO_HUD, XENO_REAGENT_HUD, WANTED_HUD, SQUAD_HUD_TERRAGOV, SQUAD_HUD_REBEL, ORDER_HUD, PAIN_HUD, XENO_DEBUFF_HUD, HEART_STATUS_HUD)
 	health_threshold_crit = -50
 	melee_damage = 5
 	m_intent = MOVE_INTENT_WALK
@@ -36,7 +36,7 @@
 	var/b_eyes = 0
 
 	var/ethnicity = "Western"	// Ethnicity
-	var/body_type = "Mesomorphic (Average)" // Body Type
+	var/species_type = ""
 
 	//Skin colour
 	var/r_skin = 0
@@ -56,9 +56,7 @@
 	var/backpack = 2		//Which backpack type the player has chosen. Nothing, Satchel or Backpack.
 
 	// General information
-	var/home_system = ""
 	var/citizenship = ""
-	var/personal_faction = ""
 	var/religion = ""
 
 	//Equipment slots

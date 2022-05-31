@@ -16,7 +16,7 @@
 	throw_range = initial(throw_range)
 
 
-/obj/item/explosive/grenade/training/flamer_fire_act()
+/obj/item/explosive/grenade/training/flamer_fire_act(burnlevel)
 	return
 
 
@@ -71,6 +71,44 @@
 	item_state = "grenade_ex"
 	hud_state = "grenade_frag"
 	light_impact_range = 6
+
+/obj/item/explosive/grenade/sticky
+	name = "\improper M40 adhesive charge grenade"
+	desc = "Designed for use against various fast moving drones, this grenade will adhere to its target before detonating. It's fuse is set to 5 seconds."
+	icon_state = "grenade_sticky"
+	det_time = 5 SECONDS
+	item_state = "grenade_sticky"
+	light_impact_range = 3
+	///Current atom this grenade is attached to, used to remove the overlay.
+	var/atom/stuck_to
+	///Current image overlay applied to stuck_to, used to remove the overlay after detonation.
+	var/image/saved_overlay
+
+/obj/item/explosive/grenade/sticky/throw_impact(atom/hit_atom, speed)
+	. = ..()
+	if(!active || stuck_to || isturf(hit_atom))
+		return
+	var/image/stuck_overlay = image(icon, hit_atom, initial(icon_state) + "_stuck")
+	stuck_overlay.pixel_x = rand(-5, 5)
+	stuck_overlay.pixel_y = rand(-7, 7)
+	hit_atom.add_overlay(stuck_overlay)
+	forceMove(hit_atom)
+	saved_overlay = stuck_overlay
+	stuck_to = hit_atom
+	RegisterSignal(stuck_to, COMSIG_PARENT_QDELETING, .proc/clean_refs)
+
+/obj/item/explosive/grenade/sticky/prime()
+	if(stuck_to)
+		stuck_to.cut_overlay(saved_overlay)
+		clean_refs()
+	return ..()
+
+///Cleans references to prevent hard deletes.
+/obj/item/explosive/grenade/sticky/proc/clean_refs()
+	SIGNAL_HANDLER
+	UnregisterSignal(stuck_to, COMSIG_PARENT_QDELETING)
+	stuck_to = null
+	saved_overlay = null
 
 /obj/item/explosive/grenade/incendiary
 	name = "\improper M40 HIDP incendiary grenade"
@@ -230,7 +268,7 @@
 	. = ..()
 	fuel = rand(lower_fuel_limit, upper_fuel_limit) // Sorry for changing this so much but I keep under-estimating how long X number of ticks last in seconds.
 
-/obj/item/explosive/grenade/flare/flamer_fire_act()
+/obj/item/explosive/grenade/flare/flamer_fire_act(burnlevel)
 	if(!fuel) //it's out of fuel, an empty shell.
 		return
 	if(!active)
@@ -322,8 +360,8 @@
 		var/target_zone = check_zone(L.zone_selected)
 		if(!target_zone || rand(40))
 			target_zone = "chest"
-		if(launched && CHECK_BITFIELD(resistance_flags, ON_FIRE))
-			var/armor_block = L.run_armor_check(target_zone, "fire")
+		if(launched && CHECK_BITFIELD(resistance_flags, ON_FIRE) && !L.on_fire)
+			var/armor_block = L.get_soft_armor("fire", target_zone)
 			L.apply_damage(rand(throwforce*0.75,throwforce*1.25), BURN, target_zone, armor_block, updating_health = TRUE) //Do more damage if launched from a proper launcher and active
 
 	// Flares instantly burn out nodes when thrown at them.

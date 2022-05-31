@@ -65,6 +65,9 @@
 		replace_by_ai()
 	if(z) //Larva are initiated in null space
 		SSminimaps.add_marker(src, z, hud_flags = MINIMAP_FLAG_XENO, iconstate = xeno_caste.minimap_icon)
+	RegisterSignal(src, COMSIG_LIVING_WEEDS_ADJACENT_REMOVED, .proc/handle_weeds_adjacent_removed)
+	RegisterSignal(src, COMSIG_LIVING_WEEDS_AT_LOC_CREATED, .proc/handle_weeds_on_movement)
+	handle_weeds_on_movement()
 
 ///Change the caste of the xeno. If restore health is true, then health is set to the new max health
 /mob/living/carbon/xenomorph/proc/set_datum(restore_health_and_plasma = TRUE)
@@ -83,7 +86,8 @@
 	xeno_caste.on_caste_applied(src)
 	maxHealth = xeno_caste.max_health * GLOB.xeno_stat_multiplicator_buff
 	if(restore_health_and_plasma)
-		plasma_stored = xeno_caste.plasma_max
+		// xenos that manage plasma through special means shouldn't gain it for free on aging
+		plasma_stored = max(plasma_stored, xeno_caste.plasma_max * xeno_caste.plasma_regen_limit)
 		health = maxHealth
 	setXenoCasteSpeed(xeno_caste.speed)
 	soft_armor = getArmor(arglist(xeno_caste.soft_armor))
@@ -184,7 +188,7 @@
 
 /mob/living/carbon/xenomorph/proc/grabbed_self_attack()
 	SIGNAL_HANDLER
-	if(!(xeno_caste.caste_flags & CAN_RIDE_CRUSHER) || !isxenocrusher(pulling))
+	if(!(xeno_caste.can_flags & CASTE_CAN_RIDE_CRUSHER) || !isxenocrusher(pulling))
 		return NONE
 	var/mob/living/carbon/xenomorph/crusher/grabbed = pulling
 	if(grabbed.stat == CONSCIOUS && stat == CONSCIOUS)
@@ -197,30 +201,30 @@
 	return
 
 /mob/living/carbon/xenomorph/examine(mob/user)
-	..()
-	to_chat(user, xeno_caste.caste_desc)
+	. = ..()
+	. += xeno_caste.caste_desc
 
 	if(stat == DEAD)
-		to_chat(user, "It is DEAD. Kicked the bucket. Off to that great hive in the sky.")
+		. += "It is DEAD. Kicked the bucket. Off to that great hive in the sky."
 	else if(stat == UNCONSCIOUS)
-		to_chat(user, "It quivers a bit, but barely moves.")
+		. += "It quivers a bit, but barely moves."
 	else
 		var/percent = (health / maxHealth * 100)
 		switch(percent)
 			if(95 to 101)
-				to_chat(user, "It looks quite healthy.")
+				. += "It looks quite healthy."
 			if(75 to 94)
-				to_chat(user, "It looks slightly injured.")
+				. += "It looks slightly injured."
 			if(50 to 74)
-				to_chat(user, "It looks injured.")
+				. += "It looks injured."
 			if(25 to 49)
-				to_chat(user, "It bleeds with sizzling wounds.")
+				. += "It bleeds with sizzling wounds."
 			if(1 to 24)
-				to_chat(user, "It is heavily injured and limping badly.")
+				. += "It is heavily injured and limping badly."
 
 	if(hivenumber != XENO_HIVE_NORMAL)
 		var/datum/hive_status/hive = GLOB.hive_datums[hivenumber]
-		to_chat(user, "It appears to belong to the [hive.prefix]hive")
+		. += "It appears to belong to the [hive.prefix]hive"
 	return
 
 /mob/living/carbon/xenomorph/Destroy()
@@ -311,17 +315,6 @@
 	hud_to_add = GLOB.huds[DATA_HUD_XENO_DEBUFF]
 	hud_to_add.add_hud_to(src)
 
-/mob/living/carbon/xenomorph/point_to_atom(atom/A, turf/T)
-	//xeno leader get a bit arrow and less cooldown
-	if(queen_chosen_lead || isxenoqueen(src))
-		TIMER_COOLDOWN_START(src, COOLDOWN_POINT, 1 SECONDS)
-		new /obj/effect/overlay/temp/point/big(T)
-	else
-		TIMER_COOLDOWN_START(src, COOLDOWN_POINT, 5 SECONDS)
-		new /obj/effect/overlay/temp/point(T)
-	visible_message("<b>[src]</b> points to [A]")
-	return 1
-
 /mob/living/carbon/xenomorph/get_permeability_protection()
 	return XENO_PERM_COEFF
 
@@ -373,9 +366,10 @@
 	LL_dir.icon_state = "trackoff"
 
 
-/mob/living/carbon/xenomorph/Moved(atom/newloc, direct)
+/mob/living/carbon/xenomorph/Moved(atom/old_loc, movement_dir)
 	if(is_zoomed)
 		zoom_out()
+	handle_weeds_on_movement()
 	return ..()
 
 /mob/living/carbon/xenomorph/set_stat(new_stat)
@@ -396,3 +390,17 @@
 	GLOB.offered_mob_list -= src
 	AddComponent(/datum/component/ai_controller, /datum/ai_behavior/xeno)
 	a_intent = INTENT_HARM
+
+/// Handles logic for weeds nearby the xeno getting removed
+/mob/living/carbon/xenomorph/proc/handle_weeds_adjacent_removed(datum/source)
+	SIGNAL_HANDLER
+	var/obj/effect/alien/weeds/found_weed = locate(/obj/effect/alien/weeds) in loc
+	if(!QDESTROYING(found_weed))
+		return
+	loc_weeds_type = null
+
+/// Handles logic for the xeno moving to a new weeds tile
+/mob/living/carbon/xenomorph/proc/handle_weeds_on_movement(datum/source)
+	SIGNAL_HANDLER
+	var/obj/effect/alien/weeds/found_weed = locate(/obj/effect/alien/weeds) in loc
+	loc_weeds_type = found_weed?.type

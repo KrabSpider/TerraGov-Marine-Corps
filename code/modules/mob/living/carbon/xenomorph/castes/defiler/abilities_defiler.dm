@@ -1,10 +1,3 @@
-#define DEFILER_NEUROTOXIN "Neurotoxin"
-#define DEFILER_HEMODILE "Hemodile"
-#define DEFILER_TRANSVITOX "Transvitox"
-
-GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
-	/datum/reagent/toxin/xeno_hemodile, /datum/reagent/toxin/xeno_transvitox, /datum/reagent/toxin/xeno_neurotoxin)))
-
 // ***************************************
 // *********** Defile
 // ***************************************
@@ -30,13 +23,13 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 
 	if(!A.can_sting())
 		if(!silent)
-			to_chat(owner, span_xenodanger("Our sting won't affect this target!"))
+			A.balloon_alert(owner, "Cannot effect")
 		return FALSE
 
 	if(!owner.Adjacent(A))
 		var/mob/living/carbon/xenomorph/X = owner
 		if(!silent)
-			to_chat(X, span_warning("We can't reach this target! We need to be adjacent!"))
+			A.balloon_alert(X, "Cannot reach")
 		return FALSE
 
 
@@ -114,7 +107,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 
 /datum/action/xeno_action/emit_neurogas/on_cooldown_finish()
 	playsound(owner.loc, 'sound/effects/xeno_newlarva.ogg', 50, 0)
-	to_chat(owner, span_xenodanger("We feel our dorsal vents bristle with heated gas. We can use Emit Noxious Gas again."))
+	to_chat(owner, span_xenodanger("We feel our dorsal vents bristle with heated gas. We can emit Noxious Gas again."))
 	return ..()
 
 /datum/action/xeno_action/emit_neurogas/action_activate()
@@ -123,6 +116,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 	//give them fair warning
 	X.visible_message(span_danger("Tufts of smoke begin to billow from [X]!"), \
 	span_xenodanger("Our dorsal vents widen, preparing to emit toxic smoke. We must keep still!"))
+	X.balloon_alert(X, "Keep still...")
 
 	X.emitting_gas = TRUE //We gain bump movement immunity while we're emitting gas.
 	succeed_activate()
@@ -161,10 +155,10 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 			gas = new /datum/effect_system/smoke_spread/xeno/neuro/medium(X)
 		if(/datum/reagent/toxin/xeno_hemodile)
 			gas = new /datum/effect_system/smoke_spread/xeno/hemodile(X)
-			smoke_range = 3
 		if(/datum/reagent/toxin/xeno_transvitox)
 			gas = new /datum/effect_system/smoke_spread/xeno/transvitox(X)
-			smoke_range = 4
+		if(/datum/reagent/toxin/xeno_ozelomelyn)
+			gas = new /datum/effect_system/smoke_spread/xeno/ozelomelyn(X)
 
 	while(count)
 		if(X.stagger) //If we got staggered, return
@@ -207,7 +201,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 	var/mob/living/carbon/xenomorph/Defiler/X = owner
 
 	if(istype(A, /obj/effect/alien/egg/gas))
-		to_chat(X, span_warning("That egg has already been filled with toxic gas.") )
+		A.balloon_alert(X, "Egg already injected")
 		return fail_activate()
 
 	if(!istype(A, /obj/effect/alien/egg/hugger))
@@ -215,12 +209,14 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 
 	var/obj/effect/alien/egg/alien_egg = A
 	if(alien_egg.maturity_stage != alien_egg.stage_ready_to_burst)
-		to_chat(X, span_warning("That egg isn't strong enough to hold our gases."))
+		alien_egg.balloon_alert(X, "Egg not mature")
 		return fail_activate()
 
+	alien_egg.balloon_alert_to_viewers("Injecting...")
 	X.visible_message(span_danger("[X] starts injecting the egg with neurogas, killing the little one inside!"), \
 		span_xenodanger("We extend our stinger into the egg, filling it with gas, killing the little one inside!"))
 	if(!do_after(X, 2 SECONDS, TRUE, alien_egg, BUSY_ICON_HOSTILE))
+		alien_egg.balloon_alert_to_viewers("Canceled injection")
 		X.visible_message(span_danger("The stinger retracts from [X], leaving the egg and little one alive."), \
 			span_xenodanger("Our stinger retracts, leaving the egg and little one alive."))
 		return fail_activate()
@@ -232,12 +228,12 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 	switch(X.selected_reagent)
 		if(/datum/reagent/toxin/xeno_neurotoxin)
 			newegg.gas_type = /datum/effect_system/smoke_spread/xeno/neuro/medium
+		if(/datum/reagent/toxin/xeno_ozelomelyn)
+			newegg.gas_type = /datum/effect_system/smoke_spread/xeno/ozelomelyn
 		if(/datum/reagent/toxin/xeno_hemodile)
 			newegg.gas_type = /datum/effect_system/smoke_spread/xeno/hemodile
-			newegg.gas_size_bonus = 1
 		if(/datum/reagent/toxin/xeno_transvitox)
 			newegg.gas_type = /datum/effect_system/smoke_spread/xeno/transvitox
-			newegg.gas_size_bonus = 2
 	qdel(alien_egg)
 
 	GLOB.round_statistics.defiler_inject_egg_neurogas++
@@ -276,7 +272,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 		X.selected_reagent = GLOB.defiler_toxin_type_list[i+1]
 
 	var/atom/A = X.selected_reagent
-	to_chat(X, span_notice("We will now use <b>[initial(A.name)]</b>."))
+	X.balloon_alert(X, "[initial(A.name)]")
 	update_button_icon()
 	return succeed_activate()
 
@@ -290,6 +286,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 			DEFILER_NEUROTOXIN = image('icons/mob/actions.dmi', icon_state = DEFILER_NEUROTOXIN),
 			DEFILER_HEMODILE = image('icons/mob/actions.dmi', icon_state = DEFILER_HEMODILE),
 			DEFILER_TRANSVITOX = image('icons/mob/actions.dmi', icon_state = DEFILER_TRANSVITOX),
+			DEFILER_OZELOMELYN = image('icons/mob/actions.dmi', icon_state = DEFILER_OZELOMELYN),
 			)
 	var/toxin_choice = show_radial_menu(owner, owner, defiler_toxin_images_list, radius = 48)
 	if(!toxin_choice)
@@ -300,7 +297,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 		if(R.name == toxin_choice)
 			X.selected_reagent = R.type
 			break
-	to_chat(X, span_notice("We will now use <b>[toxin_choice]</b>."))
+	X.balloon_alert(X, "[toxin_choice]")
 	update_button_icon()
 	return succeed_activate()
 
@@ -334,7 +331,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 	reagent_slash_duration_timer_id = addtimer(CALLBACK(src, .proc/reagent_slash_deactivate, X), DEFILER_REAGENT_SLASH_DURATION, TIMER_STOPPABLE) //Initiate the timer and set the timer ID for reference
 	reagent_slash_reagent = X.selected_reagent
 
-	to_chat(X, span_xenodanger("Our spines fill with virulent toxins!")) //Let the user know
+	X.balloon_alert(X, "Reagent slash active") //Let the user know
 	X.playsound_local(X, 'sound/voice/alien_drool2.ogg', 25)
 
 	succeed_activate()
@@ -349,7 +346,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 	reagent_slash_duration_timer_id = null
 	reagent_slash_reagent = null
 
-	to_chat(X, span_xenodanger("We are no longer benefitting from [src].")) //Let the user know
+	X.balloon_alert(X, "Reagent slash over") //Let the user know
 	X.playsound_local(X, 'sound/voice/hiss5.ogg', 25)
 
 
@@ -398,18 +395,18 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 		return
 	if(!isitem(A) && !ishuman(A))
 		if(!silent)
-			to_chat(owner, span_warning("We cant use that on [A]!"))
+			A.balloon_alert(owner, "Cannot grab")
 		return FALSE
 	if(isliving(A))
 		var/mob/living/livingtarget = A
 		if(livingtarget.stat == DEAD)
 			if(!silent)
-				to_chat(owner, span_warning("We cant use that on [livingtarget], they're dead!"))
+				livingtarget.balloon_alert(owner, "Cannot grab, dead")
 			return FALSE
 	var/atom/movable/target = A
 	if(target.anchored)
 		if(!silent)
-			to_chat(owner, span_warning("[target] is anchored and cannot be moved!"))
+			target.balloon_alert(owner, "Cannot grab, anchored")
 		return FALSE
 
 	var/turf/current = get_turf(owner)
@@ -422,7 +419,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 	while((current != target_turf))
 		if(current.density)
 			if(!silent)
-				to_chat(owner, span_warning("We can't reach [target]!"))
+				target.balloon_alert(owner, "Cannot reach")
 			return FALSE
 		current = get_step_towards(current, target_turf)
 
@@ -441,7 +438,7 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 	QDEL_NULL(tentacle)
 	qdel(source)
 	if(!can_use_ability(target, TRUE, XACT_IGNORE_COOLDOWN|XACT_IGNORE_PLASMA))
-		to_chat(owner, span_warning("We failed to grab anything!"))
+		owner.balloon_alert(owner, "Grab failed")
 		return
 	tentacle = owner.beam(target, "curse0",'icons/effects/beam.dmi')
 	playsound(target, 'sound/effects/blobattack.ogg', 40, 1)
@@ -466,3 +463,4 @@ GLOBAL_LIST_INIT(defile_purge_list, typecacheof(list(
 #undef DEFILER_NEUROTOXIN
 #undef DEFILER_HEMODILE
 #undef DEFILER_TRANSVITOX
+#undef DEFILER_OZELOMELYN

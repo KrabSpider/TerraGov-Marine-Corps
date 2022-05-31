@@ -9,14 +9,14 @@ SUBSYSTEM_DEF(advanced_pathfinding)
 	var/list/datum/ai_behavior/node_pathfinding_to_do = list()
 
 /datum/controller/subsystem/advanced_pathfinding/fire()
-	for(var/datum/ai_behavior/ai_behavior AS in node_pathfinding_to_do)
-		ai_behavior.look_for_node_path()
-		node_pathfinding_to_do -= ai_behavior
-		if (MC_TICK_CHECK)
-			return
 	for(var/datum/ai_behavior/ai_behavior AS in tile_pathfinding_to_do)
 		ai_behavior.look_for_tile_path()
 		tile_pathfinding_to_do -= ai_behavior
+		if (MC_TICK_CHECK)
+			return
+	for(var/datum/ai_behavior/ai_behavior AS in node_pathfinding_to_do)
+		ai_behavior.look_for_node_path()
+		node_pathfinding_to_do -= ai_behavior
 		if (MC_TICK_CHECK)
 			return
 

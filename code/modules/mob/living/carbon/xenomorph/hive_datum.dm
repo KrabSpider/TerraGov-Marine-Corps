@@ -6,7 +6,6 @@
 	var/mob/living/carbon/xenomorph/living_xeno_ruler
 	var/xeno_queen_timer
 	var/xenos_per_queen = 8 //Minimum number of xenos to support a queen.
-	var/hive_orders = "" //What orders should the hive have
 	var/color = null
 	var/prefix = ""
 	var/hive_flags = NONE
@@ -85,7 +84,7 @@
 	.["upgrades"] = list()
 	for(var/datum/hive_upgrade/upgrade AS in buyable_upgrades)
 		.["upgrades"] += list(list("name" = upgrade.name, "desc" = upgrade.desc, "category" = upgrade.category,\
-		"cost" = upgrade.psypoint_cost, "times_bought" = upgrade.times_bought, "can_buy" = upgrade.can_buy(user, TRUE), "iconstate" = upgrade.icon))
+		"cost" = upgrade.psypoint_cost, "times_bought" = upgrade.times_bought, "iconstate" = upgrade.icon))
 	.["psypoints"] = SSpoints.xeno_points_by_hive[hivenumber]
 
 /datum/hive_status/ui_static_data(mob/user)
@@ -99,7 +98,7 @@
 			var/buying = params["buyname"]
 			var/datum/hive_upgrade/upgrade = upgrades_by_name[buying]
 			var/mob/living/carbon/xenomorph/user = usr
-			if(!upgrade.can_buy(user))
+			if(!upgrade.can_buy(user, FALSE))
 				return
 			if(!upgrade.on_buy(user))
 				return
@@ -166,15 +165,12 @@
 		xenos += xenos_by_typepath[typepath]
 	return xenos
 
-// doing this by type means we get a pseudo sorted list
-/datum/hive_status/proc/get_watchable_xenos()
+///Returning all xenos including queen that are not at centcom and not self.
+/datum/hive_status/proc/get_watchable_xenos(mob/living/carbon/xenomorph/self)
 	var/list/xenos = list()
 	for(var/typepath in xenos_by_typepath)
-		if(typepath == /mob/living/carbon/xenomorph/queen) // hardcoded check for now
-			continue
-		for(var/i in xenos_by_typepath[typepath])
-			var/mob/living/carbon/xenomorph/X = i
-			if(is_centcom_level(X.z))
+		for(var/mob/living/carbon/xenomorph/X AS in xenos_by_typepath[typepath])
+			if(X == self || is_centcom_level(X.z))
 				continue
 			xenos += X
 	return xenos
@@ -189,7 +185,7 @@
 			var/mob/living/carbon/xenomorph/X = i
 			if(is_centcom_level(X.z))
 				continue
-			if(!(X.xeno_caste.caste_flags & CASTE_CAN_BE_LEADER))
+			if(!(X.xeno_caste.can_flags & CASTE_CAN_BE_LEADER))
 				continue
 			xenos += X
 	return xenos
@@ -670,7 +666,7 @@ to_chat will check for valid clients itself already so no need to double check f
 
 
 /datum/hive_status/proc/attempt_to_spawn_larva_in_silo(mob/xeno_candidate, possible_silos, larva_already_reserved = FALSE)
-	xeno_candidate.playsound_local(xeno_candidate, 'sound/ambience/votestart.ogg')
+	xeno_candidate.playsound_local(xeno_candidate, 'sound/ambience/votestart.ogg', 50)
 	window_flash(xeno_candidate.client)
 	var/obj/structure/xeno/silo/chosen_silo
 	if(length(possible_silos) > 1)
@@ -732,13 +728,14 @@ to_chat will check for valid clients itself already so no need to double check f
 	span_xenodanger("We burrow out of the ground and awaken from our slumber. For the Hive!"))
 
 	log_game("[key_name(xeno_candidate)] has joined as [new_xeno] at [AREACOORD(new_xeno.loc)].")
+	var/datum/job/xeno_job = SSjob.GetJobType(/datum/job/xenomorph)
+	log_debug("A larva was spawned, it was [larva_already_reserved ? "already" : "not"] reserved. There is now [xeno_job.total_positions] total xeno positions and [xeno_job.current_positions] were taken.")
 	message_admins("[key_name(xeno_candidate)] has joined as [ADMIN_TPMONTY(new_xeno)].")
 
 	xeno_candidate.mind.transfer_to(new_xeno, TRUE)
 	new_xeno.playsound_local(new_xeno, 'sound/effects/xeno_newlarva.ogg')
 	to_chat(new_xeno, span_xenoannounce("We are a xenomorph larva awakened from slumber!"))
 	if(!larva_already_reserved)
-		var/datum/job/xeno_job = SSjob.GetJobType(/datum/job/xenomorph)
 		xeno_job.occupy_job_positions(1)
 	return new_xeno
 
@@ -796,6 +793,8 @@ to_chat will check for valid clients itself already so no need to double check f
 	if(bypass_flag)
 		hive_flags |= HIVE_CAN_COLLAPSE_FROM_SILO
 	else if(!(hive_flags & HIVE_CAN_COLLAPSE_FROM_SILO))
+		return
+	if(SSticker.mode.name != "Distress Signal")
 		return
 	var/datum/game_mode/infestation/distress/D = SSticker.mode
 	if(D.round_stage != INFESTATION_MARINE_DEPLOYMENT)
@@ -894,8 +893,14 @@ to_chat will check for valid clients itself already so no need to double check f
 
 ///updates and sets the t2 and t3 xeno limits
 /datum/hive_status/proc/update_tier_limits()
-	tier3_xeno_limit = max(length(xenos_by_tier[XENO_TIER_THREE]),FLOOR((length(xenos_by_tier[XENO_TIER_ZERO])+length(xenos_by_tier[XENO_TIER_ONE])+length(xenos_by_tier[XENO_TIER_TWO])+length(xenos_by_tier[XENO_TIER_FOUR]))/3+1,1))
-	tier2_xeno_limit = max(length(xenos_by_tier[XENO_TIER_TWO]),length(xenos_by_tier[XENO_TIER_ZERO]) + length(xenos_by_tier[XENO_TIER_ONE]) + length(xenos_by_tier[XENO_TIER_FOUR])+1 - length(xenos_by_tier[XENO_TIER_THREE]))
+	var/zeros = get_total_tier_zeros()
+	var/ones = length(xenos_by_tier[XENO_TIER_ONE])
+	var/twos = length(xenos_by_tier[XENO_TIER_TWO])
+	var/threes = length(xenos_by_tier[XENO_TIER_THREE])
+	var/fours = length(xenos_by_tier[XENO_TIER_FOUR])
+
+	tier3_xeno_limit = max(threes, FLOOR((zeros + ones + twos + fours) / 3 + 1, 1))
+	tier2_xeno_limit = max(twos, zeros + ones + fours + 1 - threes)
 
 // ***************************************
 // *********** Corrupted Xenos
@@ -931,6 +936,9 @@ to_chat will check for valid clients itself already so no need to double check f
 	hivenumber = XENO_HIVE_CORRUPTED
 
 /mob/living/carbon/xenomorph/crusher/Corrupted
+	hivenumber = XENO_HIVE_CORRUPTED
+
+/mob/living/carbon/xenomorph/gorger/Corrupted
 	hivenumber = XENO_HIVE_CORRUPTED
 
 /mob/living/carbon/xenomorph/defender/Corrupted
@@ -1005,6 +1013,9 @@ to_chat will check for valid clients itself already so no need to double check f
 /mob/living/carbon/xenomorph/crusher/Alpha
 	hivenumber = XENO_HIVE_ALPHA
 
+/mob/living/carbon/xenomorph/gorger/Alpha
+	hivenumber = XENO_HIVE_ALPHA
+
 /mob/living/carbon/xenomorph/defender/Alpha
 	hivenumber = XENO_HIVE_ALPHA
 
@@ -1074,6 +1085,9 @@ to_chat will check for valid clients itself already so no need to double check f
 /mob/living/carbon/xenomorph/crusher/Beta
 	hivenumber = XENO_HIVE_BETA
 
+/mob/living/carbon/xenomorph/gorger/Beta
+	hivenumber = XENO_HIVE_BETA
+
 /mob/living/carbon/xenomorph/defender/Beta
 	hivenumber = XENO_HIVE_BETA
 
@@ -1141,6 +1155,9 @@ to_chat will check for valid clients itself already so no need to double check f
 	hivenumber = XENO_HIVE_ZETA
 
 /mob/living/carbon/xenomorph/crusher/Zeta
+	hivenumber = XENO_HIVE_ZETA
+
+/mob/living/carbon/xenomorph/gorger/Zeta
 	hivenumber = XENO_HIVE_ZETA
 
 /mob/living/carbon/xenomorph/defender/Zeta

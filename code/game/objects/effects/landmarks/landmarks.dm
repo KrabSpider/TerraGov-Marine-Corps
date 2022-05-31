@@ -240,7 +240,7 @@
 	icon_state = "weapon1"
 	weapon_list = list(
 		/obj/item/weapon/gun/energy/lasgun/M43/practice,
-		/obj/item/weapon/gun/energy/lasgun/tesla,
+		/obj/item/weapon/gun/energy/lasgun/lasrifle/tesla,
 		/obj/item/weapon/gun/grenade_launcher/single_shot/flare,
 		/obj/item/weapon/gun/pistol/standard_pistol,
 		/obj/item/weapon/gun/pistol/standard_pocketpistol,
@@ -266,7 +266,6 @@
 		/obj/item/weapon/combat_knife,
 		/obj/item/weapon/combat_knife/upp,
 		/obj/item/stack/throwing_knife,
-		/obj/item/weapon/unathiknife,
 		/obj/item/weapon/chainofcommand,
 		/obj/item/weapon/broken_bottle,
 		/obj/item/weapon/baseballbat,
@@ -314,7 +313,7 @@
 		/obj/item/weapon/gun/rifle/standard_br,
 		/obj/item/weapon/gun/rifle/m412,
 		/obj/item/weapon/gun/rifle/m41a,
-		/obj/item/weapon/gun/rifle/ak47,
+		/obj/item/weapon/gun/rifle/mpi_km,
 		/obj/item/weapon/gun/rifle/m16,
 		/obj/item/weapon/gun/rifle/famas,
 		/obj/item/weapon/gun/rifle/alf_machinecarbine,
@@ -432,3 +431,39 @@
 	area_to_control.set_to_contested()
 	GLOB.sensor_towers += loc
 	return INITIALIZE_HINT_QDEL
+
+/obj/effect/landmark/valhalla_xeno_spawn_landmark_close
+	name = "Valhalla xeno spawn"
+	icon = 'icons/effects/landmarks_static.dmi'
+	icon_state = "xeno_spawn_valhalla"
+
+/obj/effect/landmark/valhalla_xeno_spawn_landmark_close/Initialize()
+	. = ..()
+	GLOB.valhalla_xeno_spawn_landmark[CLOSE] = src
+
+/obj/effect/landmark/valhalla_xeno_spawn_landmark_close_two
+	name = "Valhalla xeno spawn"
+	icon = 'icons/effects/landmarks_static.dmi'
+	icon_state = "xeno_spawn_valhalla"
+
+/obj/effect/landmark/valhalla_xeno_spawn_landmark_close_two/Initialize()
+	. = ..()
+	GLOB.valhalla_xeno_spawn_landmark[CLOSE2] = src
+
+/obj/effect/landmark/valhalla_xeno_spawn_landmark_far
+	name = "Valhalla xeno spawn"
+	icon = 'icons/effects/landmarks_static.dmi'
+	icon_state = "xeno_spawn_valhalla"
+
+/obj/effect/landmark/valhalla_xeno_spawn_landmark_far/Initialize()
+	. = ..()
+	GLOB.valhalla_xeno_spawn_landmark[FAR] = src
+
+/obj/effect/landmark/valhalla_xeno_spawn_landmark_far_two
+	name = "Valhalla xeno spawn"
+	icon = 'icons/effects/landmarks_static.dmi'
+	icon_state = "xeno_spawn_valhalla"
+
+/obj/effect/landmark/valhalla_xeno_spawn_landmark_far_two/Initialize()
+	. = ..()
+	GLOB.valhalla_xeno_spawn_landmark[FAR2] = src

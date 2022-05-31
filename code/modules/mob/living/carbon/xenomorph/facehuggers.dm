@@ -45,6 +45,8 @@
 	var/lifetimer
 	///The timer tracking when we next jump
 	var/jumptimer
+	///The timer to go active
+	var/activetimer
 	///Time to become active after impacting on a direct thrown hit
 	var/impact_time = 1.5 SECONDS
 	///Time to become active again
@@ -91,11 +93,7 @@
 	source = null
 
 /obj/item/clothing/mask/facehugger/Destroy()
-	deltimer(jumptimer)
-	deltimer(lifetimer)
 	remove_danger_overlay() //Remove the danger overlay
-	lifetimer = null
-	jumptimer = null
 	if(source)
 		clear_hugger_source()
 	return ..()
@@ -134,7 +132,7 @@
 		var/mob/living/carbon/xenomorph/X = user
 		if(X.xeno_caste.caste_flags & CASTE_CAN_HOLD_FACEHUGGERS)
 			deltimer(jumptimer)
-			jumptimer = null
+			deltimer(activetimer)
 			remove_danger_overlay() //Remove the exclamation overlay as we pick it up
 			facehugger_register_source(X)
 			return ..() // These can pick up huggers.
@@ -179,27 +177,25 @@
 	. = ..()
 	switch(stat)
 		if(CONSCIOUS)
-			to_chat(user, span_warning("[src] seems to be active."))
+			. += span_warning("[src] seems to be active.")
 		if(UNCONSCIOUS)
-			to_chat(user, span_warning("[src] seems to be asleep."))
+			. += span_warning("[src] seems to be asleep.")
 		if(DEAD)
-			to_chat(user, span_danger("[src] is not moving."))
+			. += span_danger("[src] is not moving.")
 	if(initial(sterile))
-		to_chat(user, span_warning("It looks like the proboscis has been removed."))
+		. += span_warning("It looks like the proboscis has been removed.")
 
 /obj/item/clothing/mask/facehugger/dropped(mob/user)
 	. = ..()
 	// Whena  xeno removes the hugger from storage we don't want to start the active timer until they drop or throw it
 	if(isxeno(user)) //Set the source mob
 		facehugger_register_source(user)
-	if(isxenocarrier(user))
-		go_active(TRUE)
 
 /obj/item/clothing/mask/facehugger/proc/go_idle(hybernate = FALSE, no_activate = FALSE)
 	if(stat == DEAD)
 		return FALSE
 	deltimer(jumptimer) //Clear jump timers
-	jumptimer = null
+	deltimer(activetimer)
 	remove_danger_overlay() //Remove the danger overlay
 	if(stat == CONSCIOUS)
 		stat = UNCONSCIOUS
@@ -207,9 +203,8 @@
 	if(hybernate) //If we're hybernating we're going into stasis; we no longer have a death timer
 		stasis = TRUE
 		deltimer(lifetimer)
-		lifetimer = null
 	else if(!attached && !(stasis || no_activate))
-		addtimer(CALLBACK(src, .proc/go_active), activate_time)
+		activetimer = addtimer(CALLBACK(src, .proc/go_active), activate_time, TIMER_STOPPABLE|TIMER_UNIQUE)
 		lifetimer = addtimer(CALLBACK(src, .proc/check_lifecycle), FACEHUGGER_DEATH, TIMER_STOPPABLE|TIMER_UNIQUE)
 
 ///Resets the life timer for the facehugger
@@ -235,7 +230,6 @@
 	pre_leap() //Go into the universal leap set up proc
 	update_icon()
 	return TRUE
-
 
 ///Called before we leap
 /obj/item/clothing/mask/facehugger/proc/pre_leap(activation_time = jump_cooldown)
@@ -566,9 +560,9 @@
 	if(ishuman(user))
 		var/hugsound = user.gender == FEMALE ? get_sfx("female_hugged") : get_sfx("male_hugged")
 		playsound(loc, hugsound, 25, 0)
-	if(!sterile && !issynth(user) && !isIPC(user))
+	if(!sterile && !issynth(user))
 		user.disable_lights(sparks = TRUE, silent = TRUE)
-		var/stamina_dmg = user.maxHealth * 2 + user.max_stamina_buffer
+		var/stamina_dmg = user.maxHealth + user.max_stamina_buffer
 		user.apply_damage(stamina_dmg, STAMINA) // complete winds the target
 		user.Unconscious(2 SECONDS)
 	addtimer(VARSET_CALLBACK(src, flags_item, flags_item|NODROP), IMPREGNATION_TIME) // becomes stuck after min-impreg time
@@ -589,7 +583,7 @@
 	else
 		reset_attach_status(as_planned)
 		playsound(loc, 'sound/voice/alien_facehugger_dies.ogg', 25, 1)
-		addtimer(CALLBACK(src, .proc/go_active), activate_time)
+		activetimer = addtimer(CALLBACK(src, .proc/go_active), activate_time)
 		update_icon()
 
 	if(as_planned)
@@ -609,8 +603,7 @@
 
 	deltimer(jumptimer)
 	deltimer(lifetimer)
-	lifetimer = null
-	jumptimer = null
+	deltimer(activetimer)
 	remove_danger_overlay() //Remove the danger overlay
 
 	update_icon()
@@ -658,7 +651,7 @@
 	if(exposed_temperature > 300)
 		kill_hugger()
 
-/obj/item/clothing/mask/facehugger/flamer_fire_act()
+/obj/item/clothing/mask/facehugger/flamer_fire_act(burnlevel)
 	kill_hugger()
 
 /obj/item/clothing/mask/facehugger/dropped(mob/user)
@@ -714,7 +707,7 @@
 
 	var/mob/living/victim = M
 	do_attack_animation(M)
-	var/armor_block = victim.run_armor_check(BODY_ZONE_CHEST, "bio")
+	var/armor_block = victim.get_soft_armor("bio", BODY_ZONE_CHEST)
 	victim.apply_damage(100, STAMINA, BODY_ZONE_CHEST, armor_block) //This should prevent sprinting
 	victim.apply_damage(1, BRUTE, sharp = TRUE) //Token brute for the injection
 	victim.reagents.add_reagent(/datum/reagent/toxin/xeno_neurotoxin, 10, no_overdose = TRUE)
@@ -781,7 +774,7 @@
 
 		target.adjust_stagger(3)
 		target.add_slowdown(15)
-		armor_block = target.run_armor_check(BODY_ZONE_CHEST, "bio")
+		armor_block = target.get_soft_armor("bio", BODY_ZONE_CHEST)
 		target.apply_damage(100, STAMINA, BODY_ZONE_CHEST, armor_block) //Small amount of stamina damage; meant to stop sprinting.
 
 	kill_hugger(0.5 SECONDS)
@@ -808,7 +801,7 @@
 	var/affecting = ran_zone(null, 0)
 	if(!affecting) //Still nothing??
 		affecting = BODY_ZONE_CHEST //Gotta have a torso?!
-	var/armor_block = victim.run_armor_check(affecting, "melee")
+	var/armor_block = victim.get_soft_armor("melee", affecting)
 	victim.apply_damage(CARRIER_SLASH_HUGGER_DAMAGE, BRUTE, affecting, armor_block) //Crap base damage after armour...
 	victim.visible_message(span_danger("[src] frantically claws at [victim]!"),span_danger("[src] frantically claws at you!"))
 	leaping = FALSE

@@ -21,6 +21,9 @@
 	var/obj/item/circuitboard/circuit // Circuit to be created and inserted when the machinery is created
 	var/mob/living/carbon/human/operator
 
+	///Whether bullets can bypass the object even though it's dense
+	throwpass = TRUE
+
 /obj/machinery/Initialize()
 	. = ..()
 	GLOB.machines += src
@@ -344,10 +347,9 @@
 
 		dat += "<tr>"
 
-		for(var/datum/wound/W in e.wounds)
-			if(W.internal)
-				internal_bleeding = "Internal bleeding<br>"
-				break
+		for(var/datum/wound/internal_bleeding/IB in e.wounds)
+			internal_bleeding = "Internal bleeding<br>"
+			break
 		if(istype(e, /datum/limb/chest) && occ["lung_ruptured"])
 			lung_ruptured = "Lung ruptured:<br>"
 		if(e.limb_status & LIMB_SPLINTED)

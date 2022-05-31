@@ -12,7 +12,7 @@
 
 /datum/action/xeno_action/activable/charge/proc/charge_complete()
 	SIGNAL_HANDLER
-	UnregisterSignal(owner, list(COMSIG_XENO_OBJ_THROW_HIT, COMSIG_XENO_NONE_THROW_HIT, COMSIG_XENO_LIVING_THROW_HIT))
+	UnregisterSignal(owner, list(COMSIG_XENO_OBJ_THROW_HIT, COMSIG_MOVABLE_POST_THROW, COMSIG_XENO_LIVING_THROW_HIT))
 
 /datum/action/xeno_action/activable/charge/proc/obj_hit(datum/source, obj/target, speed)
 	SIGNAL_HANDLER
@@ -50,7 +50,7 @@
 	var/mob/living/carbon/xenomorph/ravager/X = owner
 
 	RegisterSignal(X, COMSIG_XENO_OBJ_THROW_HIT, .proc/obj_hit)
-	RegisterSignal(X, COMSIG_XENO_NONE_THROW_HIT, .proc/charge_complete)
+	RegisterSignal(X, COMSIG_MOVABLE_POST_THROW, .proc/charge_complete)
 	RegisterSignal(X, COMSIG_XENO_LIVING_THROW_HIT, .proc/mob_hit)
 
 	X.visible_message(span_danger("[X] charges towards \the [A]!"), \
@@ -69,7 +69,7 @@
 /datum/action/xeno_action/activable/charge/ai_should_use(atom/target)
 	if(!iscarbon(target))
 		return FALSE
-	if(get_dist(target, owner) > 4)
+	if(!line_of_sight(owner, target, 4))
 		return FALSE
 	if(!can_use_ability(target, override_flags = XACT_IGNORE_SELECTED_ABILITY))
 		return FALSE
@@ -181,7 +181,7 @@
 
 	X.stagger = 0 //Remove stagger
 	X.set_slowdown(0) //Remove slowdown
-	X.soft_armor = X.soft_armor.setRating(bomb = XENO_BOMB_RESIST_3) //Improved explosion resistance
+	X.soft_armor = X.soft_armor.modifyRating(bomb = 20) //Improved explosion resistance
 	ADD_TRAIT(X, TRAIT_STAGGERIMMUNE, ENDURE_TRAIT) //Can now endure impacts/damages that would make lesser xenos flinch
 	ADD_TRAIT(X, TRAIT_SLOWDOWNIMMUNE, ENDURE_TRAIT) //Can now endure slowdown
 
@@ -214,7 +214,7 @@
 		X.setBruteLoss((X.xeno_caste.max_health - X.get_crit_threshold()-1) * brute_percentile_damage)
 		X.setFireLoss((X.xeno_caste.max_health - X.get_crit_threshold()-1) * burn_percentile_damage)
 
-	X.soft_armor = X.soft_armor.setRating(bomb = XENO_BOMB_RESIST_1) //Remove resistances/immunities
+	X.soft_armor = X.soft_armor.modifyRating(bomb = -20) //Remove resistances/immunities
 	REMOVE_TRAIT(X, TRAIT_STAGGERIMMUNE, ENDURE_TRAIT)
 	REMOVE_TRAIT(X, TRAIT_SLOWDOWNIMMUNE, ENDURE_TRAIT)
 	endure_threshold = initial(endure_threshold) //Reset the endure vars to their initial states
@@ -481,7 +481,7 @@
 		return
 	//heals 10% extra per leeched
 	var/heal_mod = 1 + (leech_count/10)
-	
+
 	heal_data[1] = (heal_data[1] * heal_mod)
 
 ///Adds the slashed mob to tracked damage mobs

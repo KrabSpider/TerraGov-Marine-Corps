@@ -8,7 +8,6 @@
 	width = 11
 	height = 21
 
-
 /obj/docking_port/stationary/marine_dropship/on_crash()
 	for(var/obj/machinery/power/apc/A AS in GLOB.apcs_list) //break APCs
 		if(!is_mainship_level(A.z))
@@ -65,11 +64,8 @@
 	for(var/turf/T in range(3, rear)+range(3, left)+range(3, right)+range(2, front))
 		T.empty(/turf/open/floor/plating)
 
-	/*
-	explosion(front, 2, 4, 7, 0)
-	explosion(rear, 3, 5, 8, 0)
-	explosion(left, 3, 5, 8, 0)
-	explosion(right, 3, 5, 8, 0)*/
+	SSmonitor.process_human_positions()
+	SSevacuation.initial_human_on_ship = SSmonitor.human_on_ship
 
 /obj/docking_port/stationary/marine_dropship/crash_target
 	name = "dropshipcrash"
@@ -83,12 +79,22 @@
 	name = "Landing Zone One"
 	id = "lz1"
 
+/obj/docking_port/stationary/marine_dropship/lz1/Initialize(mapload)
+	. = ..()
+	var/area/area = get_area(src)
+	area.flags_area |= MARINE_BASE
+
 /obj/docking_port/stationary/marine_dropship/lz1/prison
 	name = "LZ1: Main Hangar"
 
 /obj/docking_port/stationary/marine_dropship/lz2
 	name = "Landing Zone Two"
 	id = "lz2"
+
+/obj/docking_port/stationary/marine_dropship/lz2/Initialize(mapload)
+	. = ..()
+	var/area/area = get_area(src)
+	area.flags_area |= MARINE_BASE
 
 /obj/docking_port/stationary/marine_dropship/lz2/prison
 	name = "LZ2: Civ Residence Hangar"
@@ -484,6 +490,7 @@
 		M.unlock_all()
 		dat += "<A href='?src=[REF(src)];abduct=1'>Capture the [M]</A><br>"
 		if(M.hijack_state != HIJACK_STATE_CALLED_DOWN)
+			to_chat(X, span_xenowarning("We corrupt the bird's controls, unlocking the doors and preventing it from flight."))
 			M.set_hijack_state(HIJACK_STATE_CALLED_DOWN)
 			M.do_start_hijack_timer()
 
@@ -663,6 +670,9 @@
 			else
 				to_chat(X, span_xenowarning("We can't do that right now."))
 				return
+		var/confirm = tgui_alert(usr, "Would you like to hijack the metal bird?", "Hijack the bird?", list("Yes", "No"))
+		if(confirm != "Yes")
+			return
 		var/obj/docking_port/stationary/marine_dropship/crash_target/CT = pick(SSshuttle.crash_targets)
 		if(!CT)
 			return

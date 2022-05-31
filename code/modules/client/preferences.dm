@@ -24,6 +24,9 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/ui_style_alpha = 230
 	var/tgui_fancy = TRUE
 	var/tgui_lock = FALSE
+	var/tgui_input = TRUE
+	var/tgui_input_big_buttons = FALSE
+	var/tgui_input_buttons_swap = FALSE
 	var/toggles_deadchat = TOGGLES_DEADCHAT_DEFAULT
 	var/toggles_chat = TOGGLES_CHAT_DEFAULT
 	var/toggles_sound = TOGGLES_SOUND_DEFAULT
@@ -37,7 +40,6 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 
 	var/show_typing = TRUE
 	var/windowflashing = TRUE
-	var/focus_chat = FALSE
 	var/clientfps = 0
 
 	// Custom Keybindings
@@ -53,7 +55,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/list/chem_macros = list()
 
 	//Synthetic specific preferences
-	var/synthetic_name = "David"
+	var/synthetic_name = "Undefined"
 	var/synthetic_type = "Synthetic"
 
 	//Xenomorph specific preferences
@@ -69,11 +71,11 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/age = 20
 	var/species = "Human"
 	var/ethnicity = "Western"
-	var/body_type = "Mesomorphic (Average)"
 	var/good_eyesight = TRUE
 	var/preferred_squad = "None"
 	var/alternate_option = RETURN_TO_LOBBY
 	var/preferred_slot = SLOT_S_STORE
+	var/preferred_slot_alt = SLOT_BACK
 	var/list/gear
 	var/list/job_preferences = list()
 
@@ -108,9 +110,8 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/moth_wings = "Plain"
 
 	//Lore
-	var/citizenship = "TerraGov"
+	var/citizenship = "Earth Born"
 	var/religion = "None"
-	var/nanotrasen_relation = "Neutral"
 	var/flavor_text = ""
 	var/med_record = ""
 	var/sec_record = ""

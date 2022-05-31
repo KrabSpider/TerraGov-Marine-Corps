@@ -151,7 +151,7 @@
 	if(!opened)
 		orient2hud()
 		opened = 1
-	if (use_sound)
+	if (use_sound && user.stat != DEAD)
 		playsound(src.loc, src.use_sound, 25, 1, 3)
 
 	if (user.s_active)
@@ -578,6 +578,14 @@
 	for(var/obj/item/I AS in contents)
 		I.on_exit_storage(src)
 		qdel(I)
+
+//finds a stored item to draw
+/obj/item/storage/do_quick_equip()
+	if(!length(contents))
+		return FALSE //we don't want to equip the storage item itself
+	var/obj/item/W = contents[length(contents)]
+	remove_from_storage(W, user = src)
+	return W
 
 /obj/item/storage/Initialize(mapload, ...)
 	. = ..()

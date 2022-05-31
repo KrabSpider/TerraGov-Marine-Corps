@@ -99,12 +99,12 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 						avail_chans += "use [MODE_TOKEN_DEPARTMENT] for [lowertext(channels[i])]"
 				else
 					avail_chans += "use [GLOB.channel_tokens[channels[i]]] for [lowertext(channels[i])]"
-		to_chat(user, "<span class='notice'>A small screen on the headset displays the following available frequencies:\n[english_list(avail_chans)].")
+		. += "<span class='notice'>A small screen on the headset displays the following available frequencies:\n[english_list(avail_chans)]."
 
 		if(command)
-			to_chat(user, span_info("Alt-click to toggle the high-volume mode."))
+			. += span_info("Alt-click to toggle the high-volume mode.")
 	else
-		to_chat(user, span_notice("A small screen on the headset flashes, it's too small to read without holding or wearing the headset."))
+		. += span_notice("A small screen on the headset flashes, it's too small to read without holding or wearing the headset.")
 
 
 /obj/item/radio/headset/recalculateChannels()
@@ -141,6 +141,13 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	else if(issilicon(loc))
 		return ..()
 	return FALSE
+
+
+/obj/item/radio/headset/attack_self(mob/living/user)
+	if(!istype(user) || !Adjacent(user) || user.incapacitated())
+		return
+	channels[RADIO_CHANNEL_REQUISITIONS] = !channels[RADIO_CHANNEL_REQUISITIONS]
+	to_chat(user, span_notice("You toggle supply comms [channels[RADIO_CHANNEL_REQUISITIONS] ? "on" : "off"]."))
 
 
 /obj/item/radio/headset/survivor
@@ -180,7 +187,6 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 	if(slot == SLOT_EARS)
 		if(GLOB.faction_to_data_hud[user.faction] != hud_type)
 			safety_protocol(user)
-			return
 		wearer = user
 		squadhud = GLOB.huds[hud_type]
 		enable_squadhud()
@@ -193,12 +199,11 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 			camera.network |= lowertext(user.assigned_squad.name)
 	return ..()
 
-/// Make the headset explode
+/// Make the headset lose its keysloy
 /obj/item/radio/headset/mainship/proc/safety_protocol(mob/living/carbon/human/user)
-	to_chat(user, span_warning("[src] violently buzzes and explodes in your face as its tampering mechanisms are triggered!"))
-	playsound(user, 'sound/effects/explosion_small1.ogg', 50, 1)
-	user.ex_act(EXPLODE_LIGHT)
-	qdel(src)
+	QDEL_NULL(keyslot)
+	QDEL_NULL(keyslot2)
+	recalculateChannels()
 
 /obj/item/radio/headset/mainship/dropped(mob/living/carbon/human/user)
 	if(istype(user) && headset_hud_on)
@@ -402,12 +407,12 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 /obj/item/radio/headset/mainship/st
 	name = "technician radio headset"
 	icon_state = "eng_headset"
-	keyslot = /obj/item/encryptionkey/req
+	keyslot = /obj/item/encryptionkey/general
 	keyslot2 = /obj/item/encryptionkey/engi
 
 /obj/item/radio/headset/mainship/st/rebel
 	frequency = FREQ_COMMON_REBEL
-	keyslot = /obj/item/encryptionkey/req/rebel
+	keyslot = /obj/item/encryptionkey/general/rebel
 	keyslot2 = /obj/item/encryptionkey/engi/rebel
 	hud_type = DATA_HUD_SQUAD_REBEL
 	minimap_type = /datum/action/minimap/marine/rebel
@@ -415,6 +420,7 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 /obj/item/radio/headset/mainship/res
 	name = "research radio headset"
 	icon_state = "med_headset"
+	keyslot = /obj/item/encryptionkey/med
 	minimap_type = /datum/action/minimap/researcher
 
 /obj/item/radio/headset/mainship/doc
@@ -431,11 +437,11 @@ GLOBAL_LIST_INIT(channel_tokens, list(
 /obj/item/radio/headset/mainship/ct
 	name = "supply radio headset"
 	icon_state = "cargo_headset"
-	keyslot = /obj/item/encryptionkey/req
+	keyslot = /obj/item/encryptionkey/general
 
 /obj/item/radio/headset/mainship/ct/rebel
 	frequency = FREQ_COMMON_REBEL
-	keyslot = /obj/item/encryptionkey/req/rebel
+	keyslot = /obj/item/encryptionkey/general/rebel
 	hud_type = DATA_HUD_SQUAD_REBEL
 	minimap_type = /datum/action/minimap/marine/rebel
 

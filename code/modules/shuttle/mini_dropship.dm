@@ -147,11 +147,12 @@
 		to_chat(ui_user, span_warning("Can not toggle night vision mode in caves"))
 		return
 	nvg_vision_mode = !nvg_vision_mode
-	eyeobj.update_remote_sight(ui_user)
 
 /obj/machinery/computer/camera_advanced/shuttle_docker/minidropship/attack_alien(mob/living/carbon/xenomorph/X, damage_amount, damage_type, damage_flag, effects, armor_penetration, isrightclick)
 	. = ..()
 	if(damaged)
+		return
+	if(X.status_flags & INCORPOREAL)
 		return
 	X.visible_message("[X] begins to slash delicately at the computer",
 	"We start slashing delicately at the computer. This will take a while.")

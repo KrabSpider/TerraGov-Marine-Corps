@@ -6,7 +6,11 @@
 	if(!species)
 		set_species()
 
-	var/datum/reagents/R = new /datum/reagents(1000)
+	var/datum/reagents/R
+	if(species.species_flags & NO_CHEM_METABOLIZATION)
+		R = new /datum/reagents(0)
+	else
+		R = new /datum/reagents(1000)
 	reagents = R
 	R.my_atom = src
 
@@ -39,7 +43,8 @@
 	randomize_appearance()
 
 	RegisterSignal(src, COMSIG_ATOM_ACIDSPRAY_ACT, .proc/acid_spray_entered)
-	RegisterSignal(src, list(COMSIG_KB_QUICKEQUIP, COMSIG_CLICK_QUICKEQUIP), .proc/do_quick_equip)
+	RegisterSignal(src, list(COMSIG_KB_QUICKEQUIP, COMSIG_CLICK_QUICKEQUIP), .proc/async_do_quick_equip)
+	RegisterSignal(src, COMSIG_KB_QUICKEQUIPALT, .proc/async_do_quick_equip_alt)
 	RegisterSignal(src, COMSIG_KB_UNIQUEACTION, .proc/do_unique_action)
 	RegisterSignal(src, COMSIG_GRAB_SELF_ATTACK, .proc/fireman_carry_grabbed) // Fireman carry
 	RegisterSignal(src, COMSIG_KB_GIVE, .proc/give_signal_handler)
@@ -70,8 +75,8 @@
 	//and display them
 	add_to_all_mob_huds()
 
-	var/datum/atom_hud/hud_to_add = GLOB.huds[DATA_HUD_BASIC]
-	hud_to_add.add_hud_to(src)
+	GLOB.huds[DATA_HUD_BASIC].add_hud_to(src)
+	GLOB.huds[DATA_HUD_XENO_HEART].add_to_hud(src)
 
 
 
@@ -122,7 +127,7 @@
 
 	var/b_loss = 0
 	var/f_loss = 0
-	var/armor = getarmor(null, "bomb") * 0.01
+	var/armor = get_soft_armor("bomb") * 0.01 //Gets average bomb armor over all limbs.
 
 	switch(severity)
 		if(EXPLODE_DEVASTATE)
@@ -173,7 +178,7 @@
 		var/damage = M.melee_damage
 		var/dam_zone = pick("chest", "l_hand", "r_hand", "l_leg", "r_leg")
 		var/datum/limb/affecting = get_limb(ran_zone(dam_zone))
-		var/armor = run_armor_check(affecting, "melee")
+		var/armor = get_soft_armor("melee", affecting)
 		apply_damage(damage, BRUTE, affecting, armor, updating_health = TRUE)
 
 /mob/living/carbon/human/show_inv(mob/living/user)
@@ -965,16 +970,16 @@
 		return FALSE
 	return ..()
 
-/mob/living/carbon/human/disable_lights(clothing = TRUE, guns = TRUE, flares = TRUE, misc = TRUE, sparks = FALSE, silent = FALSE, forced = FALSE)
+/mob/living/carbon/human/disable_lights(clothing = TRUE, guns = TRUE, flares = TRUE, misc = TRUE, sparks = FALSE, silent = FALSE, forced = FALSE, light_again = FALSE)
 	var/light_off = 0
 	var/goes_out = 0
 	if(clothing)
 		if(istype(wear_suit, /obj/item/clothing/suit))
 			var/obj/item/clothing/suit/S = wear_suit
-			if(S.turn_light(src, FALSE, 0, FALSE, forced))
+			if(S.turn_light(src, FALSE, 0, FALSE, forced, light_again))
 				light_off++
 		for(var/obj/item/clothing/head/hardhat/H in contents)
-			H.turn_light(src, FALSE, 0,FALSE, forced)
+			H.turn_light(src, FALSE, 0,FALSE, forced, light_again)
 			light_off++
 		for(var/obj/item/flashlight/L in contents)
 			if(istype(L, /obj/item/flashlight/flare))
@@ -1126,7 +1131,6 @@
 			b_eyes = 0
 
 	ethnicity = random_ethnicity()
-	body_type = random_body_type()
 
 	age = rand(17, 55)
 

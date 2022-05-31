@@ -20,7 +20,7 @@
 
 /obj/structure/largecrate/examine(mob/user)
 	. = ..()
-	to_chat(user, span_notice("You need a crowbar to pry this open!"))
+	. += span_notice("You need a crowbar to pry this open!")
 
 
 /obj/structure/largecrate/attackby(obj/item/I, mob/user, params)
@@ -163,7 +163,7 @@
 
 /obj/structure/largecrate/random/barrel/examine(mob/user)
 	. = ..()
-	to_chat(user, span_notice("You need a blowtorch to weld this open!"))
+	. += span_notice("You need a blowtorch to weld this open!")
 
 
 /obj/structure/largecrate/random/barrel
@@ -225,7 +225,7 @@
 
 /obj/structure/largecrate/random/barrel/examine(mob/user)
 	. = ..()
-	to_chat(user, span_notice("You need something sharp to cut off the straps."))
+	. += span_notice("You need something sharp to cut off the straps.")
 
 /obj/structure/largecrate/guns
 	name = "\improper TGMC firearms crate (x3)"
@@ -265,7 +265,7 @@
 	stuff = list(
 		/obj/item/weapon/gun/revolver/upp = /obj/item/ammo_magazine/revolver/upp,
 		/obj/item/weapon/gun/pistol/c99 = /obj/item/ammo_magazine/pistol/c99,
-		/obj/item/weapon/gun/rifle/ak47 = /obj/item/ammo_magazine/rifle/ak47,
+		/obj/item/weapon/gun/rifle/mpi_km = /obj/item/ammo_magazine/rifle/mpi_km,
 		/obj/item/weapon/gun/rifle/sniper/svd = /obj/item/ammo_magazine/sniper/svd,
 		/obj/item/weapon/gun/smg/ppsh = /obj/item/ammo_magazine/smg/ppsh,
 		/obj/item/weapon/gun/rifle/type71 = /obj/item/ammo_magazine/rifle/type71,

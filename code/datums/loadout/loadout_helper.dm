@@ -13,7 +13,7 @@
 		return FALSE
 
 	//If we can find it for in a shared vendor, we buy it
-	for(var/type in GLOB.loadout_linked_vendor[seller.faction])
+	for(var/type in (GLOB.loadout_linked_vendor[seller.faction] + GLOB.loadout_linked_vendor[user.job.title]))
 		for(var/datum/vending_product/item_datum AS in GLOB.vending_records[type])
 			if(item_datum.product_path == item_to_buy_type && item_datum.amount != 0)
 				item_datum.amount--
@@ -82,7 +82,7 @@
 		return /datum/item_representation/armor_module/colored
 	if(ispath(item_type, /obj/item/armor_module/storage))
 		return /datum/item_representation/armor_module/storage
-	if(ispath(item_type, /obj/item/storage) && !ispath(item_type, /obj/item/storage/pill_bottle))
+	if(ispath(item_type, /obj/item/storage))
 		return /datum/item_representation/storage
 	if(ispath(item_type, /obj/item/clothing/suit/storage))
 		return /datum/item_representation/suit_with_storage
@@ -96,6 +96,8 @@
 		return /datum/item_representation/stack
 	if(ispath(item_type, /obj/item/card/id))
 		return /datum/item_representation/id
+	if(ispath(item_type, /obj/item/clothing/shoes/marine))
+		return /datum/item_representation/boot
 	return /datum/item_representation
 
 /// Return TRUE if this handful should be buyable, aka if it's corresponding aka box is in a linked vendor
@@ -141,12 +143,6 @@
 		else
 			seller.buying_bitfield &= ~MARINE_CAN_BUY_L_POUCH
 		return TRUE
-	if(selling_bitfield == (MARINE_CAN_BUY_ATTACHMENT|MARINE_CAN_BUY_ATTACHMENT2))
-		if(seller.buying_bitfield & MARINE_CAN_BUY_ATTACHMENT)
-			seller.buying_bitfield &= ~MARINE_CAN_BUY_ATTACHMENT
-		else
-			seller.buying_bitfield &= ~MARINE_CAN_BUY_ATTACHMENT2
-		return TRUE
 	seller.buying_bitfield &= ~selling_bitfield
 	return TRUE
 
@@ -178,3 +174,17 @@
 		next_loadout_data += loadouts_data[++i]
 		new_loadouts_data += list(next_loadout_data)
 	return new_loadouts_data
+
+///If the item is not a stack, return 1. If it is a stack, return the stack size
+/proc/get_item_stack_number(obj/item/I)
+	if(!istype(I, /obj/item/stack))
+		return 1
+	var/obj/item/stack/stack = I
+	return stack.amount
+
+///If the item representation is not a stack, return 1. Else, return the satck size
+/proc/get_item_stack_representation_amount(datum/item_representation/item_representation)
+	if(!istype(item_representation, /datum/item_representation/stack))
+		return 1
+	var/datum/item_representation/stack/stack = item_representation
+	return stack.amount

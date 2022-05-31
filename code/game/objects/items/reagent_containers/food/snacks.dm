@@ -22,7 +22,7 @@
 	reagents.my_atom = src
 	for(var/rid in init_reagents)
 		var/amount = list_reagents[rid]
-		if(type == /datum/reagent/consumable/nutriment)
+		if(rid == /datum/reagent/consumable/nutriment)
 			reagents.add_reagent(rid, amount, tastes.Copy())
 		else
 			reagents.add_reagent(rid, amount, data)
@@ -130,22 +130,22 @@
 	return ..()
 
 /obj/item/reagent_containers/food/snacks/examine(mob/user)
-	..()
+	. = ..()
 	if (!(user in range(0)) && user != loc)
 		return
 	if (bitecount==0)
 		return
 	else if (bitecount==1)
-		to_chat(user, span_notice("\The [src] was bitten by someone!"))
+		. += span_notice("\The [src] was bitten by someone!")
 	else if (bitecount<=3)
-		to_chat(user, span_notice("\The [src] was bitten [bitecount] times!"))
+		. += span_notice("\The [src] was bitten [bitecount] times!")
 	else
-		to_chat(user, span_notice("\The [src] was bitten multiple times!"))
+		. += span_notice("\The [src] was bitten multiple times!")
 
 /obj/item/reagent_containers/food/snacks/attackby(obj/item/I, mob/user, params)
 	. = ..()
 
-	if(istype(I, /obj/item/tool/kitchen/utensil))
+	if(istype(I, /obj/item/tool/kitchen/utensil)) //todo early return
 		var/obj/item/tool/kitchen/utensil/U = I
 
 		if(!U.reagents)
@@ -229,7 +229,6 @@
 				N.visible_message(span_warning("[N] nibbles away at [src]."), "")
 			//N.emote("nibbles away at the [src]")
 			N.health = min(N.health + 1, N.maxHealth)
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// FOOD END
@@ -1307,7 +1306,7 @@
 /obj/item/reagent_containers/food/snacks/monkeycube/examine(mob/user)
 	. = ..()
 	if(package)
-		to_chat(user, "It is wrapped in waterproof cellophane. Maybe using it in your hand would tear it off?")
+		. += "It is wrapped in waterproof cellophane. Maybe using it in your hand would tear it off?"
 
 /obj/item/reagent_containers/food/snacks/monkeycube/afterattack(obj/O, mob/user, proximity)
 	if(!proximity)
@@ -1326,8 +1325,9 @@
 	package = FALSE
 
 /obj/item/reagent_containers/food/snacks/monkeycube/On_Consume(mob/M)
-	to_chat(M, "<span class = 'warning'>Something inside of you suddently expands!</span>")
-
+	to_chat(M, span_warning("Something inside of you suddently expands!</span>"))
+	M.visible_message(span_notice("[M] finishes eating \the [src]."))
+	usr.dropItemToGround(src)
 	if(!ishuman(M))
 		return ..()
 	//Do not try to understand.
@@ -1350,6 +1350,7 @@
 	else 		//someone is having a bad day
 		E.createwound(CUT, 30)
 		surprise.embed_into(M, E)
+	qdel(src)
 
 /obj/item/reagent_containers/food/snacks/monkeycube/proc/Expand()
 	visible_message(span_warning("\The [src] expands!"))

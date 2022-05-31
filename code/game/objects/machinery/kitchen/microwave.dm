@@ -6,6 +6,7 @@
 	layer = ABOVE_TABLE_LAYER
 	density = TRUE
 	anchored = TRUE
+	coverage = 10
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 5
 	active_power_usage = 500
@@ -135,6 +136,8 @@
 
 	return TRUE
 
+/obj/machinery/microwave/nopower
+	use_power = NO_POWER_USE
 
 /*******************
 *   Microwave Menu

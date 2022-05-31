@@ -40,12 +40,16 @@
 	. = ..()
 	core = new(loc)
 	core.parent = src
-	RegisterSignal(src, COMSIG_LIVING_WEEDS_ADJACENT_REMOVED, .proc/check_weeds_and_move)
 	RegisterSignal(src, COMSIG_XENOMORPH_CORE_RETURN, .proc/return_to_core)
 	RegisterSignal(src, COMSIG_XENOMORPH_HIVEMIND_CHANGE_FORM, .proc/change_form)
+	update_action_buttons()
 
 /mob/living/carbon/xenomorph/hivemind/upgrade_possible()
 	return FALSE
+
+/mob/living/carbon/xenomorph/hivemind/upgrade_xeno(newlevel, silent = FALSE)
+	newlevel = XENO_UPGRADE_BASETYPE
+	return ..()
 
 /mob/living/carbon/xenomorph/hivemind/updatehealth()
 	if(on_fire)
@@ -68,7 +72,7 @@
 	var/turf/T = loc
 	if(!istype(T))
 		return
-	if(status_flags & INCORPOREAL || locate(/obj/effect/alien/weeds) in T)
+	if(status_flags & INCORPOREAL || loc_weeds_type)
 		if(health < minimum_health + maxHealth)
 			setBruteLoss(0)
 			setFireLoss(-minimum_health)
@@ -85,11 +89,10 @@
 		QDEL_NULL(core)
 	else
 		core = null
-	upgrade = XENO_UPGRADE_BASETYPE
 	return ..()
 
+
 /mob/living/carbon/xenomorph/hivemind/on_death()
-	upgrade = XENO_UPGRADE_BASETYPE
 	if(!QDELETED(core))
 		QDEL_NULL(core)
 	return ..()
@@ -98,6 +101,9 @@
 	return_to_core()
 
 /mob/living/carbon/xenomorph/hivemind/lay_down()
+	return
+
+/mob/living/carbon/xenomorph/hivemind/set_resting()
 	return
 
 /mob/living/carbon/xenomorph/hivemind/change_form()
@@ -125,10 +131,9 @@
 		throwpass = FALSE
 		upgrade = XENO_UPGRADE_MANIFESTATION
 		set_datum(FALSE)
-		remove_abilities()
-		add_abilities()
 		update_wounds()
 		update_icon()
+		update_action_buttons()
 		return
 	invisibility = initial(invisibility)
 	status_flags = initial(status_flags)
@@ -139,14 +144,15 @@
 	throwpass = initial(throwpass)
 	upgrade = XENO_UPGRADE_BASETYPE
 	set_datum(FALSE)
-	remove_abilities()
-	add_abilities()
 	update_wounds()
 	update_icon()
+	update_action_buttons()
 
-/mob/living/carbon/xenomorph/hivemind/flamer_fire_act()
+
+
+/mob/living/carbon/xenomorph/hivemind/flamer_fire_act(burnlevel)
 	return_to_core()
-	to_chat(src, "<span class='xenonotice'>We were on top of fire, we got moved to our core.")
+	to_chat(src, span_xenonotice("We were on top of fire, we got moved to our core."))
 
 /mob/living/carbon/xenomorph/hivemind/proc/check_weeds(turf/T, strict_turf_check = FALSE)
 	SHOULD_BE_PURE(TRUE)
@@ -161,12 +167,12 @@
 		return
 	return FALSE
 
-/mob/living/carbon/xenomorph/hivemind/proc/check_weeds_and_move(turf/T)
-	if(check_weeds(T))
-		return TRUE
+/mob/living/carbon/xenomorph/hivemind/handle_weeds_adjacent_removed()
+	if(loc_weeds_type || check_weeds(get_turf(src)))
+		return
 	return_to_core()
 	to_chat(src, "<span class='xenonotice'>We had no weeds nearby, we got moved to our core.")
-	return FALSE
+	return
 
 /mob/living/carbon/xenomorph/hivemind/proc/return_to_core()
 	if(!(status_flags & INCORPOREAL) && !TIMER_COOLDOWN_CHECK(src, COOLDOWN_HIVEMIND_MANIFESTATION))
@@ -313,6 +319,7 @@
 	parent.playsound_local(parent, get_sfx("alien_help"), 30, TRUE)
 	to_chat(parent, span_xenohighdanger("Your core has been destroyed!"))
 	xeno_message("A sudden tremor ripples through the hive... \the [parent] has been slain!", "xenoannounce", 5, parent.hivenumber)
+	GLOB.key_to_time_of_role_death[parent.key] = world.time
 	GLOB.key_to_time_of_death[parent.key] = world.time
 	parent.ghostize()
 	if(!QDELETED(parent))

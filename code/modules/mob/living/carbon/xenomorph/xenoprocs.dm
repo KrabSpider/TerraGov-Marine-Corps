@@ -113,7 +113,7 @@
 			continue
 
 		switch(initial(T.tier))
-			if(XENO_TIER_ZERO || XENO_TIER_MINION)
+			if(XENO_TIER_ZERO, XENO_TIER_MINION)
 				continue
 			if(XENO_TIER_FOUR)
 				tier4counts += " | [initial(T.name)]s: [length(hive.xenos_by_typepath[typepath])]"
@@ -183,6 +183,12 @@
 				to_chat(usr,span_notice(" You will now track [resin_silo.name]"))
 				break
 
+	if(href_list["watch_xeno_name"])
+		var/target = locate(href_list["watch_xeno_name"])
+		if(isxeno(target))
+			// Checks for can use done in overwatch action.
+			SEND_SIGNAL(src, COMSIG_XENOMORPH_WATCHXENO, target)
+
 ///Send a message to all xenos. Force forces the message whether or not the hivemind is intact. Target is an atom that is pointed out to the hive. Filter list is a list of xenos we don't message.
 /proc/xeno_message(message = null, span_class = "xenoannounce", size = 5, hivenumber = XENO_HIVE_NORMAL, force = FALSE, atom/target = null, sound = null, apply_preferences = FALSE, filter_list = null, arrow_type, arrow_color, report_distance = FALSE)
 	if(!message)
@@ -197,9 +203,7 @@
 ///returns TRUE if we are permitted to evo to the next case FALSE otherwise
 /mob/living/carbon/xenomorph/proc/upgrade_possible()
 	if(upgrade == XENO_UPGRADE_THREE)
-		if(!xeno_caste.primordial_upgrade_name)
-			return FALSE
-		return hive.upgrades_by_name[xeno_caste.primordial_upgrade_name].times_bought
+		return hive.upgrades_by_name[GLOB.tier_to_primo_upgrade[xeno_caste.tier]].times_bought
 	return (upgrade != XENO_UPGRADE_INVALID && upgrade != XENO_UPGRADE_FOUR)
 
 //Adds stuff to your "Status" pane -- Specific castes can have their own, like carrier hugger count
@@ -222,7 +226,7 @@
 	else //Upgrade process finished or impossible
 		stat("Upgrade Progress:", "(FINISHED)")
 
-	stat("Health:", "[health]/[xeno_caste.max_health]")
+	stat("Health:", "[overheal ? "[overheal] + ": ""][health]/[xeno_caste.max_health]")
 
 	if(xeno_caste.plasma_max > 0)
 		stat("Plasma:", "[plasma_stored]/[xeno_caste.plasma_max]")
@@ -243,7 +247,7 @@
 				msg_holder = "Strong"
 			if(4.0 to INFINITY)
 				msg_holder = "Very strong"
-		stat("Frenzy pheromone strength:", msg_holder)
+		stat("[FRENZY] pheromone strength:", msg_holder)
 	if(warding_aura)
 		switch(warding_aura)
 			if(-INFINITY to 1.0)
@@ -256,7 +260,7 @@
 				msg_holder = "Strong"
 			if(4.0 to INFINITY)
 				msg_holder = "Very strong"
-		stat("Warding pheromone strength:", msg_holder)
+		stat("[WARDING] pheromone strength:", msg_holder)
 	if(recovery_aura)
 		switch(recovery_aura)
 			if(-INFINITY to 1.0)
@@ -269,12 +273,10 @@
 				msg_holder = "Strong"
 			if(4.0 to INFINITY)
 				msg_holder = "Very strong"
-		stat("Recovery pheromone strength:", msg_holder)
+		stat("[RECOVERY] pheromone strength:", msg_holder)
 
 	switch(hivenumber)
 		if(XENO_HIVE_NORMAL)
-			if(hive.hive_orders && hive.hive_orders != "")
-				stat("Hive Orders:", hive.hive_orders)
 			var/hivemind_countdown = SSticker.mode?.get_hivemind_collapse_countdown()
 			if(hivemind_countdown)
 				stat("<b>Orphan hivemind collapse timer:</b>", hivemind_countdown)
@@ -350,25 +352,24 @@
 
 
 /mob/living/carbon/xenomorph/proc/update_progression()
-	if(upgrade_possible()) //upgrade possible
-		if(client && ckey) // pause for ssd/ghosted
-			if(!hive?.living_xeno_ruler || hive.living_xeno_ruler.loc.z == loc.z)
-				if(upgrade_stored >= xeno_caste.upgrade_threshold)
-					if(health == maxHealth && !incapacitated() && !handcuffed)
-						upgrade_xeno(upgrade_next())
-				else
-					// Upgrade is increased based on marine to xeno population taking stored_larva as a modifier.
-					var/datum/job/xeno_job = SSjob.GetJobType(/datum/job/xenomorph)
-					var/stored_larva = xeno_job.total_positions - xeno_job.current_positions
-					var/upgrade_points = 1 + (stored_larva/6) + hive.get_upgrade_boost()
-					upgrade_stored = min(upgrade_stored + upgrade_points, xeno_caste.upgrade_threshold)
+	if(!upgrade_possible()) //upgrade possible
+		return
+	if(upgrade_stored >= xeno_caste.upgrade_threshold)
+		if(!incapacitated())
+			upgrade_xeno(upgrade_next())
+		return
+	// Upgrade is increased based on marine to xeno population taking stored_larva as a modifier.
+	var/datum/job/xeno_job = SSjob.GetJobType(/datum/job/xenomorph)
+	var/stored_larva = xeno_job.total_positions - xeno_job.current_positions
+	var/upgrade_points = 1 + (stored_larva/6) + hive.get_upgrade_boost()
+	upgrade_stored = min(upgrade_stored + upgrade_points, xeno_caste.upgrade_threshold)
 
 /mob/living/carbon/xenomorph/proc/update_evolving()
 	if(!client || !ckey) // stop evolve progress for ssd/ghosted xenos
 		return
 	if(evolution_stored >= xeno_caste.evolution_threshold || !(xeno_caste.caste_flags & CASTE_EVOLUTION_ALLOWED))
 		return
-	if(!hive.check_ruler())
+	if(!hive.check_ruler() && caste_base_type != /mob/living/carbon/xenomorph/larva) // Larva can evolve without leaders at round start.
 		return
 
 	// Evolution is increased based on marine to xeno population taking stored_larva as a modifier.
@@ -408,10 +409,9 @@
 	if(isliving(hit_atom)) //Hit a mob! This overwrites normal throw code.
 		if(SEND_SIGNAL(src, COMSIG_XENO_LIVING_THROW_HIT, hit_atom) & COMPONENT_KEEP_THROWING)
 			return FALSE
-		set_throwing(FALSE) //Resert throwing since something was hit.
+		stop_throw() //Resert throwing since something was hit.
 		return TRUE
-	SEND_SIGNAL(src, COMSIG_XENO_NONE_THROW_HIT)
-	set_throwing(FALSE) //Resert throwing since something was hit.
+	stop_throw() //Resert throwing since something was hit.
 	return ..() //Do the parent otherwise, for turfs.
 
 /mob/living/carbon/xenomorph/proc/toggle_nightvision(new_lighting_alpha)
@@ -503,18 +503,18 @@
 		to_chat(src, span_xenowarning("Our pheromones have changed. The Queen has new plans for the Hive."))
 
 
-/mob/living/carbon/xenomorph/proc/update_spits()
+/mob/living/carbon/xenomorph/proc/update_spits(skip_ammo_choice = FALSE)
 	if(!ammo && length(xeno_caste.spit_types))
 		ammo = GLOB.ammo_list[xeno_caste.spit_types[1]]
 	if(!ammo || !xeno_caste.spit_types || !xeno_caste.spit_types.len) //Only update xenos with ammo and spit types.
 		return
-	for(var/i in 1 to xeno_caste.spit_types.len)
-		var/datum/ammo/A = GLOB.ammo_list[xeno_caste.spit_types[i]]
-		if(ammo.icon_state == A.icon_state)
-			ammo = A
-			return
-	ammo = GLOB.ammo_list[xeno_caste.spit_types[1]] //No matching projectile time; default to first spit type
-	return
+	if(!skip_ammo_choice)
+		for(var/i in 1 to xeno_caste.spit_types.len)
+			var/datum/ammo/A = GLOB.ammo_list[xeno_caste.spit_types[i]]
+			if(ammo.icon_state == A.icon_state)
+				ammo = A
+				break
+	SEND_SIGNAL(src, COMSIG_XENO_AUTOFIREDELAY_MODIFIED, xeno_caste.spit_delay + ammo?.added_spit_delay)
 
 /mob/living/carbon/xenomorph/proc/handle_decay()
 	if(prob(7+(3*tier)+(3*upgrade_as_number()))) // higher level xenos decay faster, higher plasma storage.
@@ -554,7 +554,7 @@
 		GLOB.round_statistics.praetorian_spray_direct_hits++
 		SSblackbox.record_feedback("tally", "round_statistics", 1, "praetorian_spray_direct_hits")
 
-	var/armor_block = run_armor_check(BODY_ZONE_CHEST, "acid")
+	var/armor_block = get_soft_armor("acid", BODY_ZONE_CHEST)
 	var/damage = X.xeno_caste.acid_spray_damage_on_hit
 	INVOKE_ASYNC(src, .proc/apply_acid_spray_damage, damage, armor_block)
 	to_chat(src, span_xenodanger("\The [X] showers you in corrosive acid!"))
@@ -664,10 +664,10 @@
 
 ///Eject the mob inside our belly, and putting it in a cocoon if needed
 /mob/living/carbon/xenomorph/proc/eject_victim(make_cocoon = FALSE, turf/eject_location = loc)
-	if(!LAZYLEN(stomach_contents))
+	if(!eaten_mob)
 		return
-	var/mob/living/carbon/victim = stomach_contents[1]
-	LAZYREMOVE(stomach_contents, victim)
+	var/mob/living/carbon/victim = eaten_mob
+	eaten_mob = null
 	if(make_cocoon)
 		ADD_TRAIT(victim, TRAIT_PSY_DRAINED, TRAIT_PSY_DRAINED)
 		if(HAS_TRAIT(victim, TRAIT_UNDEFIBBABLE))
@@ -692,3 +692,15 @@
 ///Handles empowered abilities, should return TRUE if the ability should be empowered. Empowerable should be FALSE if the ability cannot itself be empowered but has interactions with empowerable abilities
 /mob/living/carbon/xenomorph/proc/empower(empowerable = TRUE)
 	return FALSE
+
+///Handles icon updates when leadered/unleadered. Evolution.dm also uses this
+/mob/living/carbon/xenomorph/proc/update_leader_icon(makeleader = TRUE)
+	// Xenos with specialized icons (Queen, King, Shrike) do not get their icon changed
+	if(istype(xeno_caste, /datum/xeno_caste/queen) || istype(xeno_caste, /datum/xeno_caste/shrike) || istype(xeno_caste, /datum/xeno_caste/king))
+		return
+
+	SSminimaps.remove_marker(src)
+	if(makeleader)
+		SSminimaps.add_marker(src, z, MINIMAP_FLAG_XENO, xeno_caste.minimap_icon, overlay_iconstates=list(xeno_caste.minimap_leadered_overlay))
+	else
+		SSminimaps.add_marker(src, z, MINIMAP_FLAG_XENO, xeno_caste.minimap_icon)

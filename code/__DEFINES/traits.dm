@@ -95,6 +95,8 @@
 #define REVIVE_TO_CRIT_TRAIT "revive_to_crit"
 #define GUN_TRAIT "gun" //Traits related to guns
 #define ZOMBIE_TRAIT "zombie"
+#define BULLET_ACT_TRAIT "bullet act" //Traits related to projectiles
+#define PORTAL_TRAIT "portal"
 /// inherited from riding vehicles
 #define VEHICLE_TRAIT "vehicle"
 
@@ -107,6 +109,7 @@
 #define TRAIT_FLOORED "floored" //User is forced to the ground on a prone position.
 #define TRAIT_IMMOBILE "immobile" //User is unable to move by its own volition.
 #define TRAIT_IS_RESURRECTING "resurrecting"
+#define TRAIT_PSY_LINKED "psy_linked"
 /// Prevents usage of manipulation appendages (picking, holding or using items, manipulating storage).
 #define TRAIT_HANDS_BLOCKED "handsblocked"
 #define TRAIT_STUNIMMUNE "stun_immunity"
@@ -139,8 +142,11 @@
 #define TRAIT_GUN_IS_AIMING "aiming"
 #define TRAIT_GUN_BURST_FIRING "burst_firing"
 #define TRAIT_GUN_SILENCED "silenced"
+#define TRAIT_GUN_RELOADING "reloading"
 
 // item traits
 #define TRAIT_T_RAY_VISIBLE "t-ray-visible" // Visible on t-ray scanners if the atom/var/level == 1
 // turf traits
-#define TRAIT_TURF_FREEZE_BULLET "freeze_bullet" //Stop projectiles on this tiles
+#define TRAIT_TURF_BULLET_MANIPULATION "bullet_manipulation" //This tile is doing something to projectile
+// projectile traits
+#define TRAIT_PROJ_HIT_SOMETHING "hit_something" //If projectile hit something on its path

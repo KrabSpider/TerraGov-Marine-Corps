@@ -37,6 +37,7 @@ The Grenade Launchers
 		/obj/item/explosive/grenade/phosphorus,
 		/obj/item/explosive/grenade/phosphorus/upp,
 		/obj/item/explosive/grenade/impact,
+		/obj/item/explosive/grenade/sticky,
 		/obj/item/explosive/grenade/flare,
 		/obj/item/explosive/grenade/flare/cas,
 		/obj/item/explosive/grenade/chem_grenade,
@@ -87,11 +88,11 @@ The Grenade Launchers
 	return list(grenade.hud_state, grenade.hud_state_empty)
 
 //-------------------------------------------------------
-//T-70 Grenade Launcher.
+//GL-70 Grenade Launcher.
 
 /obj/item/weapon/gun/grenade_launcher/multinade_launcher
-	name = "\improper T-70 grenade launcher"
-	desc = "The T-70 is the standard grenade launcher used by the TerraGov Marine Corps for area denial and big explosions."
+	name = "\improper GL-70 grenade launcher"
+	desc = "The GL-70 is the standard grenade launcher used by the TerraGov Marine Corps for area denial and big explosions."
 	icon = 'icons/Marine/gun64.dmi'
 	icon_state = "t70"
 	item_state = "t70"
@@ -130,7 +131,7 @@ The Grenade Launchers
 	slot = ATTACHMENT_SLOT_UNDER
 	attach_delay = 3 SECONDS
 	detach_delay = 3 SECONDS
-	flags_gun_features = GUN_AMMO_COUNTER|GUN_IS_ATTACHMENT|GUN_ATTACHMENT_FIRE_ONLY|GUN_WIELDED_STABLE_FIRING_ONLY
+	flags_gun_features = GUN_AMMO_COUNTER|GUN_IS_ATTACHMENT|GUN_ATTACHMENT_FIRE_ONLY|GUN_WIELDED_STABLE_FIRING_ONLY|GUN_WIELDED_FIRING_ONLY
 	pixel_shift_x = 14
 	pixel_shift_y = 18
 	allowed_ammo_types = list(
@@ -148,13 +149,14 @@ The Grenade Launchers
 		/obj/item/explosive/grenade/flare,
 		/obj/item/explosive/grenade/flare/cas,
 		/obj/item/explosive/grenade/impact,
+		/obj/item/explosive/grenade/sticky,
 	)
 
 /obj/item/weapon/gun/grenade_launcher/underslung/invisible
 	flags_attach_features = NONE
 
 /obj/item/weapon/gun/grenade_launcher/single_shot
-	name = "\improper T-81 grenade launcher"
+	name = "\improper GL-81 grenade launcher"
 	desc = "A lightweight, single-shot grenade launcher used by the TerraGov Marine Corps for area denial and big explosions."
 	icon_state = "m81"
 	item_state = "m81"
@@ -171,7 +173,7 @@ The Grenade Launchers
 
 
 /obj/item/weapon/gun/grenade_launcher/single_shot/riot
-	name = "\improper M81 riot grenade launcher"
+	name = "\improper GL-81 riot grenade launcher"
 	desc = "A lightweight, single-shot grenade launcher to launch tear gas grenades. Used by Nanotrasen security during riots."
 	default_ammo_type = null
 	allowed_ammo_types = list(/obj/item/explosive/grenade/chem_grenade)

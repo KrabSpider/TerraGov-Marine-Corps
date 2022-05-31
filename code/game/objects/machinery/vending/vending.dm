@@ -54,6 +54,7 @@
 	icon_state = "generic"
 	anchored = TRUE
 	density = TRUE
+	coverage = 70
 	layer = BELOW_OBJ_LAYER
 
 	use_power = IDLE_POWER_USE
@@ -204,9 +205,6 @@
 		if(EXPLODE_HEAVY)
 			if(prob(50))
 				qdel(src)
-		if(EXPLODE_LIGHT)
-			if(prob(25))
-				INVOKE_ASYNC(src, .proc/malfunction)
 
 /**
  * Builds shared vendors inventory
@@ -378,7 +376,7 @@
 		if(CH) // Only proceed if card contains proper account number.
 			if(!CH.suspended)
 				if(CH.security_level != 0) //If card requires pin authentication (ie seclevel 1 or 2)
-					var/attempt_pin = input("Enter pin code", "Vendor transaction") as num
+					var/attempt_pin = tgui_input_number(usr, "Enter pin code", "Vendor transaction")
 					var/datum/money_account/D = attempt_account_access(C.associated_account_number, attempt_pin, 2)
 					transfer_and_vend(D)
 				else
@@ -613,6 +611,10 @@
 		stock(I, user)
 
 /obj/machinery/vending/proc/stock(obj/item/item_to_stock, mob/user, recharge = FALSE)
+	if(!powered(power_channel) && machine_current_charge < active_power_usage)
+		return
+	if(icon_vend)
+		flick(icon_vend, src) //Show the vending animation if needed
 	//More accurate comparison between absolute paths.
 	for(var/datum/vending_product/R AS in product_records + hidden_records + coin_records)
 		if(item_to_stock.type != R.product_path || istype(item_to_stock, /obj/item/storage)) //Nice try, specialists/engis
@@ -646,7 +648,7 @@
 		if(item_to_stock.loc == user) //Inside the mob's inventory
 			if(item_to_stock.flags_item & WIELDED)
 				item_to_stock.unwield(user)
-			user.temporarilyRemoveItemFromInventory(item_to_stock)
+			user.transferItemToLoc(item_to_stock, src)
 
 		if(istype(item_to_stock.loc, /obj/item/storage)) //inside a storage item
 			var/obj/item/storage/S = item_to_stock.loc
