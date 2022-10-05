@@ -1227,7 +1227,7 @@
 	icon_state = "tx11"
 	item_state = "tx11"
 	caliber = CALIBER_492X34_CASELESS //codex
-	max_shells = 70 //codex
+	max_shells = 45 //codex
 	wield_delay = 0.65 SECONDS
 	fire_sound = 'sound/weapons/guns/fire/M412.ogg'
 	dry_fire_sound = 'sound/weapons/guns/fire/m41a_empty.ogg'
@@ -1258,7 +1258,7 @@
 	fire_delay = 0.25 SECONDS
 	burst_amount = 3
 	burst_delay = 0.05 SECONDS
-	extra_delay = 0.05 SECONDS
+	extra_delay = 0.15 SECONDS
 	accuracy_mult_unwielded = 0.5
 	accuracy_mult = 1.15
 	scatter = -1

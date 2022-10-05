@@ -295,7 +295,7 @@
 	caliber = CALIBER_492X34_CASELESS
 	icon_state = "tx11"
 	default_ammo = /datum/ammo/bullet/rifle/hv
-	max_rounds = 70
+	max_rounds = 50
 	icon_state_mini = "mag_tx11"
 
 //-------------------------------------------------------
