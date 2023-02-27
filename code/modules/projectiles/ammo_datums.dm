@@ -2725,7 +2725,7 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 	name = "psychic lance"
 	flags_ammo_behavior = AMMO_XENO|AMMO_ENERGY|AMMO_SUNDERING|AMMO_HITSCAN|AMMO_PASS_THROUGH_MOVABLE
 	damage = 60
-	penetration = 50
+	penetration = 30
 	accuracy = 100
 	sundering = 5
 	max_range = 12
