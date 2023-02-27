@@ -2721,11 +2721,11 @@ GLOBAL_LIST_INIT(no_sticky_resin, typecacheof(list(/obj/item/clothing/mask/faceh
 /datum/ammo/energy/xeno/psy_blast/do_at_max_range(turf/T, obj/projectile/P)
 	drop_nade(T.density ? get_step_towards(T, P) : T, P)
 
-/datum/ammo/energy/xeno/psy_blast/psy_lance
+/datum/d
 	name = "psychic lance"
 	flags_ammo_behavior = AMMO_XENO|AMMO_ENERGY|AMMO_SUNDERING|AMMO_HITSCAN|AMMO_PASS_THROUGH_MOVABLE
 	damage = 60
-	penetration = 30
+	penetration = 35
 	accuracy = 100
 	sundering = 5
 	max_range = 12
