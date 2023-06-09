@@ -19,7 +19,7 @@
 	icon = 'icons/turf/ground_map.dmi'
 	icon_state = "thickvines"
 
-/obj/structure/bush/Initialize()
+/obj/structure/bush/Initialize(mapload)
 	. = ..()
 	if(prob(75))
 		opacity = TRUE
@@ -30,7 +30,7 @@
 	M.Scale(pick(0.7,0.8,0.9,1,1.1,1.2),pick(0.7,0.8,0.9,1,1.1,1.2))
 	transform = M
 	var/static/list/connections = list(
-		COMSIG_ATOM_ENTERED = .proc/on_cross,
+		COMSIG_ATOM_ENTERED = PROC_REF(on_cross),
 	)
 	AddElement(/datum/element/connect_loc, connections)
 
@@ -53,7 +53,7 @@
 	var/bush_sound_prob = 60
 	if(istype(L, /mob/living/carbon/xenomorph))
 		var/mob/living/carbon/xenomorph/X = L
-		bush_sound_prob = X.tier_as_number() * 20
+		bush_sound_prob = GLOB.tier_as_number[X.tier] * 20
 
 	if(prob(bush_sound_prob))
 		var/sound = pick('sound/effects/vegetation_walk_0.ogg','sound/effects/vegetation_walk_1.ogg','sound/effects/vegetation_walk_2.ogg')
@@ -104,7 +104,7 @@ GLOBAL_LIST_INIT(reagent_effects, list(/datum/reagent/toxin,/datum/reagent/medic
 	var/fruit_g
 	var/fruit_b
 
-/obj/structure/jungle_plant/Initialize()
+/obj/structure/jungle_plant/Initialize(mapload)
 	. = ..()
 	fruit_type = rand(1,7)
 	icon_state = "plant[fruit_type]"

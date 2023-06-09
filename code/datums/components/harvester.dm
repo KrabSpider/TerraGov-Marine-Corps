@@ -1,4 +1,3 @@
-#define MAX_LOADABLE_REAGENT_AMOUNT 30
 #define NO_REAGENT_COLOR "#FFFFFF"
 
 /datum/component/harvester
@@ -16,35 +15,44 @@
 	var/list/loaded_reagents = list()
 	///Selects the active reagent
 	var/datum/action/harvester/reagent_select/reagent_select_action
+	///The maximum amount that one chemical can be loaded
+	var/max_loadable_reagent_amount = 30
+	var/loadup_on_attack = FALSE
 
-/datum/component/harvester/Initialize(chem_component)
+/datum/component/harvester/Initialize(max_reagent_amount, loadup_on_attack)
 	if(!isitem(parent))
 		return COMPONENT_INCOMPATIBLE
 
 	var/obj/item/item_parent = parent
 
-	reagent_select_action = new
-	item_parent.actions += reagent_select_action
+	if(max_reagent_amount)
+		max_loadable_reagent_amount = max_reagent_amount
+	if(loadup_on_attack)
+		src.loadup_on_attack = loadup_on_attack
 
-	RegisterSignal(parent, COMSIG_PARENT_EXAMINE, .proc/examine)
-	RegisterSignal(parent, COMSIG_ITEM_UNIQUE_ACTION, .proc/activate_blade)
-	RegisterSignal(parent, COMSIG_ITEM_ATTACK, .proc/attack)
-	RegisterSignal(parent, COMSIG_PARENT_ATTACKBY, .proc/attackby)
-	RegisterSignal(reagent_select_action, COMSIG_ACTION_TRIGGER, .proc/select_reagent)
+	reagent_select_action = new
+	LAZYADD(item_parent.actions, reagent_select_action)
+
+	RegisterSignal(parent, COMSIG_PARENT_EXAMINE, PROC_REF(examine))
+	RegisterSignal(parent, COMSIG_ITEM_UNIQUE_ACTION, PROC_REF(activate_blade))
+	RegisterSignal(parent, COMSIG_ITEM_ATTACK, PROC_REF(attack))
+	RegisterSignal(parent, COMSIG_PARENT_ATTACKBY, PROC_REF(attackby))
+	RegisterSignal(reagent_select_action, COMSIG_ACTION_TRIGGER, PROC_REF(select_reagent))
 
 /datum/component/harvester/Destroy(force, silent)
 	var/obj/item/item_parent = parent
-	item_parent.actions -= reagent_select_action
+	LAZYREMOVE(item_parent.actions, reagent_select_action)
 	QDEL_NULL(reagent_select_action)
 	return ..()
 
-/datum/component/chem_booster/UnregisterFromParent()
+/datum/component/harvester/UnregisterFromParent()
 	. = ..()
 	UnregisterSignal(parent, list(
 		COMSIG_PARENT_EXAMINE,
 		COMSIG_ITEM_UNIQUE_ACTION,
 		COMSIG_ITEM_ATTACK,
-		COMSIG_PARENT_ATTACKBY))
+		COMSIG_PARENT_ATTACKBY,
+	))
 
 ///Adds additional text for the component when examining the item
 /datum/component/harvester/proc/examine(datum/source, mob/user, list/examine_list)
@@ -88,7 +96,7 @@
 		user.balloon_alert(user, "incompatible reagent, check description")
 		return
 
-	if(loaded_reagents[reagent_to_load] > MAX_LOADABLE_REAGENT_AMOUNT)
+	if(loaded_reagents[reagent_to_load] > max_loadable_reagent_amount)
 		user.balloon_alert(user, "full")
 		return
 
@@ -99,7 +107,7 @@
 	if(!loaded_reagents[reagent_to_load])
 		loaded_reagents[reagent_to_load] = 0
 
-	var/added_amount = min(container.reagents.total_volume, MAX_LOADABLE_REAGENT_AMOUNT - loaded_reagents[reagent_to_load])
+	var/added_amount = min(container.reagents.total_volume, max_loadable_reagent_amount - loaded_reagents[reagent_to_load])
 	container.reagents.remove_reagent(reagent_to_load, added_amount)
 	loaded_reagents[reagent_to_load] += added_amount
 	user.balloon_alert(user, "[loaded_reagents[reagent_to_load]]u")
@@ -108,7 +116,6 @@
 
 ///Handles behavior when activating the weapon
 /datum/component/harvester/proc/activate_blade_async(datum/source, mob/user)
-
 	if(loaded_reagent)
 		user.balloon_alert(user, "[initial(loaded_reagent.name)]")
 		return
@@ -142,20 +149,20 @@
 	to_chat(user, span_rose("You prepare to stab <b>[target != user ? "[target]" : "yourself"]</b>!"))
 	new /obj/effect/temp_visual/telekinesis(get_turf(target))
 	if((target != user) && do_after(user, 2 SECONDS, TRUE, target, BUSY_ICON_DANGER))
-		target.heal_overall_damage(12.5, 0, TRUE)
+		target.heal_overall_damage(12.5, 0, updating_health = TRUE)
 	else
 		target.adjustStaminaLoss(-30)
-		target.heal_overall_damage(6, 0, TRUE)
+		target.heal_overall_damage(6, 0, updating_health = TRUE)
 
 ///Signal handler calling when user is filling the harvester
 /datum/component/harvester/proc/attackby(datum/source, obj/item/cont, mob/user)
 	SIGNAL_HANDLER
-	INVOKE_ASYNC(src, .proc/attackby_async, source, cont, user)
+	INVOKE_ASYNC(src, PROC_REF(attackby_async), source, cont, user)
 
 ///Signal handler calling activation of the harvester
 /datum/component/harvester/proc/activate_blade(datum/source, mob/user)
 	SIGNAL_HANDLER
-	INVOKE_ASYNC(src, .proc/activate_blade_async, source, user)
+	INVOKE_ASYNC(src, PROC_REF(activate_blade_async), source, user)
 
 ///Signal handler calling when user attacks
 /datum/component/harvester/proc/attack(datum/source, mob/living/target, mob/living/user, obj/item/weapon)
@@ -175,17 +182,17 @@
 
 		if(/datum/reagent/medicine/kelotane)
 			target.flamer_fire_act(10)
-			target.apply_damage(max(0, 20 - 20*target.hard_armor.getRating("fire")), BURN, user.zone_selected, target.get_soft_armor("fire", user.zone_selected))
+			target.apply_damage(max(0, 20 - 20*target.hard_armor.getRating("fire")), BURN, user.zone_selected, FIRE)
 			var/list/cone_turfs = generate_cone(target, 1, 0, 181, Get_Angle(user, target.loc))
 			for(var/turf/checked_turf AS in cone_turfs)
 				for(var/mob/living/victim in checked_turf)
 					victim.flamer_fire_act(10)
-					victim.apply_damage(max(0, 20 - 20*victim.hard_armor.getRating("fire")), BURN, user.zone_selected, victim.get_soft_armor("fire", user.zone_selected))
+					victim.apply_damage(max(0, 20 - 20*victim.hard_armor.getRating("fire")), BURN, user.zone_selected, FIRE)
 
 		if(/datum/reagent/medicine/bicaridine)
 			if(isxeno(target))
 				return
-			INVOKE_ASYNC(src, .proc/attack_async, source, target, user, weapon)
+			INVOKE_ASYNC(src, PROC_REF(attack_async), source, target, user, weapon)
 			. = COMPONENT_ITEM_NO_ATTACK
 
 	if(!loaded_reagents[loaded_reagent])
@@ -193,7 +200,8 @@
 		user.balloon_alert(user, "[initial(loaded_reagent.name)]: empty")
 	loaded_reagent = null
 
-#undef MAX_LOADABLE_REAGENT_AMOUNT
+	if(loadup_on_attack)
+		INVOKE_ASYNC(src, PROC_REF(activate_blade_async), source, user)
 
 /datum/component/harvester/proc/select_reagent(datum/source)
 	var/list/options = list()

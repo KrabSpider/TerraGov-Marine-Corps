@@ -2,7 +2,7 @@
 // charge from 0 to 100%
 // fits in APC to provide backup power
 
-/obj/item/cell/Initialize()
+/obj/item/cell/Initialize(mapload)
 	. = ..()
 	charge = maxcharge
 	if(self_recharge)
@@ -123,7 +123,7 @@
 		if(issynth(user) && !CONFIG_GET(flag/allow_synthetic_gun_use))
 			to_chat(user, span_warning("Your programming restricts rigging of power cells."))
 			return
-		var/skill = user.skills.getRating("engineer")
+		var/skill = user.skills.getRating(SKILL_ENGINEER)
 		var/delay = SKILL_TASK_EASY - (5 + skill * 1.25)
 
 		if(user.do_actions)

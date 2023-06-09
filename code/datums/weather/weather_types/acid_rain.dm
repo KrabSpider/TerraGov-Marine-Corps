@@ -27,31 +27,40 @@
 	probability = 40
 	repeatable = FALSE
 
-	var/datum/looping_sound/acidrain/midsound = new(list(), FALSE, TRUE)
+	var/datum/looping_sound/acidrain/sound_active_acidrain = new(list(), FALSE, TRUE)
 
 /datum/weather/acid_rain/telegraph()
 	. = ..()
-	var/list/eligible_areas = list()
-	for (var/z in impacted_z_levels)
-		eligible_areas += SSmapping.areas_in_z["[z]"]
+	var/list/impacted_mobs = list()
+	var/list/eligible_mobs = list()
+	for(var/z in impacted_z_levels)
+		eligible_mobs += GLOB.humans_by_zlevel["[z]"]
+	for(var/i in 1 to length(eligible_mobs))
+		var/mob/impacted_mob = eligible_mobs[i]
+		if(impacted_mob?.client?.prefs?.toggles_sound & SOUND_WEATHER)
+			continue
+		impacted_mobs |= impacted_mob
+		CHECK_TICK
 
-	midsound.output_atoms = eligible_areas
+	sound_active_acidrain.output_atoms = impacted_mobs
 
 /datum/weather/acid_rain/start()
 	. = ..()
-	midsound.start()
+	sound_active_acidrain.start()
 
 /datum/weather/acid_rain/end()
 	. = ..()
-	midsound.stop()
+	sound_active_acidrain.stop()
 
 /datum/weather/acid_rain/weather_act(mob/living/L)
 	if(L.stat == DEAD)
 		return
-	var/resist = L.get_soft_armor("acid")
-	if(prob(max(0,100-resist)))
+	if(prob(L.modify_by_armor(100, ACID)))
 		L.adjustFireLoss(7)
 		to_chat(L, span_boldannounce("You feel the acid rain melting you away!"))
+	L.clean_mob()
+	if(L.fire_stacks > -20)
+		L.fire_stacks = max(-20, L.fire_stacks - 1)
 
 /datum/weather/acid_rain/harmless
 
@@ -64,7 +73,23 @@
 	end_message = span_boldannounce("The downpour gradually slows to a light shower.")
 	end_overlay = "rain_low"
 
-	aesthetic = TRUE
-
 	probability = 60
 	repeatable = TRUE
+
+/datum/weather/acid_rain/harmless/weather_act(mob/living/L)
+	L.clean_mob()
+	if(L.fire_stacks > -20)
+		L.fire_stacks = max(-20, L.fire_stacks - 1)
+		var/wetmessage = pick( "You're drenched in water!",
+		"You're completely soaked by rainfall!",
+		"You become soaked by the heavy rainfall!",
+		"Water drips off your uniform as the rain soaks your outfit!",
+		"Rushing water rolls off your face as the rain soaks you completely!",
+		"Heavy raindrops hit your face as the rain thoroughly soaks your body!",
+		"As you move through the heavy rain, your clothes become completely waterlogged!",
+		)
+		if(prob(20))
+			if(isrobot(L) || isxeno(L))
+				return
+			else
+				to_chat(L, span_warning(wetmessage))

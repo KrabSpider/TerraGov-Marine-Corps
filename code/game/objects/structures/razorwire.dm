@@ -3,11 +3,10 @@
 	desc = "A bundle of barbed wire supported by metal rods. Used to deny access to areas under (literal) pain of entanglement and injury. A classic fortification since the 1900s."
 	icon = 'icons/obj/structures/barbedwire.dmi'
 	icon_state = "barbedwire_x"
-	var/base_icon_state = "barbedwire_x"
+	base_icon_state = "barbedwire_x"
 	density = TRUE
 	anchored = TRUE
 	layer = ABOVE_OBJ_LAYER
-	throwpass = TRUE	//You can throw objects over this
 	coverage = 5
 	climbable = TRUE
 	resistance_flags = XENO_DAMAGEABLE
@@ -23,7 +22,7 @@
 		if(obj_integrity > max_integrity * 0.5)
 			new sheet_type(loc)
 		var/obj/item/stack/rods/salvage = new sheet_type2(loc)
-		salvage.amount = min(1, round(4 * (obj_integrity / max_integrity) ) )
+		salvage.amount = max(1, round(4 * (obj_integrity / max_integrity) ) )
 	else
 		if(prob(50))
 			new sheet_type(loc)
@@ -32,12 +31,12 @@
 			salvage.amount = rand(1,4)
 	return ..()
 
-/obj/structure/razorwire/Initialize()
+/obj/structure/razorwire/Initialize(mapload)
 	. = ..()
 	var/static/list/connections = list(
-		COMSIG_ATOM_ENTERED = .proc/on_cross,
-		COMSIG_ATOM_EXITED = .proc/on_exited,
-		COMSIG_ATOM_EXIT = .proc/on_try_exit,
+		COMSIG_ATOM_ENTERED = PROC_REF(on_cross),
+		COMSIG_ATOM_EXITED = PROC_REF(on_exited),
+		COMSIG_ATOM_EXIT = PROC_REF(on_try_exit),
 	)
 	AddElement(/datum/element/connect_loc, connections)
 	AddElement(/datum/element/egrill)
@@ -59,10 +58,8 @@
 	if(!M.density)
 		return
 	playsound(src, 'sound/effects/barbed_wire_movement.ogg', 25, 1)
-	var/armor_block = null
 	var/def_zone = ran_zone()
-	armor_block = M.get_soft_armor("melee", def_zone)
-	M.apply_damage(RAZORWIRE_BASE_DAMAGE, BRUTE, def_zone, armor_block, TRUE, updating_health = TRUE)
+	M.apply_damage(RAZORWIRE_BASE_DAMAGE, BRUTE, def_zone, MELEE, TRUE, updating_health = TRUE)
 	razorwire_tangle(M)
 
 /obj/structure/razorwire/proc/on_try_exit(datum/source, atom/movable/mover, direction, list/knownblockers)
@@ -74,10 +71,6 @@
 	knownblockers += src
 	return COMPONENT_ATOM_BLOCK_EXIT
 
-/obj/structure/razorwire/CanAllowThrough(atom/movable/mover, turf/target)
-	. = ..()
-	if(CHECK_BITFIELD(mover.flags_pass, PASSSMALLSTRUCT))
-		return TRUE
 
 /obj/structure/razorwire/proc/razorwire_tangle(mob/living/entangled, duration = RAZORWIRE_ENTANGLE_DELAY)
 	if(QDELETED(src)) //Sanity check so that you can't get entangled if the razorwire is destroyed; this happens apparently.
@@ -92,9 +85,9 @@
 	ADD_TRAIT(entangled, TRAIT_IMMOBILE, type)
 	ENABLE_BITFIELD(entangled.restrained_flags, RESTRAINED_RAZORWIRE)
 	LAZYADD(entangled_list, entangled) //Add the entangled person to the trapped list.
-	RegisterSignal(entangled, COMSIG_LIVING_DO_RESIST, /atom/movable.proc/resisted_against)
-	RegisterSignal(entangled, COMSIG_PARENT_QDELETING, .proc/do_razorwire_untangle)
-	RegisterSignal(entangled, COMSIG_MOVABLE_PULL_MOVED, .proc/razorwire_untangle)
+	RegisterSignal(entangled, COMSIG_LIVING_DO_RESIST, TYPE_PROC_REF(/atom/movable, resisted_against))
+	RegisterSignal(entangled, COMSIG_PARENT_QDELETING, PROC_REF(do_razorwire_untangle))
+	RegisterSignal(entangled, COMSIG_MOVABLE_PULL_MOVED, PROC_REF(razorwire_untangle))
 
 
 /obj/structure/razorwire/resisted_against(datum/source)
@@ -109,13 +102,11 @@
 	SIGNAL_HANDLER
 	if((entangled.flags_pass & PASSSMALLSTRUCT) || entangled.status_flags & INCORPOREAL)
 		return
-	entangled.next_move_slowdown += RAZORWIRE_SLOWDOWN //big slowdown
 	do_razorwire_untangle(entangled)
 	visible_message(span_danger("[entangled] disentangles from [src]!"))
 	playsound(src, 'sound/effects/barbed_wire_movement.ogg', 25, TRUE)
 	var/def_zone = ran_zone()
-	var/armor_block = entangled.get_soft_armor("melee", def_zone)
-	entangled.apply_damage(RAZORWIRE_BASE_DAMAGE * RAZORWIRE_MIN_DAMAGE_MULT_MED, BRUTE, def_zone, armor_block, TRUE, updating_health = TRUE) //Apply damage as we tear free
+	entangled.apply_damage(RAZORWIRE_BASE_DAMAGE * RAZORWIRE_MIN_DAMAGE_MULT_MED, BRUTE, def_zone, MELEE, TRUE, updating_health = TRUE) //Apply damage as we tear free
 	return TRUE
 
 
@@ -175,9 +166,8 @@
 			to_chat(user, span_warning("You need a better grip to do that!"))
 			return
 
-		var/armor_block = null
 		var/def_zone = ran_zone()
-		M.apply_damage(RAZORWIRE_BASE_DAMAGE, BRUTE, def_zone, armor_block, TRUE, updating_health = TRUE)
+		M.apply_damage(RAZORWIRE_BASE_DAMAGE, BRUTE, def_zone, MELEE, TRUE, updating_health = TRUE)
 		user.visible_message(span_danger("[user] spartas [M]'s into [src]!"),
 		span_danger("You sparta [M]'s against [src]!"))
 		log_combat(user, M, "spartaed", "", "against \the [src]")
@@ -192,7 +182,7 @@
 /obj/structure/razorwire/wirecutter_act(mob/living/user, obj/item/I)
 	user.visible_message(span_notice("[user] starts disassembling [src]."),
 	span_notice("You start disassembling [src]."))
-	var/delay_disassembly = SKILL_TASK_AVERAGE - (0.5 SECONDS + user.skills.getRating("engineer"))
+	var/delay_disassembly = SKILL_TASK_AVERAGE - (0.5 SECONDS + user.skills.getRating(SKILL_ENGINEER))
 
 	if(!do_after(user, delay_disassembly, TRUE, src, BUSY_ICON_BUILD))
 		return TRUE
@@ -207,9 +197,8 @@
 	if(X.status_flags & INCORPOREAL)
 		return FALSE
 
-	X.apply_damage(RAZORWIRE_BASE_DAMAGE * 0.7, updating_health = TRUE) //About a third as damaging as actually entering
+	X.apply_damage(RAZORWIRE_BASE_DAMAGE, blocked = MELEE, updating_health = TRUE) //About a third as damaging as actually entering
 	update_icon()
-	SEND_SIGNAL(X, COMSIG_XENOMORPH_ATTACK_RAZORWIRE)
 	return ..()
 
 /obj/structure/razorwire/ex_act(severity)
@@ -227,6 +216,8 @@
 
 /obj/structure/razorwire/CanAllowThrough(atom/movable/mover, turf/target)
 	. = ..()
+	if(CHECK_BITFIELD(mover.flags_pass, PASSSMALLSTRUCT))
+		return TRUE
 	if(istype(mover) && CHECK_BITFIELD(mover.flags_pass, PASSGRILLE))
 		return TRUE
 	if(mover.throwing && istype(mover,/obj/item))

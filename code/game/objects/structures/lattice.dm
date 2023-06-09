@@ -9,7 +9,7 @@
 	plane = FLOOR_PLANE
 	//	flags = CONDUCT
 
-/obj/structure/lattice/Initialize()
+/obj/structure/lattice/Initialize(mapload)
 	. = ..()
 	if(!isspaceturf(loc))
 		qdel(src)
@@ -71,20 +71,20 @@
 		return
 
 /obj/structure/catwalk
-	icon = 'icons/turf/catwalks.dmi'
-	icon_state = "catwalk0"
+	icon = 'icons/obj/smooth_objects/catwalk.dmi'
+	icon_state = "catwalk-icon"
+	base_icon_state = "catwalk"
 	var/shoefootstep = FOOTSTEP_CATWALK
 	var/barefootstep = FOOTSTEP_CATWALK
 	var/mediumxenofootstep = FOOTSTEP_CATWALK
+	smoothing_flags = SMOOTH_BITMASK
+	smoothing_groups = list(SMOOTH_GROUP_LATTICE)
+	canSmoothWith = list(SMOOTH_GROUP_LATTICE)
 
-/obj/structure/catwalk/Initialize()
+/obj/structure/catwalk/Initialize(mapload)
 	. = ..()
+	layer = CATWALK_LAYER
 	var/turf/T = get_turf(src)
 	if(istype(T, /turf/open))
 		var/turf/open/O = T
-		var/obj/effect/river_overlay/R = locate() in T // remove any river overlays
-		if(R)
-			qdel(R)
 		O.has_catwalk = TRUE
-		O.overlays += image(icon, T, icon_state, CATWALK_LAYER)
-	return INITIALIZE_HINT_QDEL

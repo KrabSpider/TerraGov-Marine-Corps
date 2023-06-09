@@ -24,6 +24,9 @@
 /obj/structure/showcase/six
 	icon_state = "showcase_6"
 
+/obj/structure/showcase/coinpress
+	icon_state = "coinpress0"
+
 /obj/machinery/showcase/mulebot
 	name = "Mulebot"
 	desc = "A Multiple Utility Load Effector bot."
@@ -57,9 +60,10 @@
 	icon_state = "mopbucket"
 	anchored = FALSE
 	resistance_flags = XENO_DAMAGEABLE
+	max_integrity = 40
 	var/amount_per_transfer_from_this = 5 //Shit I dunno, adding this so syringes stop runtime erroring. --NeoFite
 
-/obj/structure/mopbucket/Initialize()
+/obj/structure/mopbucket/Initialize(mapload)
 	. = ..()
 	create_reagents(100, OPENCONTAINER)
 
@@ -104,59 +108,106 @@
 
 //ICE COLONY RESEARCH DECORATION-----------------------//
 //Most of icons made by ~Morrinn
-obj/structure/xenoautopsy
+/obj/structure/xenoautopsy
 	name = "Research thingies"
 	icon = 'icons/obj/alien_autopsy.dmi'
 	icon_state = "jarshelf_9"
 
-obj/structure/xenoautopsy/jar_shelf
+/obj/structure/xenoautopsy/jar_shelf
 	name = "jar shelf"
 	icon_state = "jarshelf_0"
 	var/randomise = 1 //Random icon
 
-	New()
-		if(randomise)
-			icon_state = "jarshelf_[rand(0,9)]"
+/obj/structure/xenoautopsy/jar_shelf/Initialize(mapload)
+	. = ..()
+	if(randomise)
+		icon_state = "jarshelf_[rand(0,9)]"
 
-obj/structure/xenoautopsy/tank
+/obj/structure/xenoautopsy/tank
 	name = "cryo tank"
 	icon_state = "tank_empty"
 	desc = "It is empty."
+	density = TRUE
+	max_integrity = 100
+	resistance_flags = UNACIDABLE
+	hit_sound = 'sound/effects/Glasshit.ogg'
+	destroy_sound = "shatter"
+	///Whatever is contained in the tank
+	var/obj/occupant
+	///What this tank is replaced by when broken
+	var/obj/structure/broken_state = /obj/structure/xenoautopsy/tank/escaped
 
-obj/structure/xenoautopsy/tank/escaped
+
+/obj/structure/xenoautopsy/tank/deconstruct(disassembled = TRUE)
+	if(!broken_state)
+		return ..()
+
+	new broken_state(loc)
+	new /obj/item/shard(loc)
+
+	release_occupant()
+
+	return ..()
+
+/obj/structure/xenoautopsy/tank/ex_act(severity)
+	switch(severity)
+		if(EXPLODE_DEVASTATE)
+			qdel(src)
+		if(EXPLODE_HEAVY)
+			take_damage(100)
+		if(EXPLODE_LIGHT)
+			take_damage(50)
+
+///Releases whatever is inside the tank
+/obj/structure/xenoautopsy/tank/proc/release_occupant()
+	if(occupant)
+		new occupant(loc)
+
+/obj/structure/xenoautopsy/tank/escaped
 	name = "broken cryo tank"
 	icon_state = "tank_escaped"
 	desc = "Something broke it..."
+	broken_state = null
 
-obj/structure/xenoautopsy/tank/broken
+/obj/structure/xenoautopsy/tank/broken
 	icon_state = "tank_broken"
 	desc = "Something broke it..."
+	broken_state = null
 
-obj/structure/xenoautopsy/tank/alien
+/obj/structure/xenoautopsy/tank/alien
 	icon_state = "tank_alien"
 	desc = "There is something big inside..."
+	occupant = /obj/item/alien_embryo
 
-obj/structure/xenoautopsy/tank/hugger
+/obj/structure/xenoautopsy/tank/hugger
 	icon_state = "tank_hugger"
 	desc = "There is something spider-like inside..."
+	occupant = /obj/item/clothing/mask/facehugger
 
-obj/structure/xenoautopsy/tank/larva
+/obj/structure/xenoautopsy/tank/hugger/release_occupant()
+	var/obj/item/clothing/mask/facehugger/hugger = new occupant(loc)
+	hugger.go_active()
+
+/obj/structure/xenoautopsy/tank/larva
 	icon_state = "tank_larva"
 	desc = "There is something worm-like inside..."
+	occupant = /obj/item/alien_embryo
+	broken_state = /obj/structure/xenoautopsy/tank/broken
 
-obj/item/alienjar
+/obj/item/alienjar
 	name = "sample jar"
 	icon = 'icons/obj/alien_autopsy.dmi'
 	icon_state = "jar_sample"
 	desc = "Used to store organic samples inside for preservation."
 
-	New()
-		var/image/I
-		I = image('icons/obj/alien_autopsy.dmi', "sample_[rand(0,11)]")
-		I.layer = src.layer - 0.1
-		overlays += I
-		pixel_x += rand(-3,3)
-		pixel_y += rand(-3,3)
+/obj/item/alienjar/Initialize(mapload)
+	. = ..()
+
+	var/image/sample_image = image('icons/obj/alien_autopsy.dmi', "sample_[rand(0,11)]")
+	sample_image.layer = layer - 0.1
+	add_overlay(sample_image)
+	pixel_x += rand(-3,3)
+	pixel_y += rand(-3,3)
 
 
 
@@ -204,6 +255,7 @@ obj/item/alienjar
 	anchored = TRUE
 	layer = MOB_LAYER
 	resistance_flags = XENO_DAMAGEABLE
+	max_integrity = 100
 
 /obj/structure/plasticflaps/CanAllowThrough(atom/A, turf/T)
 	. = ..()
@@ -241,3 +293,54 @@ obj/item/alienjar
 	desc = "Plastic flaps for transporting supplies."
 	obj_flags = null
 	resistance_flags = XENO_DAMAGEABLE
+
+
+	//Magmoor Cryopods
+
+/obj/structure/cryopods
+	name = "hypersleep chamber"
+	icon = 'icons/obj/machines/cryogenics.dmi'
+	icon_state = "body_scanner_0"
+	desc = "A large automated capsule with LED displays intended to put anyone inside into 'hypersleep'."
+	density = TRUE
+	anchored = TRUE
+	coverage = 15
+	resistance_flags = XENO_DAMAGEABLE
+
+/obj/structure/tankholder
+	name = "tank holder"
+	icon = 'icons/obj/stationobjs.dmi'
+	icon_state = "holder"
+	desc = "A metallic frame that can hold tanks and extinguishers."
+	density = TRUE
+	anchored = TRUE
+	coverage = 15
+	resistance_flags = XENO_DAMAGEABLE
+
+/obj/structure/tankholder/oxygen
+	icon_state = "holder_oxygen"
+
+/obj/structure/tankholder/oxygentwo
+	icon_state = "holder_oxygen_f"
+
+/obj/structure/tankholder/oxygenthree
+	icon_state = "holder_oxygen_fr"
+
+/obj/structure/tankholder/generic
+	icon_state = "holder_generic"
+
+/obj/structure/tankholder/extinguisher
+	icon_state = "holder_extinguisher"
+
+/obj/structure/tankholder/foamextinguisher
+	icon_state = "holder_foam_extinguisher"
+
+/obj/structure/tankholder/anesthetic
+	icon_state = "holder_anesthetic"
+
+/obj/structure/tankholder/emergencyoxygen
+	icon_state = "holder_anesthetic"
+
+/obj/structure/tankholder/emergencyoxygentwo
+	icon_state = "holder_emergency_engi"
+

@@ -10,11 +10,11 @@
 	var/last_use
 	var/id
 
-/obj/machinery/line_nexter/Initialize()
+/obj/machinery/line_nexter/Initialize(mapload)
 	. = ..()
 	last_use = world.time
 	var/static/list/connections = list(
-		COMSIG_ATOM_EXIT = .proc/on_try_exit
+		COMSIG_ATOM_EXIT = PROC_REF(on_try_exit)
 	)
 	AddElement(/datum/element/connect_loc, connections)
 

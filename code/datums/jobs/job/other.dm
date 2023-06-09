@@ -43,6 +43,7 @@
 	r_store = /obj/item/radio
 	l_store = /obj/item/reagent_containers/food/drinks/cans/dr_gibb
 	back = /obj/item/storage/backpack/satchel
+	r_hand = /obj/item/pizzabox/random
 
 
 //Spatial Agent
@@ -95,7 +96,7 @@
 /datum/outfit/job/other/spatial_agent/marine_officer
 	w_uniform = /obj/item/clothing/under/marine/officer/bridge
 	head = /obj/item/clothing/head/beret/marine
-	belt = /obj/item/storage/belt/gun/pistol/m4a3/officer
+	belt = /obj/item/storage/holster/belt/pistol/m4a3/officer
 	back = null
 	shoes = /obj/item/clothing/shoes/marine/full
 

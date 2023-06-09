@@ -24,7 +24,7 @@
 	var/accuracy_mod = 0
 	flags_inventory = NOQUICKEQUIP
 
-/obj/item/clothing/Initialize()
+/obj/item/clothing/Initialize(mapload)
 	. = ..()
 	attachments_allowed = string_list(attachments_allowed)
 	starting_attachments = string_list(starting_attachments)
@@ -39,9 +39,11 @@
 		return
 	if(!ishuman(user))
 		return
+	var/mob/living/carbon/human/human_user = user
 	if(accuracy_mod)
-		var/mob/living/carbon/human/human_user = user
 		human_user.adjust_mob_accuracy(accuracy_mod)
+	if(flags_armor_features & ARMOR_FIRE_RESISTANT)
+		ADD_TRAIT(human_user, TRAIT_NON_FLAMMABLE, src)
 
 
 /obj/item/clothing/unequipped(mob/unequipper, slot)
@@ -49,26 +51,46 @@
 		return ..()
 	if(!ishuman(unequipper))
 		return ..()
+	var/mob/living/carbon/human/human_unequipper = unequipper
 	if(accuracy_mod)
-		var/mob/living/carbon/human/human_unequipper = unequipper
 		human_unequipper.adjust_mob_accuracy(-accuracy_mod)
+	if(flags_armor_features & ARMOR_FIRE_RESISTANT)
+		REMOVE_TRAIT(human_unequipper, TRAIT_NON_FLAMMABLE, src)
 	return ..()
 
+/obj/item/clothing/vendor_equip(mob/user)
+	..()
+	return user.equip_to_appropriate_slot(src)
+
+/obj/item/clothing/on_pocket_insertion()
+	. = ..()
+	update_icon()
+
+/obj/item/clothing/on_pocket_removal()
+	. = ..()
+	update_icon()
+
+/obj/item/clothing/do_quick_equip(mob/user)
+	for(var/attachment_slot in attachments_by_slot)
+		if(ismodulararmorstoragemodule(attachments_by_slot[attachment_slot]))
+			var/obj/item/armor_module/storage/storage_attachment = attachments_by_slot[attachment_slot]
+			return storage_attachment.storage.do_quick_equip(user)
+	return src
 
 //Updates the icons of the mob wearing the clothing item, if any.
 /obj/item/clothing/proc/update_clothing_icon()
 	return
 
-/obj/item/clothing/apply_blood(image/standing)
+/obj/item/clothing/apply_blood(mutable_appearance/standing)
 	if(blood_overlay && blood_sprite_state)
-		var/image/bloodsies	= image(icon = 'icons/effects/blood.dmi', icon_state = blood_sprite_state)
-		bloodsies.color	= blood_color
+		var/image/bloodsies = mutable_appearance('icons/effects/blood.dmi', blood_sprite_state)
+		bloodsies.color = blood_color
 		standing.add_overlay(bloodsies)
 
-/obj/item/clothing/suit/apply_blood(image/standing)
+/obj/item/clothing/suit/apply_blood(mutable_appearance/standing)
 	if(blood_overlay && blood_sprite_state)
 		blood_sprite_state = "[blood_overlay_type]blood"
-		var/image/bloodsies	= image(icon = 'icons/effects/blood.dmi', icon_state = blood_sprite_state)
+		var/image/bloodsies = mutable_appearance('icons/effects/blood.dmi', blood_sprite_state)
 		bloodsies.color = blood_color
 		standing.add_overlay(bloodsies)
 
@@ -76,6 +98,10 @@
 // Ears: headsets, earmuffs and tiny objects
 /obj/item/clothing/ears
 	name = "ears"
+	item_icons = list(
+		slot_l_hand_str = 'icons/mob/inhands/clothing/ears_left.dmi',
+		slot_r_hand_str = 'icons/mob/inhands/clothing/ears_right.dmi',
+	)
 	w_class = WEIGHT_CLASS_TINY
 	throwforce = 2
 	flags_equip_slot = ITEM_SLOT_EARS
@@ -92,20 +118,29 @@
 	item_state = "earmuffs"
 	flags_equip_slot = ITEM_SLOT_EARS
 
+/obj/item/clothing/ears/earmuffs/green
+	icon_state = "earmuffs2"
+
+/obj/item/clothing/ears/earmuffs/gold
+	icon_state = "earmuffs3"
 
 ///////////////////////////////////////////////////////////////////////
 //Suit
 /obj/item/clothing/suit
-	icon = 'icons/obj/clothing/suits.dmi'
+	icon = 'icons/obj/clothing/suits/suits.dmi'
+	item_icons = list(
+		slot_l_hand_str = 'icons/mob/inhands/clothing/suits_left.dmi',
+		slot_r_hand_str = 'icons/mob/inhands/clothing/suits_right.dmi',
+	)
 	name = "suit"
 	flags_armor_protection = CHEST|GROIN|ARMS|LEGS
 	allowed = list(/obj/item/tank/emergency_oxygen)
-	soft_armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 0, "acid" = 0)
+	soft_armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, FIRE = 0, ACID = 0)
 	flags_equip_slot = ITEM_SLOT_OCLOTHING
 	siemens_coefficient = 0.9
 	w_class = WEIGHT_CLASS_NORMAL
 	attachments_by_slot = list(ATTACHMENT_SLOT_BADGE)
-	attachments_allowed = list(/obj/item/armor_module/armor/badge)
+	attachments_allowed = list(/obj/item/armor_module/greyscale/badge)
 	var/supporting_limbs = NONE
 	var/blood_overlay_type = "suit"
 	var/shield_state = "shield-blue"
@@ -115,7 +150,7 @@
 	light_range = 4
 	light_system = MOVABLE_LIGHT
 
-/obj/item/clothing/suit/Initialize()
+/obj/item/clothing/suit/Initialize(mapload)
 	. = ..()
 	GLOB.nightfall_toggleable_lights += src
 
@@ -142,6 +177,14 @@
 		var/mob/M = loc
 		M.update_inv_wear_suit()
 
+/obj/item/clothing/suit/MouseDrop(over_object, src_location, over_location)
+	if(!attachments_by_slot[ATTACHMENT_SLOT_STORAGE])
+		return ..()
+	if(!istype(attachments_by_slot[ATTACHMENT_SLOT_STORAGE], /obj/item/armor_module/storage))
+		return ..()
+	var/obj/item/armor_module/storage/armor_storage = attachments_by_slot[ATTACHMENT_SLOT_STORAGE]
+	if(armor_storage.storage.handle_mousedrop(usr, over_object))
+		return ..()
 
 /////////////////////////////////////////////////////////
 //Gloves
@@ -150,6 +193,10 @@
 	gender = PLURAL //Carn: for grammarically correct text-parsing
 	w_class = WEIGHT_CLASS_SMALL
 	icon = 'icons/obj/clothing/gloves.dmi'
+	item_icons = list(
+		slot_l_hand_str = 'icons/mob/inhands/clothing/gloves_left.dmi',
+		slot_r_hand_str = 'icons/mob/inhands/clothing/gloves_right.dmi',
+	)
 	item_state_worn = TRUE
 	siemens_coefficient = 0.50
 	var/wired = 0
@@ -204,6 +251,10 @@
 /obj/item/clothing/mask
 	name = "mask"
 	icon = 'icons/obj/clothing/masks.dmi'
+	item_icons = list(
+		slot_l_hand_str = 'icons/mob/inhands/clothing/masks_left.dmi',
+		slot_r_hand_str = 'icons/mob/inhands/clothing/masks_right.dmi',
+	)
 	flags_equip_slot = ITEM_SLOT_MASK
 	flags_armor_protection = FACE|EYES
 	blood_sprite_state = "maskblood"
@@ -216,21 +267,15 @@
 		var/mob/M = src.loc
 		M.update_inv_wear_mask()
 
-
-//some gas masks modify the air that you breathe in.
-/obj/item/clothing/mask/proc/filter_air(list/air_info)
-	if(flags_inventory & ALLOWREBREATH)
-		air_info[2] = T20C //heats/cools air to be breathable
-
-	return air_info
-
-
-
 ////////////////////////////////////////////////////////////////////////
 //Shoes
 /obj/item/clothing/shoes
 	name = "shoes"
 	icon = 'icons/obj/clothing/shoes.dmi'
+	item_icons = list(
+		slot_l_hand_str = 'icons/mob/inhands/clothing/shoes_left.dmi',
+		slot_r_hand_str = 'icons/mob/inhands/clothing/shoes_right.dmi',
+	)
 	desc = "Comfortable-looking shoes."
 	gender = PLURAL //Carn: for grammarically correct text-parsing
 	siemens_coefficient = 0.9
@@ -239,9 +284,18 @@
 	permeability_coefficient = 0.50
 	slowdown = SHOES_SLOWDOWN
 	blood_sprite_state = "shoeblood"
-
+	soft_armor = list(MELEE = 25, BULLET = 15, LASER = 5, ENERGY = 5, BOMB = 5, BIO = 5, FIRE = 5, ACID = 20)
 
 /obj/item/clothing/shoes/update_clothing_icon()
 	if (ismob(src.loc))
 		var/mob/M = src.loc
 		M.update_inv_shoes()
+
+/obj/item/clothing/shoes/MouseDrop(over_object, src_location, over_location)
+	if(!attachments_by_slot[ATTACHMENT_SLOT_STORAGE])
+		return ..()
+	if(!istype(attachments_by_slot[ATTACHMENT_SLOT_STORAGE], /obj/item/armor_module/storage))
+		return ..()
+	var/obj/item/armor_module/storage/armor_storage = attachments_by_slot[ATTACHMENT_SLOT_STORAGE]
+	if(armor_storage.storage.handle_mousedrop(usr, over_object))
+		return ..()

@@ -11,7 +11,7 @@
 	icon_state = "stickyweb1"
 
 
-/obj/structure/spider/stickyweb/Initialize()
+/obj/structure/spider/stickyweb/Initialize(mapload)
 	if(prob(50))
 		icon_state = "stickyweb2"
 	return ..()
@@ -42,7 +42,7 @@
 	var/faction = FACTION_SPIDER
 
 
-/obj/structure/spider/eggcluster/Initialize()
+/obj/structure/spider/eggcluster/Initialize(mapload)
 	pixel_x = rand(3,-3)
 	pixel_y = rand(3,-3)
 	START_PROCESSING(SSobj, src)
@@ -73,7 +73,7 @@
 	var/faction = FACTION_SPIDER
 
 
-/obj/structure/spider/spiderling/Initialize()
+/obj/structure/spider/spiderling/Initialize(mapload)
 	. = ..()
 	pixel_x = rand(6,-6)
 	pixel_y = rand(6,-6)
@@ -124,11 +124,11 @@
 				visible_message("<B>[src] scrambles into the ventilation ducts!</B>", \
 								span_italics("You hear something scampering through the ventilation ducts."))
 
-			addtimer(CALLBACK(src, .proc/move_to_vent, exit_vent), rand(2 SECONDS, 6 SECONDS))
+			addtimer(CALLBACK(src, PROC_REF(move_to_vent), exit_vent), rand(2 SECONDS, 6 SECONDS))
 
 	else if(prob(33))
 		var/list/nearby = oview(10, src)
-		if(nearby.len)
+		if(length(nearby))
 			var/target_atom = pick(nearby)
 			walk_to(src, target_atom)
 			if(prob(40))
@@ -155,7 +155,7 @@
 /obj/structure/spider/spiderling/proc/move_to_vent(obj/machinery/atmospherics/components/unary/vent_pump/exit_vent)
 	forceMove(exit_vent)
 	var/travel_time = round(get_dist(loc, exit_vent.loc) / 2)
-	addtimer(CALLBACK(src, .proc/travel_delay, exit_vent, travel_time), travel_time)
+	addtimer(CALLBACK(src, PROC_REF(travel_delay), exit_vent, travel_time), travel_time)
 
 
 /obj/structure/spider/spiderling/proc/travel_delay(obj/machinery/atmospherics/components/unary/vent_pump/exit_vent, travel_time)
@@ -167,7 +167,7 @@
 	if(prob(50))
 		audible_message(span_italics("You hear something scampering through the ventilation ducts."))
 
-	addtimer(CALLBACK(src, .proc/exit_vent, exit_vent), travel_time)
+	addtimer(CALLBACK(src, PROC_REF(exit_vent), exit_vent), travel_time)
 
 
 /obj/structure/spider/spiderling/proc/exit_vent(obj/machinery/atmospherics/components/unary/vent_pump/exit_vent)
@@ -189,7 +189,7 @@
 	max_integrity = 60
 
 
-/obj/structure/spider/cocoon/Initialize()
+/obj/structure/spider/cocoon/Initialize(mapload)
 	icon_state = pick("cocoon1", "cocoon2", "cocoon3")
 	return ..()
 

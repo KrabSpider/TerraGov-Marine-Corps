@@ -40,7 +40,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 
 	var/show_typing = TRUE
 	var/windowflashing = TRUE
-	var/clientfps = 0
+	var/clientfps = 60
 
 	// Custom Keybindings
 	var/list/key_bindings = null
@@ -58,6 +58,9 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/synthetic_name = "Undefined"
 	var/synthetic_type = "Synthetic"
 
+	//Robot specific preferences
+	var/robot_type = "Basic"
+
 	//Xenomorph specific preferences
 	var/xeno_name = "Undefined"
 
@@ -73,16 +76,18 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/ethnicity = "Western"
 	var/good_eyesight = TRUE
 	var/preferred_squad = "None"
+	///Your preferred squad, when playing SOM
+	var/preferred_squad_som = "None"
 	var/alternate_option = RETURN_TO_LOBBY
-	var/preferred_slot = SLOT_S_STORE
-	var/preferred_slot_alt = SLOT_BACK
+	///Quick equip slots, up to [MAX_QUICK_EQUIP_SLOTS]. One per quick equip hotkey.
+	var/list/quick_equip = list()
 	var/list/gear
 	var/list/job_preferences = list()
 
 	//Clothing
 	var/underwear = 1
 	var/undershirt = 1
-	var/backpack = 2
+	var/backpack = BACK_SATCHEL
 
 	//Hair style
 	var/h_style = "Bald"
@@ -131,6 +136,16 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	///Whether to mute xeno health alerts from when other xenos are badly hurt.
 	var/mute_xeno_health_alert_messages = TRUE
 
+	///whether the user wants to hear tts
+	var/sound_tts = TRUE
+	///What tts voice should be used
+	var/tts_voice = "Male 01"
+	///whether to use animal crossing style blblblbl
+	var/sound_tts_blips = FALSE
+	///Volume to use for tts
+	var/volume_tts = 100
+
+
 	/// Chat on map
 	var/chat_on_map = TRUE
 	var/see_chat_non_mob = FALSE
@@ -156,8 +171,8 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 
 	/// New TGUI Preference preview
 	var/map_name = "player_pref_map"
-	var/obj/screen/map_view/screen_main
-	var/obj/screen/background/screen_bg
+	var/atom/movable/screen/map_view/screen_main
+	var/atom/movable/screen/background/screen_bg
 
 	/// If unique action will only act on the item in the active hand. If false, it will try to act on the item on the inactive hand as well in certain conditions.
 	var/unique_action_use_active_hand = TRUE
@@ -199,7 +214,7 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 		var/datum/custom_emote/emote = new
 		emote.id = i
 		custom_emotes += emote
-	C.update_movement_keys(src)
+	C.set_macros()
 	loadout_manager = new
 
 

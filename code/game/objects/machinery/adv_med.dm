@@ -177,7 +177,7 @@
 	var/delete
 	var/temphtml
 
-/obj/machinery/body_scanconsole/Initialize()
+/obj/machinery/body_scanconsole/Initialize(mapload)
 	. = ..()
 	set_connected(locate(/obj/machinery/bodyscanner, get_step(src, WEST)))
 
@@ -246,7 +246,7 @@
 		UnregisterSignal(connected, COMSIG_PARENT_QDELETING)
 	connected = new_connected
 	if(connected)
-		RegisterSignal(connected, COMSIG_PARENT_QDELETING, .proc/on_bodyscanner_deletion)
+		RegisterSignal(connected, COMSIG_PARENT_QDELETING, PROC_REF(on_bodyscanner_deletion))
 
 
 ///Called by the deletion of the connected bodyscanner.

@@ -15,7 +15,7 @@
 	///Whether this computer is activated by the event yet
 	var/active = FALSE
 	///How much supply points you get for completing the terminal
-	var/supply_reward = 60
+	var/supply_reward = 600
 	///How much dropship points you get for completing the terminal
 	var/dropship_reward = 60
 
@@ -35,9 +35,10 @@
 	var/faction = FACTION_TERRAGOV
 
 
-/obj/machinery/computer/intel_computer/Initialize()
+/obj/machinery/computer/intel_computer/Initialize(mapload)
 	. = ..()
 	GLOB.intel_computers += src
+	RegisterSignal(SSdcs, COMSIG_GLOB_DROPSHIP_HIJACKED, PROC_REF(disable_on_hijack))
 
 /obj/machinery/computer/intel_computer/process()
 	. = ..()
@@ -60,7 +61,7 @@
 
 /obj/machinery/computer/intel_computer/interact(mob/user)
 	if(!active)
-		to_chat(user, span_notice(" This terminal has nothing of use on it."))
+		to_chat(user, span_notice("This terminal has nothing of use on it."))
 		return
 	return ..()
 
@@ -97,3 +98,14 @@
 			faction = ui_user.faction
 			START_PROCESSING(SSmachines, src)
 	update_icon()
+
+/// Deactivates this intel computer, for use on hijack
+/obj/machinery/computer/intel_computer/proc/disable_on_hijack()
+	GLOB.intel_computers -= src // prevents the event running
+	if(!active)
+		return
+	SStgui.close_uis(src)
+	SSminimaps.remove_marker(src)
+	active = FALSE
+	if(printing)
+		STOP_PROCESSING(SSmachines, src)

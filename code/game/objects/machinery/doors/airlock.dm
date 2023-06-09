@@ -2,7 +2,7 @@
 	name = "\improper Airlock"
 	icon = 'icons/obj/doors/Doorint.dmi'
 	icon_state = "door_closed"
-	soft_armor = list("melee" = 20, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 100, "rad" = 0, "fire" = 100, "acid" = 0)
+	soft_armor = list(MELEE = 20, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 100, FIRE = 100, ACID = 0)
 	power_channel = ENVIRON
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 5
@@ -34,6 +34,7 @@
 	var/secured_wires = 0	//for mapping use
 	var/no_panel = 0 //the airlock has no panel that can be screwdrivered open
 	var/emergency = FALSE
+	smoothing_groups = list(SMOOTH_GROUP_AIRLOCK)
 
 /obj/machinery/door/airlock/bumpopen(mob/living/user) //Airlocks now zap you when you 'bump' them open when they're electrified. --NeoFite
 	if(issilicon(user))
@@ -54,9 +55,6 @@
 			H.adjustStaminaLoss(200)
 			return
 	return ..(user)
-
-/obj/machinery/door/airlock/bumpopen(mob/living/simple_animal/user as mob)
-	..(user)
 
 
 /obj/machinery/door/airlock/proc/isElectrified()
@@ -97,7 +95,7 @@
 /obj/machinery/door/airlock/proc/handlePowerRestore()
 	var/cont = TRUE
 	while(cont)
-		sleep(10)
+		sleep(1 SECONDS)
 		if(QDELETED(src))
 			return
 		cont = FALSE
@@ -123,7 +121,7 @@
 			secondsBackupPowerLost = 10
 	if(!spawnPowerRestoreRunning)
 		spawnPowerRestoreRunning = TRUE
-	INVOKE_ASYNC(src, .proc/handlePowerRestore)
+	INVOKE_ASYNC(src, PROC_REF(handlePowerRestore))
 	update_icon()
 
 
@@ -132,7 +130,7 @@
 		secondsBackupPowerLost = 60
 	if(!spawnPowerRestoreRunning)
 		spawnPowerRestoreRunning = TRUE
-	INVOKE_ASYNC(src, .proc/handlePowerRestore)
+	INVOKE_ASYNC(src, PROC_REF(handlePowerRestore))
 	update_icon()
 
 
@@ -151,7 +149,7 @@
 		return 0	//Already shocked someone recently?
 	if(..())
 		hasShocked = 1
-		sleep(10)
+		sleep(1 SECONDS)
 		hasShocked = 0
 		return 1
 	else
@@ -301,7 +299,7 @@
 							span_notice("You begin [welded ? "unwelding":"welding"] the airlock..."), \
 							span_italics("You hear welding."))
 
-			if(!W.use_tool(src, user, 40, volume = 50, extra_checks = CALLBACK(src, .proc/weld_checks)))
+			if(!W.use_tool(src, user, 40, volume = 50, extra_checks = CALLBACK(src, PROC_REF(weld_checks))))
 				return
 
 			welded = !welded
@@ -320,7 +318,7 @@
 							span_notice("You begin repairing the airlock..."), \
 							span_italics("You hear welding."))
 
-			if(!W.use_tool(src, user, 40, volume = 50, extra_checks = CALLBACK(src, .proc/weld_checks)))
+			if(!W.use_tool(src, user, 40, volume = 50, extra_checks = CALLBACK(src, PROC_REF(weld_checks))))
 				return
 
 			repair_damage(max_integrity)
@@ -342,11 +340,11 @@
 		return
 
 	else if(I.pry_capable == IS_PRY_CAPABLE_CROWBAR && CHECK_BITFIELD(machine_stat, PANEL_OPEN) && (operating == -1 || (density && welded && operating != 1 && !hasPower() && !locked)))
-		if(user.skills.getRating("engineer") < SKILL_ENGINEER_ENGI)
+		if(user.skills.getRating(SKILL_ENGINEER) < SKILL_ENGINEER_ENGI)
 			user.visible_message(span_notice("[user] fumbles around figuring out how to deconstruct [src]."),
 			span_notice("You fumble around figuring out how to deconstruct [src]."))
 
-			var/fumbling_time = 50 * ( SKILL_ENGINEER_ENGI - user.skills.getRating("engineer") )
+			var/fumbling_time = 50 * ( SKILL_ENGINEER_ENGI - user.skills.getRating(SKILL_ENGINEER) )
 			if(!do_after(user, fumbling_time, TRUE, src, BUSY_ICON_UNSKILLED))
 				return
 
@@ -451,19 +449,19 @@
 	if(safe)
 		for(var/turf/turf AS in locs)
 			if(locate(/mob/living) in turf)
-				addtimer(CALLBACK(src, .proc/close), 6 SECONDS)
+				addtimer(CALLBACK(src, PROC_REF(close)), 6 SECONDS)
 				return
 
 	for(var/turf/turf in locs)
 		for(var/mob/living/M in turf)
-			M.apply_damage(DOOR_CRUSH_DAMAGE, BRUTE)
+			M.apply_damage(DOOR_CRUSH_DAMAGE, BRUTE, blocked = MELEE)
 			M.Stun(10 SECONDS)
 			M.Paralyze(10 SECONDS)
 			if (iscarbon(M))
 				var/mob/living/carbon/C = M
 				var/datum/species/S = C.species
 				if(S?.species_flags & NO_PAIN)
-					INVOKE_ASYNC(M, /mob/living.proc/emote, "pain")
+					INVOKE_ASYNC(M, TYPE_PROC_REF(/mob/living, emote), "pain")
 			var/turf/location = src.loc
 			if(istype(location, /turf))
 				location.add_mob_blood(M)
@@ -498,19 +496,9 @@
 		return TRUE
 	return FALSE
 
-/obj/machinery/door/airlock/Initialize(mapload, ...)
-	. = ..()
-
-	wires = new /datum/wires/airlock(src)
-
-	if(closeOtherId != null)
-		for (var/obj/machinery/door/airlock/A in GLOB.machines)
-			if(A.closeOtherId == src.closeOtherId && A != src)
-				src.closeOther = A
-				break
-
 
 /obj/machinery/door/airlock/Destroy()
+	QUEUE_SMOOTH_NEIGHBORS(loc)
 	QDEL_NULL(wires)
 	return ..()
 
@@ -523,13 +511,13 @@
 
 
 /obj/machinery/door/airlock/proc/update_nearby_icons()
-	smooth_neighbors()
+	QUEUE_SMOOTH_NEIGHBORS(src)
 
 
 /obj/machinery/door/airlock/proc/set_electrified(seconds, mob/user)
 	secondsElectrified = seconds
 	if(secondsElectrified > MACHINE_NOT_ELECTRIFIED)
-		INVOKE_ASYNC(src, .proc/electrified_loop)
+		INVOKE_ASYNC(src, PROC_REF(electrified_loop))
 
 	if(user)
 		var/message
@@ -540,13 +528,13 @@
 				message = "unshocked"
 			else
 				message = "temp shocked for [secondsElectrified] seconds"
-		LAZYADD(shockedby, text("\[[time_stamp()]\] [key_name(user)] - ([uppertext(message)])"))
+		LAZYADD(shockedby, "\[[time_stamp()]\] [key_name(user)] - ([uppertext(message)])")
 		log_combat(user, src, message)
 
 
 /obj/machinery/door/airlock/proc/electrified_loop()
 	while(secondsElectrified > MACHINE_NOT_ELECTRIFIED)
-		sleep(10)
+		sleep(1 SECONDS)
 		if(QDELETED(src))
 			return
 

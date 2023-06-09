@@ -6,7 +6,7 @@
 /atom/movable/lighting_mask
 	name = ""
 	icon = LIGHTING_ICON_BIG
-	icon_state  = "light_big"
+	icon_state = "light_big"
 
 	anchored = TRUE
 	plane = LIGHTING_PLANE
@@ -16,7 +16,6 @@
 	blend_mode = BLEND_ADD
 	appearance_flags = KEEP_TOGETHER|RESET_TRANSFORM
 	move_resist = INFINITY
-	vis_flags = VIS_HIDE
 
 	///The current angle the item is pointing at
 	var/current_angle = 0

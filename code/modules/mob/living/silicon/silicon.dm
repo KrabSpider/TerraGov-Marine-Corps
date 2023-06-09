@@ -8,6 +8,7 @@
 	dextrous = TRUE
 
 	initial_language_holder = /datum/language_holder/synthetic
+	voice_filter = "afftfilt=real='hypot(re,im)*sin(0)':imag='hypot(re,im)*cos(0)':win_size=512:overlap=1,rubberband=pitch=0.8"
 
 	var/obj/machinery/camera/builtInCamera = null
 	var/obj/item/radio/headset/mainship/mcom/silicon/radio = null
@@ -15,9 +16,11 @@
 	var/list/HUD_toggled = list(0, 0, 0)
 
 
-/mob/living/silicon/Initialize()
+/mob/living/silicon/Initialize(mapload)
 	. = ..()
 	radio = new(src)
+	if(SStts.tts_enabled)
+		voice = pick(SStts.available_speakers)
 
 
 /mob/living/silicon/Destroy()
@@ -53,10 +56,6 @@
 	return
 
 
-/mob/living/silicon/stripPanelEquip(obj/item/I, mob/M, slot)
-	return
-
-
 /mob/living/silicon/stripPanelUnequip(obj/item/I, mob/M, slot)
 	return
 
@@ -81,7 +80,7 @@
 		if(2)
 			Stun(rand(2 SECONDS, 10 SECONDS))
 			take_limb_damage(10)
-	flash_act(1, TRUE, type = /obj/screen/fullscreen/flash/noise)
+	flash_act(1, TRUE, type = /atom/movable/screen/fullscreen/flash/noise)
 
 	to_chat(src, span_danger("*BZZZT*"))
 	to_chat(src, span_warning("Warning: Electromagnetic pulse detected."))
@@ -143,7 +142,12 @@
 			H = GLOB.huds[DATA_HUD_SECURITY_ADVANCED]
 			HUD_nbr = 2
 		if("Squad HUD")
-			H = GLOB.huds[faction == FACTION_TERRAGOV ? DATA_HUD_SQUAD_TERRAGOV :DATA_HUD_SQUAD_REBEL]
+			if(GLOB.huds[faction] == FACTION_TERRAGOV)
+				H = DATA_HUD_SQUAD_TERRAGOV
+			else if(GLOB.huds[faction] == FACTION_TERRAGOV_REBEL)
+				H = DATA_HUD_SQUAD_REBEL
+			else if(GLOB.huds[faction] == FACTION_SOM)
+				H = DATA_HUD_SQUAD_SOM
 			HUD_nbr = 3
 		else
 			return
@@ -180,21 +184,6 @@
 			adjustBruteLoss(30)
 
 	UPDATEHEALTH(src)
-
-
-/mob/living/silicon/emp_act(severity)
-	. = ..()
-
-	to_chat(src, span_danger("Electromagnetic pulse detected."))
-
-	switch(severity)
-		if(1)
-			adjustBruteLoss(20)
-		if(2)
-			adjustBruteLoss(10)
-
-	to_chat(src, span_danger("*BZZZT*"))
-	flash_act()
 
 
 /mob/living/silicon/update_transform()

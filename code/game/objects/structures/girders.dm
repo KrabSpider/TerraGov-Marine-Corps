@@ -9,12 +9,12 @@
 	hit_sound = 'sound/effects/metalhit.ogg'
 	max_integrity = 150
 	integrity_failure = 25
-	smoothing_behavior = CARDINAL_SMOOTHING
-	smoothing_groups = SMOOTH_GENERAL_STRUCTURES
 	var/girder_state = GIRDER_NORMAL
 	var/reinforcement = null
 	var/icon_prefix = "girder"
 
+/obj/structure/girder/add_debris_element()
+	AddElement(/datum/element/debris, DEBRIS_SPARKS, -15, 8, 1)
 
 #define GIRDER_DECONSTRUCTING (new_state < girder_state)
 

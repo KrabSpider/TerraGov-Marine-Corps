@@ -4,6 +4,7 @@
 	desc = "A huge ass xeno covered in weeds! Oh shit!"
 	icon = 'icons/Xeno/2x2_Xenos.dmi'
 	icon_state = "Hivelord Walking"
+	bubble_icon = "alienroyal"
 	health = 250
 	maxHealth = 250
 	plasma_stored = 200
@@ -18,7 +19,7 @@
 // ***************************************
 // *********** Init
 // ***************************************
-/mob/living/carbon/xenomorph/hivelord/Initialize()
+/mob/living/carbon/xenomorph/hivelord/Initialize(mapload)
 	. = ..()
 	update_spits()
 

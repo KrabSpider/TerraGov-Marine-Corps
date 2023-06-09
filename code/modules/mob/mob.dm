@@ -6,9 +6,8 @@
 	for(var/alert in alerts)
 		clear_alert(alert, TRUE)
 	if(length(observers))
-		for(var/i in observers)
-			var/mob/dead/D = i
-			D.reset_perspective(null)
+		for(var/mob/dead/observes AS in observers)
+			observes.reset_perspective(null)
 	clear_client_in_contents() //Gotta do this here as well as Logout, since client will be null by the time it gets there, cause of that ghostize
 	ghostize()
 	clear_fullscreens()
@@ -23,7 +22,7 @@
 	set_focus(null)
 	return ..()
 
-/mob/Initialize()
+/mob/Initialize(mapload)
 	GLOB.mob_list += src
 	if(stat == DEAD)
 		GLOB.dead_mob_list += src
@@ -109,50 +108,53 @@
 
 /mob/proc/show_message(msg, type, alt_msg, alt_type, avoid_highlight)
 	if(!client)
-		return
+		return FALSE
 
 	msg = copytext_char(msg, 1, MAX_MESSAGE_LEN)
 
 	to_chat(src, msg)
+	return TRUE
 
 
 /mob/living/show_message(msg, type, alt_msg, alt_type, avoid_highlight)
 	if(!client)
-		return
+		return FALSE
 
 	msg = copytext_char(msg, 1, MAX_MESSAGE_LEN)
 
 	if(type)
 		if(type == EMOTE_VISIBLE && eye_blind) //Vision related
 			if(!alt_msg)
-				return
+				return FALSE
 			else
 				msg = alt_msg
 				type = alt_type
 
 		if(type == EMOTE_AUDIBLE && isdeaf(src)) //Hearing related
 			if(!alt_msg)
-				return
+				return FALSE
 			else
 				msg = alt_msg
 				type = alt_type
 				if(type == EMOTE_VISIBLE && eye_blind)
-					return
+					return FALSE
 
 	if(stat == UNCONSCIOUS && type == EMOTE_AUDIBLE)
 		to_chat(src, "<i>... You can almost hear something ...</i>")
-		return
+		return FALSE
 	to_chat(src, msg, avoid_highlighting = avoid_highlight)
+	return TRUE
 
-// Show a message to all player mobs who sees this atom
-// Show a message to the src mob (if the src is a mob)
-// Use for atoms performing visible actions
-// message is output to anyone who can see, e.g. "The [src] does something!"
-// self_message (optional) is what the src mob sees e.g. "You do something!"
-// blind_message (optional) is what blind people will hear e.g. "You hear something!"
-// vision_distance (optional) define how many tiles away the message can be seen.
-// ignored_mob (optional) doesn't show any message to a given mob if TRUE.
-
+/**
+ * Show a message to all player mobs who sees this atom
+ * Show a message to the src mob (if the src is a mob)
+ * Use for atoms performing visible actions
+ * message is output to anyone who can see, e.g. "The [src] does something!"
+ * self_message (optional) is what the src mob sees e.g. "You do something!"
+ * blind_message (optional) is what blind people will hear e.g. "You hear something!"
+ * vision_distance (optional) define how many tiles away the message can be seen.
+ * ignored_mob (optional) doesn't show any message to a given mob if TRUE.
+ */
 /atom/proc/visible_message(message, self_message, blind_message, vision_distance, ignored_mob, visible_message_flags = NONE, emote_prefix)
 	var/turf/T = get_turf(src)
 	if(!T)
@@ -237,11 +239,13 @@
 		M.show_message(msg, EMOTE_AUDIBLE, deaf_message, EMOTE_VISIBLE)
 
 
-// Show a message to all mobs in earshot of this atom
-// Use for objects performing audible actions
-// message is the message output to anyone who can hear.
-// deaf_message (optional) is what deaf people will see.
-// hearing_distance (optional) is the range, how many tiles away the message can be heard.
+/**
+ * Show a message to all mobs in earshot of this atom
+ * Use for objects performing audible actions
+ * message is the message output to anyone who can hear.
+ * deaf_message (optional) is what deaf people will see.
+ * hearing_distance (optional) is the range, how many tiles away the message can be heard.
+ */
 /atom/proc/audible_message(message, deaf_message, hearing_distance, self_message, audible_message_flags = NONE, emote_prefix)
 	var/range = 7
 	var/raw_msg = message
@@ -255,12 +259,14 @@
 		M.show_message(message, EMOTE_AUDIBLE, deaf_message, EMOTE_VISIBLE)
 
 
-//This proc is called whenever someone clicks an inventory ui slot.
+///This proc is called whenever someone clicks an inventory ui slot.
 /mob/proc/attack_ui(slot)
 	var/obj/item/W = get_active_held_item()
 	if(istype(W))
 		equip_to_slot_if_possible(W, slot, FALSE) // equiphere
 
+
+///Attempts to put an item in either hand
 /mob/proc/put_in_any_hand_if_possible(obj/item/W as obj, del_on_fail = FALSE, warning = FALSE, redraw_mob = TRUE)
 	if(equip_to_slot_if_possible(W, SLOT_L_HAND, TRUE, del_on_fail, warning, redraw_mob))
 		return TRUE
@@ -268,9 +274,11 @@
 		return TRUE
 	return FALSE
 
-//This is a SAFE proc. Use this instead of equip_to_splot()!
-//set del_on_fail to have it delete W if it fails to equip
-//unset redraw_mob to prevent the mob from being redrawn at the end.
+/**
+ * This is a SAFE proc. Use this instead of equip_to_splot()!
+ * set del_on_fail to have it delete W if it fails to equip
+ * unset redraw_mob to prevent the mob from being redrawn at the end.
+ */
 /mob/proc/equip_to_slot_if_possible(obj/item/W, slot, ignore_delay = TRUE, del_on_fail = FALSE, warning = TRUE, redraw_mob = TRUE, permanent = FALSE, override_nodrop = FALSE)
 	if(!istype(W))
 		return FALSE
@@ -281,11 +289,11 @@
 		if(warning)
 			to_chat(src, span_warning("You are unable to equip that."))
 		return FALSE
-	if(W.time_to_equip && !ignore_delay)
-		if(!do_after(src, W.time_to_equip, TRUE, W, BUSY_ICON_FRIENDLY))
+	if(W.equip_delay_self && !ignore_delay)
+		if(!do_after(src, W.equip_delay_self, TRUE, W, BUSY_ICON_FRIENDLY))
 			to_chat(src, "You stop putting on \the [W]")
 			return FALSE
-		equip_to_slot(W, slot, redraw_mob) //This proc should not ever fail.
+		equip_to_slot(W, slot) //This proc should not ever fail.
 		if(permanent)
 			W.flags_item |= NODROP
 			//This will unwield items -without- triggering lights.
@@ -293,7 +301,7 @@
 			W.unwield(src)
 		return TRUE
 	else
-		equip_to_slot(W, slot, redraw_mob) //This proc should not ever fail.
+		equip_to_slot(W, slot) //This proc should not ever fail.
 		if(permanent)
 			W.flags_item |= NODROP
 		//This will unwield items -without- triggering lights.
@@ -301,16 +309,18 @@
 			W.unwield(src)
 		return TRUE
 
-//This is an UNSAFE proc. It merely handles the actual job of equipping. All the checks on whether you can or can't eqip need to be done before! Use mob_can_equip() for that task.
-//In most cases you will want to use equip_to_slot_if_possible()
-/mob/proc/equip_to_slot(obj/item/W as obj, slot)
+/**
+*This is an UNSAFE proc. It merely handles the actual job of equipping. All the checks on whether you can or can't eqip need to be done before! Use mob_can_equip() for that task.
+*In most cases you will want to use equip_to_slot_if_possible()
+*/
+/mob/proc/equip_to_slot(obj/item/W as obj, slot, bitslot = FALSE)
 	return
 
 ///This is just a commonly used configuration for the equip_to_slot_if_possible() proc, used to equip people when the rounds starts and when events happen and such.
 /mob/proc/equip_to_slot_or_del(obj/item/W, slot, permanent = FALSE, override_nodrop = FALSE)
 	return equip_to_slot_if_possible(W, slot, TRUE, TRUE, FALSE, FALSE, permanent, override_nodrop)
 
-
+///Attempts to store an item in a valid location based on SLOT_EQUIP_ORDER
 /mob/proc/equip_to_appropriate_slot(obj/item/W, ignore_delay = TRUE)
 	if(!istype(W))
 		return FALSE
@@ -331,10 +341,12 @@
 	if(!I)
 		return FALSE
 
-	//Each inventory slot can have more than one define associated with it. This refines the slot down to the item types actually associated with the define.
-	if(slot == SLOT_IN_HOLSTER && (!(istype(I, /obj/item/storage/holster) || istype(I, /obj/item/weapon) || istype(I, /obj/item/storage/belt/gun))))
+	//This is quite horrible, there's probably a better way to do it.
+	//Each actual inventory slot has more than one slot define associated with it.
+	//The defines below are for specific items in specific slots, which allows for a much more specific draw order, i.e. drawing a weapon from a slot which would otherwise be lower in the order
+	if(slot == SLOT_IN_HOLSTER && (!(istype(I, /obj/item/storage/holster) || istype(I, /obj/item/weapon))))
 		return FALSE
-	if(slot == SLOT_IN_S_HOLSTER && (!(istype(I, /obj/item/storage/holster) || istype(I, /obj/item/weapon) || istype(I, /obj/item/storage/belt/gun) || istype(I, /obj/item/storage/belt/knifepouch))))
+	if(slot == SLOT_IN_S_HOLSTER && (!(istype(I, /obj/item/storage/holster) || istype(I, /obj/item/weapon) || istype(I, /obj/item/storage/belt/knifepouch))))
 		return FALSE
 	if(slot == SLOT_IN_B_HOLSTER && (!(istype(I, /obj/item/storage/holster) || istype(I, /obj/item/weapon))))
 		return FALSE
@@ -346,7 +358,7 @@
 		return FALSE
 
 	//calls on the item to return a suitable item to be equipped
-	var/obj/item/found = I.do_quick_equip()
+	var/obj/item/found = I.do_quick_equip(src)
 	if(!found)
 		return FALSE
 	if(CHECK_BITFIELD(found.flags_inventory, NOQUICKEQUIP))
@@ -354,20 +366,6 @@
 	temporarilyRemoveItemFromInventory(found)
 	put_in_hands(found)
 	return TRUE
-
-/mob/proc/show_inv(mob/user)
-	user.set_interaction(src)
-	var/dat = {"
-	<BR><B>Head(Mask):</B> <A href='?src=\ref[src];item=[SLOT_WEAR_MASK]'>[(wear_mask ? wear_mask : "Nothing")]</A>
-	<BR><B>Left Hand:</B> <A href='?src=\ref[src];item=[SLOT_L_HAND]'>[(l_hand ? l_hand  : "Nothing")]</A>
-	<BR><B>Right Hand:</B> <A href='?src=\ref[src];item=[SLOT_R_HAND]'>[(r_hand ? r_hand : "Nothing")]</A>
-	<BR><A href='?src=\ref[src];item=pockets'>Empty Pockets</A>
-	<BR><A href='?src=\ref[user];refresh=1'>Refresh</A>
-	<BR>"}
-	var/datum/browser/popup = new(user, "mob[REF(src)]", "<div align='center'>[src]</div>", 325, 500)
-	popup.set_content(dat)
-	popup.open()
-
 
 /mob/vv_get_dropdown()
 	. = ..()
@@ -404,34 +402,15 @@
 			var/mob/living/L = src
 			L.language_menu()
 
-
-/**
- * Handle the result of a click drag onto this mob
- *
- * For mobs this just shows the inventory
- */
-/mob/MouseDrop_T(atom/dropping, atom/user)
-	. = ..()
-	if(.)
-		return
-	if(!ismob(dropping) || isxeno(user) || isxeno(dropping) || iszombie(user))
-		return
-	// If not dragged onto myself or dragging my own sprite onto myself
-	if(user != src || dropping == user)
-		return
-	var/mob/dragged = dropping
-	dragged.show_inv(user)
-
-
 /mob/living/carbon/xenomorph/MouseDrop_T(atom/dropping, atom/user)
 	return
 
 
-/mob/living/start_pulling(atom/movable/AM, suppress_message = FALSE)
+/mob/living/start_pulling(atom/movable/AM, force = move_force, suppress_message = FALSE)
 	if(QDELETED(AM) || QDELETED(usr) || src == AM || !isturf(loc) || !Adjacent(AM) || status_flags & INCORPOREAL)	//if there's no person pulling OR the person is pulling themself OR the object being pulled is inside something: abort!
 		return FALSE
 
-	if(!AM.can_be_pulled(src))
+	if(!AM.can_be_pulled(src, force))
 		return FALSE
 
 	if(throwing || incapacitated())
@@ -507,9 +486,7 @@
 
 /**
  * Buckle to another mob
- *
  * You can buckle on mobs if you're next to them since most are dense
- *
  * Turns you to face the other mob too
  */
 /mob/buckle_mob(mob/living/buckling_mob, force = FALSE, check_loc = TRUE, lying_buckle = FALSE, hands_needed = 0, target_hands_needed = 0, silent)
@@ -583,7 +560,7 @@
 	return ""
 
 /mob/proc/flash_weak_pain()
-	overlay_fullscreen("pain", /obj/screen/fullscreen/pain, 1)
+	overlay_fullscreen("pain", /atom/movable/screen/fullscreen/pain, 1)
 	clear_fullscreen("pain")
 
 ///Called to update the stat var, returns a boolean to indicate if it has been handled.
@@ -702,7 +679,7 @@
 	overlays += emote_overlay
 
 	if(remove_delay)
-		addtimer(CALLBACK(src, .proc/remove_emote_overlay, emote_overlay, TRUE), remove_delay)
+		addtimer(CALLBACK(src, PROC_REF(remove_emote_overlay), emote_overlay, TRUE), remove_delay)
 
 
 /mob/proc/remove_emote_overlay(image/emote_overlay, delete)
@@ -736,28 +713,30 @@
 
 
 // reset_perspective(thing) set the eye to the thing (if it's equal to current default reset to mob perspective)
-// reset_perspective() set eye to common default : mob on turf, loc otherwise
-/mob/proc/reset_perspective(atom/A)
+// reset_perspective(null) set eye to common default : mob on turf, loc otherwise
+/mob/proc/reset_perspective(atom/new_eye)
 	if(!client)
 		return
 
-	if(A)
-		if(ismovableatom(A))
-			//Set the the thing unless it's us
-			if(A != src)
+	if(new_eye)
+		if(ismovable(new_eye))
+			//Set the new eye unless it's us
+			if(new_eye != src)
 				client.perspective = EYE_PERSPECTIVE
-				client.eye = A
+				client.eye = new_eye
 			else
 				client.eye = client.mob
 				client.perspective = MOB_PERSPECTIVE
-		else if(isturf(A))
+		else if(isturf(new_eye))
 			//Set to the turf unless it's our current turf
-			if(A != loc)
+			if(new_eye != loc)
 				client.perspective = EYE_PERSPECTIVE
-				client.eye = A
+				client.eye = new_eye
 			else
 				client.eye = client.mob
 				client.perspective = MOB_PERSPECTIVE
+		else
+			return TRUE //no setting eye to stupid things like areas or whatever
 	else
 		//Reset to common defaults: mob if on turf, otherwise current loc
 		if(isturf(loc))
@@ -766,9 +745,7 @@
 		else
 			client.perspective = EYE_PERSPECTIVE
 			client.eye = loc
-
 	return TRUE
-
 
 /mob/proc/update_joined_player_list(newname, oldname)
 	if(newname == oldname)
@@ -809,7 +786,7 @@
 	if(!hud_used)
 		return
 
-	var/obj/screen/plane_master/lighting/L = hud_used.plane_masters["[LIGHTING_PLANE]"]
+	var/atom/movable/screen/plane_master/lighting/L = hud_used.plane_masters["[LIGHTING_PLANE]"]
 	if(L)
 		L.alpha = lighting_alpha
 
@@ -854,16 +831,18 @@
 		REMOVE_TRAIT(src, TRAIT_IMMOBILE, THROW_TRAIT)
 
 /mob/proc/set_stat(new_stat)
+	SHOULD_CALL_PARENT(TRUE)
 	if(new_stat == stat)
 		return
+	remove_all_indicators()
 	. = stat //old stat
 	stat = new_stat
+	SEND_SIGNAL(src, COMSIG_MOB_STAT_CHANGED, ., new_stat)
 
-///Clears the client in contents list of our current "eye". Prevents hard deletes
+///clears the client mob in our client_mobs_in_contents list
 /mob/proc/clear_client_in_contents()
-	if(client?.movingmob) //In the case the client was transferred to another mob and not deleted.
-		client.movingmob.client_mobs_in_contents -= src
-		UNSETEMPTY(client.movingmob.client_mobs_in_contents)
+	if(client?.movingmob)
+		LAZYREMOVE(client.movingmob.client_mobs_in_contents, src)
 		client.movingmob = null
 
 /mob/onTransitZ(old_z, new_z)

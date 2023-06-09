@@ -5,7 +5,13 @@
 
 /// Asserts that a condition is true
 /// If the condition is not true, fails the test
-#define TEST_ASSERT(assertion, reason) if (!(assertion)) { return Fail("Assertion failed: [reason || "No reason"]") }
+#define TEST_ASSERT(assertion, reason) if (!(assertion)) { return Fail("Assertion failed: [reason || "No reason"]", __FILE__, __LINE__) }
+
+/// Asserts that a parameter is not null
+#define TEST_ASSERT_NOTNULL(a, reason) if (isnull(a)) { return Fail("Expected non-null value: [reason || "No reason"]", __FILE__, __LINE__) }
+
+/// Asserts that a parameter is null
+#define TEST_ASSERT_NULL(a, reason) if (!isnull(a)) { return Fail("Expected null value but received [a]: [reason || "No reason"]", __FILE__, __LINE__) }
 
 /// Asserts that the two parameters passed are equal, fails otherwise
 /// Optionally allows an additional message in the case of a failure
@@ -39,8 +45,10 @@
 
 #include "bespoke_id.dm"
 #include "binary_insert.dm"
+#include "chat_filter.dm"
 #include "component_tests.dm"
 #include "connect_loc.dm"
+#include "dcs_get_id_from_elements.dm"
 #include "initialize_sanity.dm"
 #include "keybinding_init.dm"
 #include "map_templates.dm"
@@ -58,5 +66,5 @@
 #undef TEST_ASSERT
 #undef TEST_ASSERT_EQUAL
 #undef TEST_ASSERT_NOTEQUAL
-#undef TEST_FOCUS
+//#undef TEST_FOCUS
 #endif

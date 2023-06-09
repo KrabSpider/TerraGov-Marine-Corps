@@ -6,8 +6,9 @@
 	display_order = JOB_DISPLAY_ORDER_XENOMORPH
 	job_flags = JOB_FLAG_LATEJOINABLE|JOB_FLAG_ROUNDSTARTJOINABLE|JOB_FLAG_NOHEADSET|JOB_FLAG_OVERRIDELATEJOINSPAWN|JOB_FLAG_SHOW_OPEN_POSITIONS
 	jobworth = list(/datum/job/survivor/rambo = SURVIVOR_POINTS_REGULAR)
-	job_points_needed  = 10 //Redefined via config.
+	job_points_needed = 10 //Redefined via config.
 	faction = FACTION_XENO
+	exp_type = EXP_TYPE_SPECIAL
 	html_description = {"
 		<b>Difficulty</b>: Variable<br /><br />
 		<b>You answer to the</b> acting Hive leader<br /><br />
@@ -25,8 +26,8 @@
 	return /mob/living/carbon/xenomorph/larva
 
 /datum/job/xenomorph/return_spawn_turf()
-	if(length(GLOB.xeno_resin_silos))
-		return pick(GLOB.xeno_resin_silos)
+	if(length(GLOB.xeno_resin_silos_by_hive[XENO_HIVE_NORMAL]))
+		return pick(GLOB.xeno_resin_silos_by_hive[XENO_HIVE_NORMAL])
 	return pick(GLOB.spawns_by_job[/datum/job/xenomorph])
 
 /datum/job/xenomorph/radio_help_message(mob/M)
@@ -39,9 +40,10 @@
 	return TRUE
 
 /datum/job/xenomorph/add_job_positions(amount)
-	if(free_xeno_at_start > 0)
-		free_xeno_at_start--
-		return
+	if(!(SSticker.mode.flags_round_type & MODE_XENO_SPAWN_PROTECT))
+		if(free_xeno_at_start > 0)
+			free_xeno_at_start--
+			return
 	. = ..()
 	if(!.)
 		return
@@ -50,7 +52,7 @@
 
 /datum/job/xenomorph/after_spawn(mob/living/carbon/xenomorph/xeno, mob/M, latejoin)
 	. = ..()
-	SSminimaps.add_marker(xeno, xeno.z, hud_flags = MINIMAP_FLAG_XENO, iconstate = xeno.xeno_caste.minimap_icon)
+	SSminimaps.add_marker(xeno, MINIMAP_FLAG_XENO, image('icons/UI_icons/map_blips.dmi', null, xeno.xeno_caste.minimap_icon))
 
 /datum/job/xenomorph/queen
 	title = ROLE_XENO_QUEEN
@@ -59,7 +61,7 @@
 	selection_color = "#8972AA"
 	display_order = JOB_DISPLAY_ORDER_XENO_QUEEN
 	exp_requirements = XP_REQ_EXPERIENCED
-	job_flags = JOB_FLAG_ROUNDSTARTJOINABLE|JOB_FLAG_NOHEADSET|JOB_FLAG_OVERRIDELATEJOINSPAWN|JOB_FLAG_BOLD_NAME_ON_SELECTION|JOB_FLAG_HIDE_CURRENT_POSITIONS
+	job_flags = JOB_FLAG_ROUNDSTARTJOINABLE|JOB_FLAG_NOHEADSET|JOB_FLAG_OVERRIDELATEJOINSPAWN|JOB_FLAG_BOLD_NAME_ON_SELECTION|JOB_FLAG_HIDE_CURRENT_POSITIONS|JOB_FLAG_LOUDER_TTS
 	jobworth = list(/datum/job/survivor/rambo = SURVIVOR_POINTS_REGULAR)
 	html_description = {"
 		<b>Difficulty</b>: Soul crushing<br /><br />

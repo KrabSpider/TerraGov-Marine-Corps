@@ -9,6 +9,7 @@ SUBSYSTEM_DEF(mapping)
 	var/list/map_templates = list()
 
 	var/list/shuttle_templates = list()
+	var/list/minidropship_templates = list()
 
 	///list of all modular mapping templates
 	var/list/modular_templates = list()
@@ -43,10 +44,10 @@ SUBSYSTEM_DEF(mapping)
 			var/client/C = i
 			winset(C, null, "mainwindow.title='[CONFIG_GET(string/title)] - [SSmapping.configs[SHIP_MAP].map_name]'")
 
-/datum/controller/subsystem/mapping/Initialize(timeofday)
+/datum/controller/subsystem/mapping/Initialize()
 	HACK_LoadMapConfig()
 	if(initialized)
-		return
+		return SS_INIT_SUCCESS
 
 	for(var/i in ALL_MAPTYPES)
 		var/datum/map_config/MC = configs[i]
@@ -70,7 +71,7 @@ SUBSYSTEM_DEF(mapping)
 	transit = add_new_zlevel("Transit/Reserved", list(ZTRAIT_RESERVED = TRUE))
 	repopulate_sorted_areas()
 	initialize_reserved_level(transit.z_value)
-	return ..()
+	return SS_INIT_SUCCESS
 
 //Loads the number of players we had last round, for use in modular mapping
 /datum/controller/subsystem/mapping/proc/load_last_round_playercount()
@@ -92,12 +93,12 @@ SUBSYSTEM_DEF(mapping)
 			continue
 		in_transit[T] = T.get_docked()
 	var/go_ahead = world.time + wipe_safety_delay
-	if(in_transit.len)
+	if(length(in_transit))
 		message_admins("Shuttles in transit detected. Attempting to fast travel. Timeout is [wipe_safety_delay/10] seconds.")
 	var/list/cleared = list()
 	for(var/i in in_transit)
-		INVOKE_ASYNC(src, .proc/safety_clear_transit_dock, i, in_transit[i], cleared)
-	UNTIL((go_ahead < world.time) || (cleared.len == in_transit.len))
+		INVOKE_ASYNC(src, PROC_REF(safety_clear_transit_dock), i, in_transit[i], cleared)
+	UNTIL((go_ahead < world.time) || (length(cleared) == length(in_transit)))
 	do_wipe_turf_reservations()
 	clearing_reserved_turfs = FALSE
 
@@ -112,11 +113,14 @@ SUBSYSTEM_DEF(mapping)
 	flags |= SS_NO_INIT
 	initialized = SSmapping.initialized
 	map_templates = SSmapping.map_templates
+	minidropship_templates = SSmapping.minidropship_templates
 	shuttle_templates = SSmapping.shuttle_templates
 	modular_templates = SSmapping.modular_templates
 	unused_turfs = SSmapping.unused_turfs
 	turf_reservations = SSmapping.turf_reservations
 	used_turfs = SSmapping.used_turfs
+	transit = SSmapping.transit
+	areas_in_z = SSmapping.areas_in_z
 
 	configs = SSmapping.configs
 	next_map_configs = SSmapping.next_map_configs
@@ -132,7 +136,6 @@ SUBSYSTEM_DEF(mapping)
 
 	if (!islist(files))  // handle single-level maps
 		files = list(files)
-
 	// check that the total z count of all maps matches the list of traits
 	var/total_z = 0
 	var/list/parsed_maps = list()
@@ -145,17 +148,15 @@ SUBSYSTEM_DEF(mapping)
 			continue
 		parsed_maps[pm] = total_z  // save the start Z of this file
 		total_z += bounds[MAP_MAXZ] - bounds[MAP_MINZ] + 1
-
 	if (!length(traits))  // null or empty - default
 		for (var/i in 1 to total_z)
 			traits += list(default_traits)
-	else if (total_z != traits.len)  // mismatch
-		INIT_ANNOUNCE("WARNING: [traits.len] trait sets specified for [total_z] z-levels in [path]!")
-		if (total_z < traits.len)  // ignore extra traits
+	else if (total_z != length(traits))  // mismatch
+		INIT_ANNOUNCE("WARNING: [length(traits)] trait sets specified for [total_z] z-levels in [path]!")
+		if (total_z < length(traits))  // ignore extra traits
 			traits.Cut(total_z + 1)
-		while (total_z > traits.len)  // fall back to defaults on extra levels
+		while (total_z > length(traits))  // fall back to defaults on extra levels
 			traits += list(default_traits)
-
 	// preload the relevant space_level datums
 	var/start_z = world.maxz + 1
 	var/i = 0
@@ -203,8 +204,8 @@ SUBSYSTEM_DEF(mapping)
 
 	if(LAZYLEN(FailedZs))	//but seriously, unless the server's filesystem is messed up this will never happen
 		var/msg = "RED ALERT! The following map files failed to load: [FailedZs[1]]"
-		if(FailedZs.len > 1)
-			for(var/I in 2 to FailedZs.len)
+		if(length(FailedZs) > 1)
+			for(var/I in 2 to length(FailedZs))
 				msg += ", [FailedZs[I]]"
 		msg += ". Yell at your server host!"
 		INIT_ANNOUNCE(msg)
@@ -243,7 +244,7 @@ SUBSYSTEM_DEF(mapping)
 	. = list()
 	var/list/Lines = file2list(filename)
 
-	if(!Lines.len)
+	if(!length(Lines))
 		return
 	for (var/t in Lines)
 		if (!t)
@@ -281,6 +282,10 @@ SUBSYSTEM_DEF(mapping)
 
 		shuttle_templates[S.shuttle_id] = S
 		map_templates[S.shuttle_id] = S
+	
+	for(var/drop_path in typesof(/datum/map_template/shuttle/minidropship))
+		var/datum/map_template/shuttle/drop = new drop_path()
+		minidropship_templates += drop
 
 /datum/controller/subsystem/mapping/proc/preloadModularTemplates()
 	for(var/item in subtypesof(/datum/map_template/modular))

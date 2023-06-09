@@ -8,7 +8,7 @@
 	invisibility = INVISIBILITY_ABSTRACT
 
 
-/obj/effect/landmark/Initialize()
+/obj/effect/landmark/Initialize(mapload)
 	. = ..()
 	GLOB.landmarks_list += src
 
@@ -28,17 +28,12 @@
 	icon_state = "x"
 	anchored = TRUE
 	layer = MOB_LAYER
-	var/jobspawn_override = FALSE
 	var/delete_after_roundstart = TRUE
 	var/used = FALSE
 
 
-/obj/effect/landmark/start/Initialize()
+/obj/effect/landmark/start/Initialize(mapload)
 	GLOB.start_landmarks_list += src
-	if(jobspawn_override)
-		if(!GLOB.jobspawn_overrides[name])
-			GLOB.jobspawn_overrides[name] = list()
-		GLOB.jobspawn_overrides[name] += src
 	. = ..()
 	if(name != "start")
 		tag = "start*[name]"
@@ -46,8 +41,6 @@
 
 /obj/effect/landmark/start/Destroy()
 	GLOB.start_landmarks_list -= src
-	if(jobspawn_override)
-		GLOB.jobspawn_overrides[name] -= src
 	return ..()
 
 
@@ -63,22 +56,27 @@
 /obj/effect/landmark/start/latejoin
 	icon_state = "latejoin"
 
-/obj/effect/landmark/start/latejoin/Initialize()
+/obj/effect/landmark/start/latejoin/Initialize(mapload)
 	. = ..()
 	GLOB.latejoin += loc
 	return INITIALIZE_HINT_QDEL
 
-/obj/effect/landmark/start/latejoinrebel/Initialize()
+/obj/effect/landmark/start/latejoinrebel/Initialize(mapload)
 	. = ..()
 	GLOB.latejoinrebel += loc
 	return INITIALIZE_HINT_QDEL
 
-/obj/effect/landmark/start/latejoin_gateway/Initialize()
+/obj/effect/landmark/start/latejoinsom/Initialize(mapload)
+	. = ..()
+	GLOB.latejoinsom += loc
+	return INITIALIZE_HINT_QDEL
+
+/obj/effect/landmark/start/latejoin_gateway/Initialize(mapload)
 	. = ..()
 	GLOB.latejoin_gateway += loc
 	return INITIALIZE_HINT_QDEL
 
-/obj/effect/landmark/start/latejoin_cryo/Initialize()
+/obj/effect/landmark/start/latejoin_cryo/Initialize(mapload)
 	. = ..()
 	GLOB.latejoin_cryo += loc
 	return INITIALIZE_HINT_QDEL
@@ -87,7 +85,7 @@
 /obj/effect/landmark/thunderdome/one
 	icon_state = "tdome_t1"
 
-/obj/effect/landmark/thunderdome/one/Initialize()
+/obj/effect/landmark/thunderdome/one/Initialize(mapload)
 	. = ..()
 	GLOB.tdome1 += loc
 	return INITIALIZE_HINT_QDEL
@@ -95,7 +93,7 @@
 /obj/effect/landmark/thunderdome/two
 	icon_state = "tdome_t2"
 
-/obj/effect/landmark/thunderdome/two/Initialize()
+/obj/effect/landmark/thunderdome/two/Initialize(mapload)
 	. = ..()
 	GLOB.tdome2 += loc
 	return INITIALIZE_HINT_QDEL
@@ -103,18 +101,18 @@
 /obj/effect/landmark/thunderdome/observe
 	icon_state = "tdome_observer"
 
-/obj/effect/landmark/thunderdome/observe/Initialize()
+/obj/effect/landmark/thunderdome/observe/Initialize(mapload)
 	. = ..()
 	return INITIALIZE_HINT_QDEL // unused
 
 /obj/effect/landmark/thunderdome/admin
 	icon_state = "tdome_admin"
 
-/obj/effect/landmark/thunderdome/admin/Initialize()
+/obj/effect/landmark/thunderdome/admin/Initialize(mapload)
 	. = ..()
 	return INITIALIZE_HINT_QDEL // unused
 
-/obj/effect/landmark/deathmatch/Initialize()
+/obj/effect/landmark/deathmatch/Initialize(mapload)
 	. = ..()
 	GLOB.deathmatch += loc
 	return INITIALIZE_HINT_QDEL
@@ -126,9 +124,9 @@
 /obj/effect/landmark/weed_node
 	name = "xeno weed node spawn landmark"
 	icon = 'icons/Xeno/weeds.dmi'
-	icon_state = "weednode"
+	icon_state = "weednode0"
 
-/obj/effect/landmark/weed_node/Initialize()
+/obj/effect/landmark/weed_node/Initialize(mapload)
 	GLOB.xeno_weed_node_turfs += loc
 	. = ..()
 	return INITIALIZE_HINT_QDEL
@@ -138,7 +136,7 @@
 	icon = 'icons/Xeno/Effects.dmi'
 	icon_state = "resin"
 
-/obj/effect/landmark/xeno_resin_door/Initialize()
+/obj/effect/landmark/xeno_resin_door/Initialize(mapload)
 	GLOB.xeno_resin_door_turfs += loc
 	. = ..()
 	return INITIALIZE_HINT_QDEL
@@ -148,7 +146,7 @@
 	icon = 'icons/Xeno/structures.dmi'
 	icon_state = "resin0"
 
-/obj/effect/landmark/xeno_resin_wall/Initialize()
+/obj/effect/landmark/xeno_resin_wall/Initialize(mapload)
 	GLOB.xeno_resin_wall_turfs += loc
 	..()
 	return INITIALIZE_HINT_QDEL
@@ -158,19 +156,9 @@
 	icon = 'icons/Xeno/resin_silo.dmi'
 	icon_state = "weed_silo"
 
-/obj/effect/landmark/xeno_silo_spawn/Initialize()
+/obj/effect/landmark/xeno_silo_spawn/Initialize(mapload)
 	GLOB.xeno_resin_silo_turfs += loc
 	. = ..()
-	return INITIALIZE_HINT_QDEL
-
-/obj/effect/landmark/xeno_turret_spawn
-	name = "xeno turret spawn landmark"
-	icon = 'icons/Xeno/acidturret.dmi'
-	icon_state = "acid_turret"
-
-/obj/effect/landmark/xeno_turret_spawn/Initialize()
-	GLOB.xeno_turret_turfs += loc
-	..()
 	return INITIALIZE_HINT_QDEL
 
 
@@ -178,7 +166,7 @@
 	name = "nuke spawn landmark"
 	icon_state = "tdome_observer"
 
-/obj/effect/landmark/nuke_spawn/Initialize()
+/obj/effect/landmark/nuke_spawn/Initialize(mapload)
 	GLOB.nuke_spawn_locs += loc
 	. = ..()
 	return INITIALIZE_HINT_QDEL
@@ -186,7 +174,7 @@
 /obj/effect/landmark/dropship_start_location
 	name = "dropship_start_location"
 
-/obj/effect/landmark/dropship_start_location/Initialize()
+/obj/effect/landmark/dropship_start_location/Initialize(mapload)
 	GLOB.minidropship_start_loc = loc
 	..()
 	return INITIALIZE_HINT_QDEL
@@ -197,7 +185,7 @@
 	var/weapon_list = list()
 	var/weapon_to_spawn = null
 
-/obj/effect/landmark/weapon_spawn/Initialize()
+/obj/effect/landmark/weapon_spawn/Initialize(mapload)
 	choose_weapon()
 	. = ..()
 	return INITIALIZE_HINT_QDEL
@@ -285,7 +273,7 @@
 		/obj/item/weapon/gun/pistol/m1911/custom,
 		/obj/item/weapon/gun/revolver/mateba,
 		/obj/item/weapon/gun/revolver/mateba/notmarine,
-		/obj/item/weapon/gun/revolver/mateba/captain,
+		/obj/item/weapon/gun/revolver/mateba/custom,
 		/obj/item/weapon/gun/smg/standard_machinepistol,
 		/obj/item/weapon/gun/smg/standard_smg,
 		/obj/item/weapon/gun/smg/m25,
@@ -385,7 +373,7 @@
 	icon = 'icons/obj/machines/computer.dmi'
 	icon_state = "shuttle"
 
-/obj/effect/landmark/dropship_console_spawn_lz1/Initialize()
+/obj/effect/landmark/dropship_console_spawn_lz1/Initialize(mapload)
 	. = ..()
 	GLOB.lz1_shuttle_console_turfs_list += loc
 	return INITIALIZE_HINT_QDEL
@@ -395,7 +383,7 @@
 	icon = 'icons/obj/machines/computer.dmi'
 	icon_state = "shuttle"
 
-/obj/effect/landmark/dropship_console_spawn_lz2/Initialize()
+/obj/effect/landmark/dropship_console_spawn_lz2/Initialize(mapload)
 	. = ..()
 	GLOB.lz2_shuttle_console_turfs_list += loc
 	return INITIALIZE_HINT_QDEL
@@ -405,7 +393,7 @@
 	icon = 'icons/Marine/sentry.dmi'
 	icon_state = "sentry"
 
-/obj/effect/landmark/fob_sentry/Initialize()
+/obj/effect/landmark/fob_sentry/Initialize(mapload)
 	. = ..()
 	GLOB.fob_sentries_loc += loc
 	return INITIALIZE_HINT_QDEL
@@ -415,7 +403,7 @@
 	icon = 'icons/Marine/sentry.dmi'
 	icon_state = "sentry"
 
-/obj/effect/landmark/fob_sentry_rebel/Initialize()
+/obj/effect/landmark/fob_sentry_rebel/Initialize(mapload)
 	. = ..()
 	GLOB.fob_sentries_rebel_loc += loc
 	return INITIALIZE_HINT_QDEL
@@ -425,45 +413,63 @@
 	icon = 'icons/obj/structures/sensor.dmi'
 	icon_state = "sensor"
 
-/obj/effect/landmark/sensor_tower/Initialize()
+/obj/effect/landmark/sensor_tower/Initialize(mapload)
 	. = ..()
-	var/area/area_to_control = get_area(src)
-	area_to_control.set_to_contested()
 	GLOB.sensor_towers += loc
 	return INITIALIZE_HINT_QDEL
 
-/obj/effect/landmark/valhalla_xeno_spawn_landmark_close
-	name = "Valhalla xeno spawn"
+/obj/effect/landmark/sensor_tower_patrol
+	name = "Sensor tower"
+	icon = 'icons/obj/structures/sensor.dmi'
+	icon_state = "sensor_loyalist"
+
+/obj/effect/landmark/sensor_tower_patrol/Initialize(mapload)
+	..()
+	GLOB.sensor_towers_patrol += loc
+	return INITIALIZE_HINT_QDEL
+
+/obj/effect/landmark/valhalla
 	icon = 'icons/effects/landmarks_static.dmi'
-	icon_state = "xeno_spawn_valhalla"
+	///What do we spawn? (xeno or marine)
+	var/spawns
+	///Where do we spawn?
+	var/where
 
-/obj/effect/landmark/valhalla_xeno_spawn_landmark_close/Initialize()
+/obj/effect/landmark/valhalla/Initialize(mapload)
 	. = ..()
-	GLOB.valhalla_xeno_spawn_landmark[CLOSE] = src
+	GLOB.valhalla_button_spawn_landmark["[spawns][where]"] = src
 
-/obj/effect/landmark/valhalla_xeno_spawn_landmark_close_two
+/obj/effect/landmark/valhalla/xeno_spawn_landmark
 	name = "Valhalla xeno spawn"
-	icon = 'icons/effects/landmarks_static.dmi'
 	icon_state = "xeno_spawn_valhalla"
+	spawns = "xeno"
 
-/obj/effect/landmark/valhalla_xeno_spawn_landmark_close_two/Initialize()
+/obj/effect/landmark/valhalla/marine_spawner_landmark
+	name = "Marine spawner landmark"
+	spawns = "marine"
+
+//Combat patrol spawn in spots
+/obj/effect/landmark/patrol_point
+	name = "Patrol exit point"
+	//ID to link with an associated start point
+	var/id = null
+
+/obj/effect/landmark/patrol_point/Initialize(mapload)
 	. = ..()
-	GLOB.valhalla_xeno_spawn_landmark[CLOSE2] = src
+	//adds the exit points to the glob, and the start points link to them in lateinit
+	GLOB.patrol_point_list += src
 
-/obj/effect/landmark/valhalla_xeno_spawn_landmark_far
-	name = "Valhalla xeno spawn"
-	icon = 'icons/effects/landmarks_static.dmi'
-	icon_state = "xeno_spawn_valhalla"
+/obj/effect/landmark/patrol_point/Destroy()
+	GLOB.patrol_point_list -= src
+	return ..()
 
-/obj/effect/landmark/valhalla_xeno_spawn_landmark_far/Initialize()
+/obj/effect/landmark/eord_roomba
+	name = "EORD roomba spawn point"
+
+/obj/effect/landmark/eord_roomba/Initialize(mapload)
 	. = ..()
-	GLOB.valhalla_xeno_spawn_landmark[FAR] = src
+	GLOB.eord_roomba_spawns += src
 
-/obj/effect/landmark/valhalla_xeno_spawn_landmark_far_two
-	name = "Valhalla xeno spawn"
-	icon = 'icons/effects/landmarks_static.dmi'
-	icon_state = "xeno_spawn_valhalla"
-
-/obj/effect/landmark/valhalla_xeno_spawn_landmark_far_two/Initialize()
-	. = ..()
-	GLOB.valhalla_xeno_spawn_landmark[FAR2] = src
+/obj/effect/landmark/eord_roomba/Destroy()
+	GLOB.eord_roomba_spawns -= src
+	return ..()

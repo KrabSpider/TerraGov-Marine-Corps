@@ -17,14 +17,14 @@
 	jobtype = /datum/job/deathsquad/standard
 
 	id = /obj/item/card/id/silver
-	belt = /obj/item/storage/belt/gun/mateba/notmarine
+	belt = /obj/item/storage/holster/belt/mateba/notmarine
 	ears = /obj/item/radio/headset/distress/commando
-	w_uniform = /obj/item/clothing/under/marine/veteran/PMC/commando
-	shoes = /obj/item/clothing/shoes/veteran/PMC/commando
-	wear_suit = /obj/item/clothing/suit/storage/marine/veteran/PMC/commando
-	gloves = /obj/item/clothing/gloves/marine/veteran/PMC/commando
-	mask = /obj/item/clothing/mask/gas/PMC
-	head = /obj/item/clothing/head/helmet/marine/veteran/PMC/commando
+	w_uniform = /obj/item/clothing/under/marine/veteran/pmc/commando
+	shoes = /obj/item/clothing/shoes/veteran/pmc/commando
+	wear_suit = /obj/item/clothing/suit/storage/marine/veteran/pmc/commando
+	gloves = /obj/item/clothing/gloves/marine/veteran/pmc/commando
+	mask = /obj/item/clothing/mask/gas/pmc
+	head = /obj/item/clothing/head/helmet/marine/veteran/pmc/commando
 	glasses = /obj/item/clothing/glasses/night/tx8
 	suit_store = /obj/item/weapon/gun/rifle/m412/elite
 	r_store = /obj/item/storage/pouch/magazine/large/pmc_rifle
@@ -34,8 +34,8 @@
 
 /datum/outfit/job/deathsquad/standard/post_equip(mob/living/carbon/human/H, visualsOnly = FALSE)
 	. = ..()
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_SUIT)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_SUIT)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_SUIT)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_SUIT)
 
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/enrg_bar, SLOT_IN_HEAD)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/enrg_bar, SLOT_IN_HEAD)
@@ -45,7 +45,6 @@
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/autoinjector/elite, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/stack/medical/heal_pack/advanced/bruise_pack, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/stack/medical/heal_pack/advanced/burn_pack, SLOT_IN_L_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/advanced/combat_advanced, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/advanced/oxycodone, SLOT_IN_L_POUCH)
 
 	H.equip_to_slot_or_del(new /obj/item/tool/crowbar/red, SLOT_IN_BACKPACK)
@@ -58,7 +57,7 @@
 	H.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/ap, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/ammo_magazine/rifle/ap, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/impact, SLOT_IN_BACKPACK)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_BACKPACK)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/weapon/energy/sword/blue, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/weapon/shield/energy, SLOT_IN_BACKPACK)
 
@@ -72,14 +71,14 @@
 	jobtype = /datum/job/deathsquad/standard/energy
 
 	id = /obj/item/card/id/silver
-	belt = /obj/item/storage/belt/gun/mateba/notmarine
+	belt = /obj/item/storage/holster/belt/mateba/notmarine
 	ears = /obj/item/radio/headset/distress/commando
-	w_uniform = /obj/item/clothing/under/marine/veteran/PMC/commando
-	shoes = /obj/item/clothing/shoes/veteran/PMC/commando
-	wear_suit = /obj/item/clothing/suit/storage/marine/veteran/PMC/commando
-	gloves = /obj/item/clothing/gloves/marine/veteran/PMC/commando
-	head = /obj/item/clothing/head/helmet/marine/veteran/PMC/commando
-	mask = /obj/item/clothing/mask/gas/PMC
+	w_uniform = /obj/item/clothing/under/marine/veteran/pmc/commando
+	shoes = /obj/item/clothing/shoes/veteran/pmc/commando
+	wear_suit = /obj/item/clothing/suit/storage/marine/veteran/pmc/commando
+	gloves = /obj/item/clothing/gloves/marine/veteran/pmc/commando
+	head = /obj/item/clothing/head/helmet/marine/veteran/pmc/commando
+	mask = /obj/item/clothing/mask/gas/pmc
 	glasses = /obj/item/clothing/glasses/night/tx8
 	suit_store = /obj/item/weapon/gun/energy/lasgun/pulse
 	r_store = /obj/item/storage/pouch/explosive
@@ -89,8 +88,8 @@
 
 /datum/outfit/job/deathsquad/standard/energy/post_equip(mob/living/carbon/human/H, visualsOnly = FALSE)
 	. = ..()
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_SUIT)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_SUIT)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_SUIT)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_SUIT)
 
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/enrg_bar, SLOT_IN_HEAD)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/enrg_bar, SLOT_IN_HEAD)
@@ -100,13 +99,12 @@
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/autoinjector/elite, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/stack/medical/heal_pack/advanced/bruise_pack, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/stack/medical/heal_pack/advanced/burn_pack, SLOT_IN_L_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/advanced/combat_advanced, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/advanced/oxycodone, SLOT_IN_L_POUCH)
 
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_R_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_R_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_R_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_R_POUCH)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_R_POUCH)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_R_POUCH)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_R_POUCH)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_R_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/weapon/energy/sword/blue, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/weapon/shield/energy, SLOT_IN_BACKPACK)
 
@@ -122,14 +120,14 @@
 	jobtype = /datum/job/deathsquad/leader
 
 	id = /obj/item/card/id/silver
-	belt = /obj/item/storage/belt/gun/mateba/notmarine
+	belt = /obj/item/storage/holster/belt/mateba/notmarine
 	ears = /obj/item/radio/headset/distress/commando
-	w_uniform = /obj/item/clothing/under/marine/veteran/PMC/commando
-	shoes = /obj/item/clothing/shoes/veteran/PMC/commando
-	wear_suit = /obj/item/clothing/suit/storage/marine/veteran/PMC/commando
-	gloves = /obj/item/clothing/gloves/marine/veteran/PMC/commando
-	head = /obj/item/clothing/head/helmet/marine/veteran/PMC/commando
-	mask = /obj/item/clothing/mask/gas/PMC
+	w_uniform = /obj/item/clothing/under/marine/veteran/pmc/commando
+	shoes = /obj/item/clothing/shoes/veteran/pmc/commando
+	wear_suit = /obj/item/clothing/suit/storage/marine/veteran/pmc/commando
+	gloves = /obj/item/clothing/gloves/marine/veteran/pmc/commando
+	head = /obj/item/clothing/head/helmet/marine/veteran/pmc/commando
+	mask = /obj/item/clothing/mask/gas/pmc
 	glasses = /obj/item/clothing/glasses/night/tx8
 	suit_store = /obj/item/weapon/gun/launcher/rocket/m57a4
 	r_store = /obj/item/storage/pouch/explosive
@@ -139,8 +137,8 @@
 
 /datum/outfit/job/deathsquad/leader/post_equip(mob/living/carbon/human/H, visualsOnly = FALSE)
 	. = ..()
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_SUIT)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_SUIT)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_SUIT)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_SUIT)
 
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/enrg_bar, SLOT_IN_HEAD)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/enrg_bar, SLOT_IN_HEAD)
@@ -155,7 +153,6 @@
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/autoinjector/elite, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/stack/medical/heal_pack/advanced/bruise_pack, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/stack/medical/heal_pack/advanced/burn_pack, SLOT_IN_L_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/advanced/combat_advanced, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/advanced/oxycodone, SLOT_IN_L_POUCH)
 
 	H.equip_to_slot_or_del(new /obj/item/tool/crowbar/red, SLOT_IN_BACKPACK)
@@ -167,8 +164,8 @@
 	H.equip_to_slot_or_del(new /obj/item/detpack, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/assembly/signaler, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/wrapped/chunk, SLOT_IN_BACKPACK)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_BACKPACK)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_BACKPACK)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_BACKPACK)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/weapon/energy/sword/blue, SLOT_IN_BACKPACK)
 	H.equip_to_slot_or_del(new /obj/item/weapon/shield/energy, SLOT_IN_BACKPACK)
 
@@ -183,14 +180,14 @@
 	name = "Deathsquad Gunner"
 	jobtype = /datum/job/deathsquad/gunner
 	id = /obj/item/card/id/silver
-	belt = /obj/item/storage/belt/gun/mateba/notmarine
+	belt = /obj/item/storage/holster/belt/mateba/notmarine
 	ears = /obj/item/radio/headset/distress/commando
-	w_uniform = /obj/item/clothing/under/marine/veteran/PMC/commando
-	shoes = /obj/item/clothing/shoes/veteran/PMC/commando
-	wear_suit = /obj/item/clothing/suit/storage/marine/veteran/PMC/commando
-	gloves = /obj/item/clothing/gloves/marine/veteran/PMC/commando
-	mask = /obj/item/clothing/mask/gas/PMC
-	head = /obj/item/clothing/head/helmet/marine/veteran/PMC/commando
+	w_uniform = /obj/item/clothing/under/marine/veteran/pmc/commando
+	shoes = /obj/item/clothing/shoes/veteran/pmc/commando
+	wear_suit = /obj/item/clothing/suit/storage/marine/veteran/pmc/commando
+	gloves = /obj/item/clothing/gloves/marine/veteran/pmc/commando
+	mask = /obj/item/clothing/mask/gas/pmc
+	head = /obj/item/clothing/head/helmet/marine/veteran/pmc/commando
 	glasses = /obj/item/clothing/glasses/night/m56_goggles
 	suit_store = /obj/item/weapon/gun/rifle/standard_smartmachinegun
 	r_store = /obj/item/storage/pouch/magazine/drum
@@ -200,8 +197,8 @@
 
 /datum/outfit/job/deathsquad/gunner/post_equip(mob/living/carbon/human/H, visualsOnly = FALSE)
 	. = ..()
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_SUIT)
-	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/PMC, SLOT_IN_SUIT)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_SUIT)
+	H.equip_to_slot_or_del(new /obj/item/explosive/grenade/pmc, SLOT_IN_SUIT)
 
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/enrg_bar, SLOT_IN_HEAD)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/food/snacks/enrg_bar, SLOT_IN_HEAD)
@@ -211,7 +208,6 @@
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/autoinjector/elite, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/stack/medical/heal_pack/advanced/bruise_pack, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/stack/medical/heal_pack/advanced/burn_pack, SLOT_IN_L_POUCH)
-	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/advanced/combat_advanced, SLOT_IN_L_POUCH)
 	H.equip_to_slot_or_del(new /obj/item/reagent_containers/hypospray/advanced/oxycodone, SLOT_IN_L_POUCH)
 
 	H.equip_to_slot_or_del(new /obj/item/ammo_magazine/standard_smartmachinegun, SLOT_IN_R_POUCH)

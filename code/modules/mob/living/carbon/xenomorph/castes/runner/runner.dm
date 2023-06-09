@@ -4,6 +4,7 @@
 	desc = "A small red alien that looks like it could run fairly quickly..."
 	icon = 'icons/Xeno/2x2_Xenos.dmi' //They are now like, 2x1 or something
 	icon_state = "Runner Walking"
+	bubble_icon = "alienleft"
 	health = 100
 	maxHealth = 100
 	plasma_stored = 50
@@ -15,6 +16,10 @@
 	inherent_verbs = list(
 		/mob/living/carbon/xenomorph/proc/vent_crawl,
 	)
+
+/mob/living/carbon/xenomorph/runner/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_LIGHT_STEP, XENO_TRAIT)
 
 /mob/living/carbon/xenomorph/runner/set_stat()
 	. = ..()

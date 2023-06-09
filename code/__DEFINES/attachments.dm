@@ -45,6 +45,7 @@
 #define ATTACHMENT_SLOT_KNEE "knee"
 #define ATTACHMENT_SLOT_MODULE "module"
 #define ATTACHMENT_SLOT_STORAGE "storage"
+#define ATTACHMENT_SLOT_BELT "belt"
 
 //Jaeger helmet slot defines
 #define ATTACHMENT_SLOT_HEAD_MODULE "head_module"
@@ -57,3 +58,5 @@
 #define ATTACHMENT_SLOT_BADGE "badge"
 #define ATTACHMENT_SLOT_CAPE "cape"
 #define ATTACHMENT_SLOT_CAPE_HIGHLIGHT "cape_highlight"
+#define ATTACHMENT_SLOT_KAMA "kama"
+#define ATTACHMENT_SLOT_KAMA_HIGHLIGHT "kama_highlight"

@@ -8,6 +8,9 @@
 	open_layer = CATWALK_LAYER
 	closed_layer = WINDOW_LAYER
 
+	resistance_flags = RESIST_ALL
+	flags_pass = NONE
+
 	var/obj/docking_port/mobile/supply/linked_pad
 
 
@@ -16,13 +19,13 @@
 	density = FALSE
 
 
-/obj/machinery/door/poddoor/railing/Initialize()
+/obj/machinery/door/poddoor/railing/Initialize(mapload)
 	. = ..()
 	if(dir == SOUTH)
 		closed_layer = ABOVE_MOB_LAYER
 	layer = closed_layer
 	var/static/list/connections = list(
-		COMSIG_ATOM_EXIT = .proc/on_try_exit
+		COMSIG_ATOM_EXIT = PROC_REF(on_try_exit)
 	)
 	AddElement(/datum/element/connect_loc, connections)
 
@@ -35,9 +38,7 @@
 
 /obj/machinery/door/poddoor/railing/proc/on_try_exit(datum/source, atom/movable/mover, direction, list/moveblockers)
 	SIGNAL_HANDLER
-	if(!density || !(flags_atom & ON_BORDER) || !(direction & dir) || (mover.status_flags & INCORPOREAL))
-		return NONE
-	if(mover.throwing)
+	if(!density || !(flags_atom & ON_BORDER) || !(direction & dir) || (mover.status_flags & INCORPOREAL) || (isitem(mover) && mover.throwing))
 		return NONE
 	moveblockers += src
 	return COMPONENT_ATOM_BLOCK_EXIT
@@ -61,7 +62,7 @@
 	icon_state = "railing0"
 	layer = open_layer
 
-	addtimer(CALLBACK(src, .proc/do_open), 12)
+	addtimer(CALLBACK(src, PROC_REF(do_open)), 12)
 	return TRUE
 
 
@@ -91,7 +92,7 @@
 	if(current_turf)
 		current_turf.flags_atom |= AI_BLOCKED
 
-	addtimer(CALLBACK(src, .proc/do_close), 12)
+	addtimer(CALLBACK(src, PROC_REF(do_close)), 12)
 	return TRUE
 
 /obj/machinery/door/poddoor/railing/proc/do_close()
