@@ -9,7 +9,7 @@
 	. = ..()
 	RegisterSignal(parent, COMSIG_RIDDEN_DRIVER_MOVE, PROC_REF(driver_move))
 
-/datum/component/riding/vehicle/driver_move(atom/movable/movable_parent, mob/living/user, direction)
+/datum/component/riding/vehicle/driver_move(atom/movable/movable_parent, mob/living/user, direction, glide_size_override)
 	if(!COOLDOWN_CHECK(src, vehicle_move_cooldown))
 		return COMPONENT_DRIVER_BLOCK_MOVE
 	var/obj/vehicle/vehicle_parent = parent
@@ -53,10 +53,14 @@
 			COOLDOWN_START(src, message_cooldown, 5 SECONDS)
 		return COMPONENT_DRIVER_BLOCK_MOVE
 
-	handle_ride(user, direction)
+	last_move_diagonal = ISDIAGONALDIR(direction)
+	var/new_delay = (last_move_diagonal ? DIAG_MOVEMENT_ADDED_DELAY_MULTIPLIER : 1) * vehicle_move_delay + calculate_additional_delay(user)
+	glide_size_override = DELAY_TO_GLIDE_SIZE(new_delay)
+	. = ..()
+	handle_ride(user, direction, new_delay)
 
 /// This handles the actual movement for vehicles once [/datum/component/riding/vehicle/proc/driver_move] has given us the green light
-/datum/component/riding/vehicle/proc/handle_ride(mob/user, direction)
+/datum/component/riding/vehicle/proc/handle_ride(mob/living/user, direction, cooldown_duration)
 	var/atom/movable/movable_parent = parent
 
 	var/turf/next = get_step(movable_parent, direction)
@@ -69,15 +73,14 @@
 	if(!isturf(movable_parent.loc))
 		return
 
+	//movable_parent.Move(next, direction, glide_size_override)
 	step(movable_parent, direction)
-	last_move_diagonal = ((direction & (direction - 1)) && (movable_parent.loc == next))
-	COOLDOWN_START(src, vehicle_move_cooldown, (last_move_diagonal? 2 : 1) * vehicle_move_delay)
+	COOLDOWN_START(src, vehicle_move_cooldown, cooldown_duration)
 
 	if(QDELETED(src))
 		return
 	handle_vehicle_layer(movable_parent.dir)
 	handle_vehicle_offsets(movable_parent.dir)
-	return TRUE
 
 /datum/component/riding/vehicle/atv
 	keytype = /obj/item/key/atv
@@ -113,8 +116,46 @@
 	set_riding_offsets(RIDING_OFFSET_ALL, list(TEXT_NORTH = list(0, 4), TEXT_SOUTH = list(0, 4), TEXT_EAST = list(0, 4), TEXT_WEST = list(0, 4)))
 
 /datum/component/riding/vehicle/wheelchair
-	vehicle_move_delay = 0
+	vehicle_move_delay = 6
 	ride_check_flags = RIDER_NEEDS_ARMS
+
+/datum/component/riding/vehicle/wheelchair/driver_move(atom/movable/movable_parent, mob/living/user, direction, glide_size_override)
+	if(!iscarbon(user))
+		return COMPONENT_DRIVER_BLOCK_MOVE
+	var/mob/living/carbon/carbon_user = user
+
+	var/datum/limb/left_hand = carbon_user.get_limb(BODY_ZONE_PRECISE_R_HAND)
+	var/datum/limb/right_hand = carbon_user.get_limb(BODY_ZONE_PRECISE_L_HAND)
+	var/working_hands = 2
+
+	if(!left_hand?.is_usable() || user.get_item_for_held_index(1))
+		working_hands--
+	if(!right_hand?.is_usable() || user.get_item_for_held_index(2))
+		working_hands--
+	if(!working_hands)
+		to_chat(user, span_warning("You have no arms to propel [movable_parent]!"))
+		return COMPONENT_DRIVER_BLOCK_MOVE // No hands to drive your chair? Tough luck!
+	return ..()
+
+/datum/component/riding/vehicle/wheelchair/calculate_additional_delay(mob/living/user)
+	if(!iscarbon(user))
+		return 0
+	var/mob/living/carbon/carbon_user = user
+
+	var/datum/limb/left_hand = carbon_user.get_limb(BODY_ZONE_PRECISE_R_HAND)
+	var/datum/limb/right_hand = carbon_user.get_limb(BODY_ZONE_PRECISE_L_HAND)
+	var/delay_to_add = 0
+
+	if(!left_hand?.is_usable() || user.get_item_for_held_index(1))
+		delay_to_add += vehicle_move_delay * 0.5 //harder to move a wheelchair with a single hand
+	else if(left_hand?.is_broken())
+		delay_to_add = vehicle_move_delay * 0.33
+	if(!right_hand?.is_usable() || user.get_item_for_held_index(2))
+		delay_to_add += vehicle_move_delay * 0.5
+	else if(right_hand.is_broken())
+		delay_to_add = vehicle_move_delay * 0.33
+
+	return delay_to_add
 
 /datum/component/riding/vehicle/wheelchair/handle_specials()
 	. = ..()
@@ -122,6 +163,9 @@
 	set_vehicle_dir_layer(NORTH, ABOVE_MOB_LAYER)
 	set_vehicle_dir_layer(EAST, OBJ_LAYER)
 	set_vehicle_dir_layer(WEST, OBJ_LAYER)
+
+/datum/component/riding/vehicle/wheelchair/weaponized
+	vehicle_move_delay = 5
 
 /datum/component/riding/vehicle/motorbike
 	vehicle_move_delay = 2
@@ -160,3 +204,23 @@
 			return list(TEXT_NORTH = list(9, 3), TEXT_SOUTH = list(-9, 3), TEXT_EAST = list(-2, 3), TEXT_WEST = list(2, 3))
 		if(2) //second one buckled, so sidecar rider
 			return list(TEXT_NORTH = list(-6, 2), TEXT_SOUTH = list(6, 2), TEXT_EAST = list(-3, 0, ABOVE_OBJ_LAYER), TEXT_WEST = list(3, 0, LYING_MOB_LAYER))
+
+/datum/component/riding/vehicle/hover_bike
+	vehicle_move_delay = 1.2
+	ride_check_flags = RIDER_NEEDS_LEGS | RIDER_NEEDS_ARMS | UNBUCKLE_DISABLED_RIDER
+
+/datum/component/riding/vehicle/hover_bike/Initialize(mob/living/riding_mob, force, ride_check_flags, potion_boost)
+	. = ..()
+	riding_mob.density = FALSE
+
+/datum/component/riding/vehicle/hover_bike/vehicle_mob_unbuckle(datum/source, mob/living/former_rider, force = FALSE)
+	former_rider.density = TRUE
+	return ..()
+
+/datum/component/riding/vehicle/hover_bike/handle_specials()
+	set_riding_offsets(1, list(TEXT_NORTH = list(0, 8, MOB_LAYER), TEXT_SOUTH = list(0, -11, ABOVE_MOB_PLATFORM_LAYER), TEXT_EAST = list(17, 7, ABOVE_MOB_PLATFORM_LAYER), TEXT_WEST = list(-11, 7, ABOVE_MOB_PLATFORM_LAYER)))
+	set_riding_offsets(2, list(TEXT_NORTH = list(0, 4, ABOVE_MOB_PLATFORM_LAYER), TEXT_SOUTH = list(0, -1, MOB_LAYER), TEXT_EAST = list(4, 9, MOB_LAYER), TEXT_WEST = list(1, 9, MOB_LAYER)))
+	set_vehicle_dir_layer(SOUTH, ABOVE_LYING_MOB_LAYER)
+	set_vehicle_dir_layer(NORTH, ABOVE_LYING_MOB_LAYER)
+	set_vehicle_dir_layer(EAST, ABOVE_LYING_MOB_LAYER)
+	set_vehicle_dir_layer(WEST, ABOVE_LYING_MOB_LAYER)

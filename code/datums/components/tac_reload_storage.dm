@@ -1,11 +1,20 @@
-///Component for making something capable of tactical reload via right click.
+/*!
+ * Component for making something capable of tactical reload via right click.
+ */
+
+// HEY, LISTEN. This component pre-dates the storage refactor so it may not be up to standards.
+// I would love it if someone were to go ahead and give this a look for me, otherwise I'll get to it eventually... maybe
+
 /datum/component/tac_reload_storage
 	///The storage item that we are attempting to use to tactical reload on.
 	///Use this over checking the item directly, for edge cases such as indirect storage (e.g: storage armor module).
 	var/obj/item/storage/reloading_storage
 
 /datum/component/tac_reload_storage/Initialize()
-	if(!isstorage(parent) && !istype(parent, /obj/item/armor_module/storage))
+	if(!isatom(parent)) // storage_datum is a var on /atom, so that's the bare minimum
+		return COMPONENT_INCOMPATIBLE
+	var/atom/atom_parent = parent
+	if(!atom_parent.storage_datum) //Gotta have some storage to be capable to tac-reload from
 		return COMPONENT_INCOMPATIBLE
 
 /datum/component/tac_reload_storage/Destroy(force, silent)
@@ -18,15 +27,15 @@
 		RegisterSignal(parent, COMSIG_ATTACHMENT_DETACHED, PROC_REF(on_suit_detach))
 	else
 		reloading_storage = parent
-		RegisterSignal(parent, COMSIG_PARENT_ATTACKBY_ALTERNATE, PROC_REF(on_parent_attackby_alternate))
-		RegisterSignal(parent, COMSIG_PARENT_EXAMINE, PROC_REF(on_examine))
+		RegisterSignal(parent, COMSIG_ATOM_ATTACKBY_ALTERNATE, PROC_REF(on_parent_attackby_alternate))
+		RegisterSignal(parent, COMSIG_ATOM_EXAMINE, PROC_REF(on_examine))
 
 /datum/component/tac_reload_storage/UnregisterFromParent()
 	UnregisterSignal(parent, list(
 		COMSIG_ATTACHMENT_ATTACHED,
 		COMSIG_ATTACHMENT_DETACHED,
-		COMSIG_PARENT_ATTACKBY_ALTERNATE,
-		COMSIG_PARENT_EXAMINE,
+		COMSIG_ATOM_ATTACKBY_ALTERNATE,
+		COMSIG_ATOM_EXAMINE,
 	))
 
 ///Hook into the examine of the parent to show the player that they can tac reload from this
@@ -46,7 +55,7 @@
 	SIGNAL_HANDLER
 	if(!istype(reloading_gun))
 		return
-	if(!reloading_storage)
+	if(!reloading_storage.storage_datum)
 		CRASH("[user] attempted to reload [reloading_gun] on [source], but it has no storage attached!")
 	INVOKE_ASYNC(src, PROC_REF(do_tac_reload), reloading_gun, user, params)
 
@@ -57,7 +66,7 @@
 			continue
 		if(user.get_active_held_item(reloading_gun))
 			reloading_gun.tactical_reload(item_to_reload_with, user)
-			reloading_storage.orient2hud()
+			reloading_storage.storage_datum.orient2hud()
 		return COMPONENT_NO_AFTERATTACK
 
 /**
@@ -70,9 +79,9 @@
  */
 /datum/component/tac_reload_storage/proc/on_suit_attach(obj/item/armor_module/storage/source, obj/item/clothing/new_host, mob/attacher)
 	SIGNAL_HANDLER
-	reloading_storage = source.storage
-	RegisterSignal(new_host, COMSIG_PARENT_ATTACKBY_ALTERNATE, PROC_REF(on_parent_attackby_alternate))
-	RegisterSignal(new_host, COMSIG_PARENT_EXAMINE, PROC_REF(on_examine))
+	reloading_storage = source.storage_datum
+	RegisterSignal(new_host, COMSIG_ATOM_ATTACKBY_ALTERNATE, PROC_REF(on_parent_attackby_alternate))
+	RegisterSignal(new_host, COMSIG_ATOM_EXAMINE, PROC_REF(on_examine))
 
 /**
  * Called when parent (a storage armor module) is detached from any suit
@@ -86,6 +95,6 @@
 	SIGNAL_HANDLER
 	reloading_storage = null
 	UnregisterSignal(old_host, list(
-		COMSIG_PARENT_ATTACKBY_ALTERNATE,
-		COMSIG_PARENT_EXAMINE,
+		COMSIG_ATOM_ATTACKBY_ALTERNATE,
+		COMSIG_ATOM_EXAMINE,
 	))

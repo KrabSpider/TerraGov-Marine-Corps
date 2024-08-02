@@ -63,10 +63,6 @@
 	name = "Circuit board (Requisitions ASRS Computer)"
 	build_path = /obj/machinery/computer/supplycomp
 
-/obj/item/circuitboard/computer/rebelsupplycomp
-	name = "Circuit board (Rebel Requisitions ASRS Computer)"
-	build_path = /obj/machinery/computer/supplycomp/rebel
-
 /obj/item/circuitboard/computer/ordercomp
 	name = "Circuit board (Requisitions Ordering Computer)"
 	build_path = /obj/machinery/computer/ordercomp
@@ -179,6 +175,8 @@
 
 /obj/item/circuitboard/computer/security/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, /obj/item/card/id))
 		if(!check_access(I))

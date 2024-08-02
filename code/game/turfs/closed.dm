@@ -16,12 +16,17 @@
 	. = ..()
 	add_debris_element()
 
+/turf/closed/hitby(atom/movable/AM, speed = 5)
+	AM.stop_throw()
+	AM.turf_collision(src, speed)
+	return TRUE
+
 /turf/closed/mineral
 	name = "rock"
 	icon = 'icons/turf/walls.dmi'
 	icon_state = "rock"
 	open_turf_type = /turf/open/floor/plating/ground/desertdam/cave/inner_cave_floor
-	minimap_color = NONE
+	minimap_color = MINIMAP_BLACK
 	resistance_flags = UNACIDABLE
 
 /turf/closed/mineral/add_debris_element()
@@ -32,7 +37,7 @@
 	for(var/direction in GLOB.cardinals)
 		var/turf/turf_to_check = get_step(src, direction)
 		if(!isnull(turf_to_check) && !turf_to_check.density)
-			var/image/rock_side = image(icon, "[icon_state]_side", dir = turn(direction, 180))
+			var/image/rock_side = image(icon, "[icon_state]_side", dir = REVERSE_DIR(direction))
 			switch(direction)
 				if(NORTH)
 					rock_side.pixel_y += world.icon_size
@@ -45,6 +50,23 @@
 			if(!isspaceturf(turf_to_check))
 				minimap_color = MINIMAP_SOLID
 			overlays += rock_side
+
+/turf/closed/mineral/attack_alien(mob/living/carbon/xenomorph/xeno_attacker, damage_amount = xeno_attacker.xeno_caste.melee_damage, damage_type = BRUTE, armor_type = MELEE, effects = TRUE, armor_penetration = xeno_attacker.xeno_caste.melee_ap, isrightclick = FALSE)
+	. = ..()
+	if(isxenobehemoth(xeno_attacker))
+		xeno_attacker.do_attack_animation(src)
+		playsound(src, 'sound/effects/alien/behemoth/earth_pillar_eating.ogg', 10, TRUE)
+		xeno_attacker.visible_message(span_xenowarning("\The [xeno_attacker] eats away at the [src.name]!"), \
+		span_xenonotice(pick(
+			"We eat away at the stone. It tastes good, as expected of our primary diet.",
+			"Mmmmm... Delicious rock. A fitting meal for the hardiest of creatures.",
+			"This boulder -- its flavor fills us with glee. Our palate is thoroughly satisfied.",
+			"These minerals are tasty! We want more!",
+			"Eating this stone makes us think; is our hide tougher? It is. It must be...",
+			"A delectable flavor. Just one bite is not enough...",
+			"One bite, two bites... why not just finish the whole rock?",
+			"The stone. The rock. The boulder. Its name matters not when we consume it.",
+			"Delicious, delectable, simply exquisite. Just a few more minerals and it'd be perfect...")), null, 5)
 
 /turf/closed/mineral/smooth
 	name = "rock"
@@ -59,7 +81,11 @@
 /turf/closed/mineral/smooth/outdoor
 	open_turf_type = /turf/open/floor/plating/ground/mars/random/dirt
 
+/turf/closed/mineral/smooth/outdoor/phoron
+	icon = 'icons/turf/walls/lvwall-phoron.dmi'
+
 /turf/closed/mineral/smooth/indestructible
+	name = "tough rock"
 	resistance_flags = RESIST_ALL
 	icon_state = "wall-invincible"
 
@@ -88,9 +114,9 @@
 	icon_state = "darkfrostwall-0"
 	walltype = "darkfrostwall"
 	base_icon_state = "darkfrostwall"
-	resistance_flags = PLASMACUTTER_IMMUNE
 
 /turf/closed/mineral/smooth/darkfrostwall/indestructible
+	name = "tough rock"
 	resistance_flags = RESIST_ALL
 	icon_state = "wall-invincible"
 
@@ -135,15 +161,90 @@
 	color = "#c9a37b"
 	walltype = "cave"
 	base_icon_state = "cave"
+
 /turf/closed/mineral/smooth/desertdamrockwall/indestructible
 	resistance_flags = RESIST_ALL
 	icon_state = "wall-invincible"
+
+//basalt mineral wall
+/turf/closed/mineral/smooth/basalt
+	icon = 'icons/turf/walls/basaltwall.dmi'
+	icon_state = "basaltwall-0"
+	base_icon_state = "basaltwall"
+
+/turf/closed/mineral/smooth/basalt/indestructible
+	resistance_flags = RESIST_ALL
+	icon_state = "wall-invincible"
+
+//resin bone wall
+/turf/closed/mineral/smooth/resin_hard
+	icon = 'icons/turf/walls/resin_bone_wall.dmi'
+	icon_state = "resin_bone_wall-0"
+	base_icon_state = "resin_bone_wall"
+
+/turf/closed/mineral/smooth/resin_hard/indestructible
+	resistance_flags = RESIST_ALL
+	icon_state = "wall-invincible"
+
+
+//new wall for lava maps
+/turf/closed/mineral/smooth/lavawall
+	icon = 'icons/turf/walls/lava_wall.dmi'
+	icon_state = "lava_wall-0"
+	walltype = "lava_wall"
+	base_icon_state = "lava_wall"
+
+/turf/closed/mineral/smooth/lavawall/indestructible
+	resistance_flags = RESIST_ALL
+	icon_state = "wall-invincible"
+
+/turf/closed/mineral/smooth/lavawall/outdoor
+	open_turf_type = /turf/open/floor/plating/ground/mars/random/dirt
+
+/turf/closed/mineral/smooth/black_stone
+	icon = 'icons/turf/walls/black_stone_walls.dmi'
+	icon_state = "black_stone_walls-0"
+	walltype = "lava_wall"
+	base_icon_state = "black_stone_walls"
+
+/turf/closed/mineral/smooth/black_stone/indestructible
+	resistance_flags = RESIST_ALL
+	icon_state = "wall-invincible"
+
+/turf/closed/mineral/smooth/engineerwall
+	name = "strange metal wall"
+	desc = "Nigh indestructible walls that make up the hull of an unknown ancient ship."
+	icon = 'icons/turf/walls/engineer_walls_turf.dmi'
+	icon_state = "engineer_walls_turf-255"
+	walltype = "wall"
+	base_icon_state = "engineer_walls_turf"
+
+/turf/closed/mineral/smooth/engineerwall/indestructible
+	resistance_flags = RESIST_ALL
+	icon_state = "wall-invincible"
+
+/turf/closed/mineral/smooth/jungletree
+	name = "dense jungle trees"
+	desc = "Some thick jungle trees, it looks impassible"
+	icon = 'icons/turf/walls/junglewall.dmi'
+	icon_state = "wall-display"
+	base_icon_state = "junglewall"
+	open_turf_type = /turf/open/floor/plating/ground/dirt
+	plane = FLOOR_PLANE
+
+/turf/closed/mineral/smooth/jungletree/invincible
+	icon_state = "wall-invincible"
+	resistance_flags = RESIST_ALL
+
+/turf/closed/mineral/smooth/jungletree/add_debris_element()
+	AddElement(/datum/element/debris, DEBRIS_LEAF, -10, 5)
 
 //Ground map dense jungle
 /turf/closed/gm
 	icon = 'icons/turf/walls/jungle.dmi'
 	icon_state = "junglewall-0"
 	desc = "Some thick jungle."
+	resistance_flags = UNACIDABLE
 	smoothing_flags = SMOOTH_BITMASK
 	smoothing_groups = list(SMOOTH_GROUP_FLORA)
 	canSmoothWith = list(SMOOTH_GROUP_FLORA)
@@ -151,24 +252,16 @@
 	walltype = "junglewall"
 	open_turf_type = /turf/open/ground/jungle/clear
 
-/turf/closed/gm/add_debris_element()
-	AddElement(/datum/element/debris, DEBRIS_LEAF, -10, 5)
-
-/turf/closed/gm/tree
-	name = "dense jungle trees"
-	icon_state = "jungletree"
-	desc = "Some thick jungle trees."
-
 	//Not yet
 /turf/closed/gm/ex_act(severity)
 	switch(severity)
 		if(EXPLODE_DEVASTATE)
-			ChangeTurf(/turf/open/ground/grass)
+			ChangeTurf(/turf/open/ground/grass/weedable)
 
 /turf/closed/gm/dense
 	name = "dense jungle wall"
-	resistance_flags = PLASMACUTTER_IMMUNE
-	minimap_color = NONE
+	resistance_flags = PLASMACUTTER_IMMUNE|UNACIDABLE
+	minimap_color = MINIMAP_BLACK
 	icon_state = "wall-dense"
 
 /turf/closed/gm/dense/Initialize(mapload)
@@ -200,7 +293,7 @@
 	for(var/direction in GLOB.cardinals)
 		var/turf/turf_to_check = get_step(src, direction)
 		if(istype(turf_to_check, /turf/open))
-			var/image/rock_side = image(icon, "[icon_state]_side", dir = turn(direction, 180))
+			var/image/rock_side = image(icon, "[icon_state]_side", dir = REVERSE_DIR(direction))
 			switch(direction)
 				if(NORTH)
 					rock_side.pixel_y += world.icon_size
@@ -269,22 +362,22 @@
 	icon_state = "Intersection"
 
 /turf/closed/attackby(obj/item/I, mob/user, params)
-	. = ..()
-
-	if(istype(I, /obj/item/tool/pickaxe/plasmacutter) && !user.do_actions)
+	if(isplasmacutter(I) && !user.do_actions)
 		var/obj/item/tool/pickaxe/plasmacutter/P = I
 		if(CHECK_BITFIELD(resistance_flags, PLASMACUTTER_IMMUNE))
 			to_chat(user, span_warning("[P] can't cut through this!"))
 			return
 		else if(!P.start_cut(user, name, src))
 			return
-		else if(!do_after(user, PLASMACUTTER_CUT_DELAY, TRUE, src, BUSY_ICON_FRIENDLY))
+		else if(!do_after(user, PLASMACUTTER_CUT_DELAY, NONE, src, BUSY_ICON_FRIENDLY))
 			return
 		else
 			P.cut_apart(user, name, src) //purely a cosmetic effect
 
 		//change targetted turf to a new one to simulate deconstruction
 		ChangeTurf(open_turf_type)
+		return
+	return ..()
 
 //Ice Thin Wall
 /turf/closed/ice/thin
@@ -318,7 +411,7 @@
 /turf/closed/ice_rock
 	name = "Icy rock"
 	icon = 'icons/turf/rockwall.dmi'
-	resistance_flags = PLASMACUTTER_IMMUNE
+	resistance_flags = PLASMACUTTER_IMMUNE|UNACIDABLE
 	open_turf_type = /turf/open/floor/plating/ground/ice
 
 /turf/closed/ice_rock/add_debris_element()
@@ -437,6 +530,7 @@
 	icon = 'icons/turf/ert_shuttle.dmi'
 	icon_state = "stan4"
 	plane = GAME_PLANE
+	resistance_flags = RESIST_ALL
 
 /turf/closed/shuttle/ert/engines/left
 	icon_state = "leftengine_1"
@@ -481,9 +575,15 @@
 /turf/closed/shuttle/dropship1/window
 	icon_state = "shuttle_window_glass"
 	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
+
+/turf/closed/shuttle/dropship1/aislewindow
+	icon_state = "shuttle_aisle_window"
+	opacity = FALSE
 
 /turf/closed/shuttle/dropship1/panel
 	icon_state = "shuttle_interior_panel"
+	opacity = FALSE
 
 /turf/closed/shuttle/dropship1/engineone
 	icon_state = "shuttle_interior_backengine"
@@ -518,6 +618,7 @@
 /turf/closed/shuttle/dropship1/interiorwindow
 	icon_state = "shuttle_interior_inwards"
 	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
 
 /turf/closed/shuttle/dropship1/interiormisc
 	icon_state = "shuttle_interior_threeside"
@@ -671,6 +772,7 @@
 /turf/closed/shuttle/dropship2/window
 	icon_state = "shuttle_window_glass"
 	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
 
 /turf/closed/shuttle/dropship2/panel
 	icon_state = "shuttle_interior_panel"
@@ -728,6 +830,8 @@
 
 /turf/closed/shuttle/dropship2/singlewindow
 	icon_state = "shuttle_single_window"
+	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
 
 /turf/closed/shuttle/dropship2/singlewindow/tadpole
 	icon_state = "shuttle_single_window"
@@ -756,18 +860,24 @@
 
 /turf/closed/shuttle/dropship2/glassone
 	icon_state = "shuttle_glass1"
+	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
 
 /turf/closed/shuttle/dropship2/glassone/tadpole
 	icon_state = "shuttle_glass1"
 	resistance_flags = NONE
 	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
 
 /turf/closed/shuttle/dropship2/glasstwo
 	icon_state = "shuttle_glass2"
+	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
 
 /turf/closed/shuttle/dropship2/glasstwo/tadpole
 	icon_state = "shuttle_glass2"
 	resistance_flags = NONE
+	allow_pass_flags = PASS_GLASS
 
 /turf/closed/shuttle/dropship2/glassthree
 	icon_state = "shuttle_glass3"
@@ -794,6 +904,193 @@
 
 /turf/closed/shuttle/dropship2/transparent
 	opacity = FALSE
+
+/turf/closed/shuttle/dropship4
+	name = "\improper Normandy"
+	icon = 'icons/turf/dropship4.dmi'
+	icon_state = "1"
+	plane = GAME_PLANE
+
+/turf/closed/shuttle/dropship4/transparent
+	opacity = FALSE
+
+/turf/closed/shuttle/dropship4/edge
+	icon_state = "shuttle_interior_edge"
+
+/turf/closed/shuttle/dropship4/edge/alt
+	icon_state = "shuttle_interior_edgealt"
+
+/turf/closed/shuttle/dropship4/aisle
+	icon_state = "shuttle_interior_aisle"
+
+/turf/closed/shuttle/dropship4/door
+	icon_state = "shuttle_rear_door"
+
+/turf/closed/shuttle/dropship4/window
+	icon_state = "shuttle_window_glass"
+	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
+
+/turf/closed/shuttle/dropship4/panel
+	icon_state = "shuttle_interior_panel"
+
+/turf/closed/shuttle/dropship4/engineone
+	icon_state = "shuttle_interior_backengine"
+
+/turf/closed/shuttle/dropship4/engineone/alt
+	icon_state = "shuttle_engine_alt"
+
+/turf/closed/shuttle/dropship4/enginetwo
+	icon_state = "shuttle_interior_backengine2"
+
+/turf/closed/shuttle/dropship4/enginethree
+	icon_state = "shuttle_interior_backengine3"
+
+/turf/closed/shuttle/dropship4/enginefour
+	icon_state = "shuttle_interior_backengine4"
+
+/turf/closed/shuttle/dropship4/enginefive
+	icon_state = "shuttle_interior_backengine5"
+
+/turf/closed/shuttle/dropship4/engine_sidealt
+	icon_state = "shuttle_side_engine_alt"
+
+/turf/closed/shuttle/dropship4/fins
+	icon_state = "shuttle_exterior_fins"
+
+/turf/closed/shuttle/dropship4/damagedconsoleone
+	icon_state = "damaged_console1"
+
+/turf/closed/shuttle/dropship4/damagedconsoletwo
+	icon_state = "damaged_console2"
+
+/turf/closed/shuttle/dropship4/damagedconsolethree
+	icon_state = "damaged_console3"
+
+/turf/closed/shuttle/dropship4/brokenconsoleone
+	icon_state = "brokendropshipconsole1"
+
+/turf/closed/shuttle/dropship4/brokenconsoletwo
+	icon_state = "brokendropshipconsole2"
+
+/turf/closed/shuttle/dropship4/brokenconsolethree
+	icon_state = "brokendropshipconsole3"
+
+/turf/closed/shuttle/dropship4/panels
+	icon_state = "shuttle_exterior_panels"
+
+/turf/closed/shuttle/dropship4/corners
+	icon_state = "shuttle_exterior_corners"
+
+/turf/closed/shuttle/dropship4/front
+	icon_state = "shuttle_exterior_front"
+
+/turf/closed/shuttle/dropship4/wall
+	icon_state = "shuttle_interior_wall"
+
+/turf/closed/shuttle/dropship4/walltwo
+	icon_state = "shuttle_wall_left"
+
+/turf/closed/shuttle/dropship4/walltwo/alt
+	icon_state = "shuttle_wall_left_alt"
+
+/turf/closed/shuttle/dropship4/wallthree
+	icon_state = "shuttle_wall_right"
+
+/turf/closed/shuttle/dropship4/wallthree/alt
+	icon_state = "shuttle_wall_right_alt"
+
+/turf/closed/shuttle/dropship4/interiorwindow
+	icon_state = "shuttle_interior_inwards"
+
+/turf/closed/shuttle/dropship4/interiormisc
+	icon_state = "shuttle_interior_threeside"
+
+/turf/closed/shuttle/dropship4/cornersalt
+	icon_state = "shuttle_interior_corneralt"
+
+/turf/closed/shuttle/dropship4/cornersalt2
+	icon_state = "shuttle_interior_alt2"
+
+/turf/closed/shuttle/dropship4/finleft
+	icon_state = "shuttle_exterior_finnleft"
+
+/turf/closed/shuttle/dropship4/finright
+	icon_state = "shuttle_exterior_finnright"
+
+/turf/closed/shuttle/dropship4/finback
+	icon_state = "shuttle_exterior_finback"
+
+/turf/closed/shuttle/dropship4/rearcorner
+	icon_state = "shuttle_rearcorner"
+
+/turf/closed/shuttle/dropship4/glassone
+	icon_state = "shuttle_glass1"
+	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
+
+/turf/closed/shuttle/dropship4/glassone/tadpole
+	icon_state = "shuttle_glass1"
+	resistance_flags = NONE
+	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
+
+/turf/closed/shuttle/dropship4/glasstwo
+	icon_state = "shuttle_glass2"
+	opacity = FALSE
+	allow_pass_flags = PASS_GLASS
+
+/turf/closed/shuttle/dropship4/glasstwo/tadpole
+	icon_state = "shuttle_glass2"
+	resistance_flags = NONE
+	allow_pass_flags = PASS_GLASS
+
+/turf/closed/shuttle/dropship4/glassthree
+	icon_state = "shuttle_glass3"
+
+/turf/closed/shuttle/dropship4/glassfour
+	icon_state = "shuttle_glass4"
+
+/turf/closed/shuttle/dropship4/glassfive
+	icon_state = "shuttle_glass5"
+
+/turf/closed/shuttle/dropship4/glasssix
+	icon_state = "shuttle_glass6"
+
+/turf/closed/shuttle/dropship4/glassseven
+	icon_state = "shuttle_glass7"
+
+/turf/closed/shuttle/dropship4/zwing_left
+	icon_state = "zwing_left"
+
+/turf/closed/shuttle/dropship4/zwing_right
+	icon_state = "zwing_right"
+
+/turf/closed/shuttle/dropship4/rearcorner/tadpole
+	icon_state = "shuttle_rearcorner"
+	resistance_flags = NONE
+
+/turf/closed/shuttle/dropship4/rearcorner/alt
+	icon_state = "shuttle_rearcorner_alt"
+
+/turf/closed/shuttle/dropship4/rearcorner/alt/tadpole
+	icon_state = "shuttle_rearcorner_alt"
+	resistance_flags = NONE
+
+/turf/closed/shuttle/dropship4/transparent
+	opacity = FALSE
+
+/turf/closed/shuttle/dropship4/window/alt
+	icon_state = "shuttle_window_glass_alt"
+
+/turf/closed/shuttle/dropship4/left_engine
+	icon_state = "left_engine"
+
+/turf/closed/shuttle/dropship4/right_engine
+	icon_state = "right_engine"
+
+/turf/closed/shuttle/dropship4/backplate
+	icon_state = "back1"
 
 /turf/closed/shuttle/tadpole
 	name = "\improper Tadpole"

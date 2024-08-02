@@ -156,7 +156,7 @@
  */
 /datum/action/vehicle/sealed/mecha/skyfall/proc/land()
 	chassis.visible_message(span_danger("[chassis] lands from above!"))
-	playsound(chassis, 'sound/effects/explosion_large1.ogg', 50, 1)
+	playsound(chassis, 'sound/effects/explosion/large1.ogg', 50, 1)
 	chassis.resistance_flags &= ~INDESTRUCTIBLE
 	chassis.mecha_flags &= ~(QUIET_STEPS|QUIET_TURNS|CANNOT_INTERACT)
 	chassis.phasing = initial(chassis.phasing)
@@ -182,7 +182,7 @@
 			var/obj/crushed_object = thing
 			if(crushed_object == chassis || crushed_object.loc == chassis)
 				continue
-			crushed_object.take_damage(150) //same as a hulk punch, makes sense to me
+			crushed_object.take_damage(150, BRUTE, MELEE) //same as a hulk punch, makes sense to me
 			continue
 		if(isliving(thing))
 			var/mob/living/crushed_victim = thing

@@ -19,6 +19,7 @@
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 2
 	active_power_usage = 4
+	layer = ABOVE_OBJ_LAYER
 
 /obj/machinery/door_control/unmeltable
 	resistance_flags = RESIST_ALL
@@ -128,6 +129,7 @@
 	update_icon()
 
 /obj/machinery/door_control/update_icon_state()
+	. = ..()
 	if(machine_stat & NOPOWER)
 		icon_state = "doorctrl-p"
 	else if(pressed)
@@ -141,6 +143,8 @@
 
 /obj/machinery/driver_button/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, /obj/item/detective_scanner))
 		return
@@ -228,35 +232,28 @@
 	id = "cic_lockdown"
 	req_one_access = list(ACCESS_MARINE_BRIDGE)
 
-/obj/machinery/door_control/mainship/cic/rebel
-	id = "cic_lockdown_rebel"
-	req_one_access = list(ACCESS_MARINE_BRIDGE_REBEL)
-
 /obj/machinery/door_control/mainship/cic/armory
 	name = "Armory Lockdown"
 	id = "cic_armory"
-
-/obj/machinery/door_control/mainship/cic/armory/rebel
-	id = "cic_armory_armory"
-	req_one_access = list(ACCESS_MARINE_BRIDGE_REBEL)
 
 /obj/machinery/door_control/mainship/cic/hangar
 	name = "Hangar Lockdown"
 	id = "hangar_lockdown"
 
 /obj/machinery/door_control/mainship/mech
-	name = "Mech Shutter"
+	name = "\improper Mech Shutters"
 	id = "mech_shutters"
 	req_one_access = list(ACCESS_MARINE_MECH)
+
+/obj/machinery/door_control/mainship/vehicle
+	name = "\improper Vehicle Bay Shutters"
+	id = "vehicle_shutters"
+	req_one_access = list(ACCESS_MARINE_ARMORED, ACCESS_MARINE_MECH)
 
 /obj/machinery/door_control/mainship/tcomms
 	name = "Telecommunications Entrance"
 	id = "tcomms"
 	req_one_access = list(ACCESS_MARINE_ENGINEERING, ACCESS_MARINE_LOGISTICS, ACCESS_MARINE_BRIDGE)
-
-/obj/machinery/door_control/mainship/tcomms/rebel
-	id = "tcomms_rebel"
-	req_one_access = list(ACCESS_MARINE_ENGINEERING_REBEL, ACCESS_MARINE_LOGISTICS_REBEL, ACCESS_MARINE_BRIDGE_REBEL)
 
 /obj/machinery/door_control/mainship/engineering/armory
 	name = "Engineering Armory Lockdown"
@@ -269,14 +266,15 @@
 	id = "cl_shutters"
 	req_access = list(ACCESS_NT_CORPORATE)
 
+/obj/machinery/door_control/mainship/fc_shutters
+	name = "Privacy Shutters"
+	id = "fc_shutters"
+	req_access = list(ACCESS_MARINE_BRIDGE)
+
 /obj/machinery/door_control/mainship/req
 	name = "RO Line Shutters"
 	id = "ROlobby"
 	req_one_access = list(ACCESS_MARINE_CARGO, ACCESS_MARINE_LOGISTICS)
-
-/obj/machinery/door_control/mainship/req/rebel
-	id = "ROlobby_rebel"
-	req_one_access = list(ACCESS_MARINE_CARGO_REBEL, ACCESS_MARINE_LOGISTICS_REBEL)
 
 /obj/machinery/door_control/mainship/req/ro1
 	name = "RO Line 1 Shutters"
@@ -297,6 +295,7 @@
 	directional = FALSE
 
 /obj/machinery/door_control/old/update_icon_state()
+	. = ..()
 	if(machine_stat & NOPOWER)
 		icon_state = "olddoorctrl-p"
 	else if(pressed)
@@ -313,20 +312,10 @@
 	name = "RO Line Shutters"
 	id = "valhalla"
 
-/obj/machinery/door_control/old/rebel
-	name = "RO Line Shutters"
-	id = "ROlobby_rebel"
-	req_one_access = list(ACCESS_MARINE_CARGO_REBEL, ACCESS_MARINE_LOGISTICS_REBEL)
-
 /obj/machinery/door_control/old/cic
 	name = "CIC Lockdown"
 	id = "cic_lockdown"
 	req_one_access = list(ACCESS_MARINE_BRIDGE)
-
-/obj/machinery/door_control/old/cic/rebel
-	name = "CIC Lockdown"
-	id = "cic_lockdown"
-	req_one_access = list(ACCESS_MARINE_BRIDGE_REBEL)
 
 /obj/machinery/door_control/old/cic/hangar
 	name = "Hangar Lockdown"
@@ -339,10 +328,6 @@
 /obj/machinery/door_control/old/cic/armory
 	name = "Armory Lockdown"
 	id = "cic_armory"
-
-/obj/machinery/door_control/old/cic/armory/rebel
-	id = "cic_armory_armory"
-	req_one_access = list(ACCESS_MARINE_BRIDGE_REBEL)
 
 /obj/machinery/door_control/old/medbay
 	req_access = list(ACCESS_MARINE_MEDBAY)

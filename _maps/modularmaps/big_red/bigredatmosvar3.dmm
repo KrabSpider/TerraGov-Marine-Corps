@@ -193,6 +193,10 @@
 /obj/effect/turf_decal/warning_stripes,
 /turf/open/floor/plating,
 /area/bigredv2/outside/filtration_plant)
+"la" = (
+/obj/effect/landmark/xeno_tunnel_spawn,
+/turf/open/floor/plating/ground/mars/random/sand,
+/area/bigredv2/outside/se)
 "lo" = (
 /obj/machinery/door/airlock/mainship/engineering{
 	name = "\improper Filtration Facility";
@@ -360,7 +364,7 @@
 "wk" = (
 /obj/structure/cryofeed,
 /turf/open/floor/engine,
-/area/bigredv2/outside/filtration_plant)
+/area/space)
 "wY" = (
 /obj/machinery/atmospherics/pipe/simple/green/hidden{
 	dir = 5
@@ -412,7 +416,7 @@
 	name = "\improper coolant feed"
 	},
 /turf/open/floor/engine,
-/area/bigredv2/outside/filtration_plant)
+/area/space)
 "yj" = (
 /obj/effect/spawner/random/misc/structure/broken_window/colonyspawn,
 /obj/structure/sign/safety/vent,
@@ -534,7 +538,9 @@
 /area/bigredv2/outside/filtration_plant)
 "FY" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/machinery/atmospherics/pipe/simple/green/hidden,
+/obj/machinery/atmospherics/pipe/simple/green/hidden{
+	dir = 10
+	},
 /turf/open/floor,
 /area/bigredv2/outside/filtration_plant)
 "GD" = (
@@ -732,6 +738,9 @@
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/cable,
+/obj/machinery/atmospherics/pipe/simple/green/hidden{
+	dir = 5
+	},
 /turf/open/floor,
 /area/bigredv2/outside/filtration_plant)
 "Tm" = (
@@ -1259,7 +1268,7 @@ pg
 (17,1,1) = {"
 bz
 bz
-bz
+la
 bz
 bz
 tm

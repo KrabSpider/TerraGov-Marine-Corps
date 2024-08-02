@@ -10,7 +10,7 @@
 	///list of plane masters to apply to owners
 	var/list/plane_masters = list()
 
-/atom/movable/screen/mech_view/Initialize(mapload, obj/vehicle/sealed/mecha/newowner)
+/atom/movable/screen/mech_view/Initialize(mapload, datum/hud/hud_owner, obj/vehicle/sealed/mecha/newowner)
 	. = ..()
 	owner = newowner
 	assigned_map = "mech_view_[REF(owner)]"
@@ -298,7 +298,7 @@
 				to_chat(occupants, "[icon2html(src, occupants)][span_warning("Unable to disconnect from the air system port!")]")
 				return
 			var/obj/machinery/atmospherics/components/unary/portables_connector/possible_port = locate() in loc
-			if(internal_tank.connect(possible_port))
+			if(internal_tank.connect(new_port = possible_port))
 				to_chat(occupants, "[icon2html(src, occupants)][span_notice("Connected to the air system port.")]")
 				log_message("Connected to gas port.", LOG_MECHA)
 				return TRUE

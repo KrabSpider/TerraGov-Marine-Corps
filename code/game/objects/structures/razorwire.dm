@@ -1,7 +1,7 @@
 /obj/structure/razorwire
 	name = "razorwire obstacle"
 	desc = "A bundle of barbed wire supported by metal rods. Used to deny access to areas under (literal) pain of entanglement and injury. A classic fortification since the 1900s."
-	icon = 'icons/obj/structures/barbedwire.dmi'
+	icon = 'icons/obj/structures/barricades/barbedwire.dmi'
 	icon_state = "barbedwire_x"
 	base_icon_state = "barbedwire_x"
 	density = TRUE
@@ -10,6 +10,7 @@
 	coverage = 5
 	climbable = TRUE
 	resistance_flags = XENO_DAMAGEABLE
+	allow_pass_flags = PASS_DEFENSIVE_STRUCTURE|PASS_GRILLE|PASSABLE
 	var/list/entangled_list
 	var/sheet_type = /obj/item/stack/barbed_wire
 	var/sheet_type2 = /obj/item/stack/rods
@@ -48,7 +49,9 @@
 	SIGNAL_HANDLER
 	if(!isliving(O))
 		return
-	if(CHECK_BITFIELD(O.flags_pass, PASSSMALLSTRUCT))
+	if(CHECK_BITFIELD(O.pass_flags, PASS_DEFENSIVE_STRUCTURE))
+		return
+	if(HAS_TRAIT(O, TRAIT_TANK_DESANT))
 		return
 	var/mob/living/M = O
 	if(M.status_flags & INCORPOREAL)
@@ -61,16 +64,6 @@
 	var/def_zone = ran_zone()
 	M.apply_damage(RAZORWIRE_BASE_DAMAGE, BRUTE, def_zone, MELEE, TRUE, updating_health = TRUE)
 	razorwire_tangle(M)
-
-/obj/structure/razorwire/proc/on_try_exit(datum/source, atom/movable/mover, direction, list/knownblockers)
-	SIGNAL_HANDLER
-	if(CHECK_BITFIELD(mover.flags_pass, PASSSMALLSTRUCT))
-		return NONE
-	if(!density || !(flags_atom & ON_BORDER) || !(direction & dir) || (mover.status_flags & INCORPOREAL))
-		return NONE
-	knownblockers += src
-	return COMPONENT_ATOM_BLOCK_EXIT
-
 
 /obj/structure/razorwire/proc/razorwire_tangle(mob/living/entangled, duration = RAZORWIRE_ENTANGLE_DELAY)
 	if(QDELETED(src)) //Sanity check so that you can't get entangled if the razorwire is destroyed; this happens apparently.
@@ -86,7 +79,7 @@
 	ENABLE_BITFIELD(entangled.restrained_flags, RESTRAINED_RAZORWIRE)
 	LAZYADD(entangled_list, entangled) //Add the entangled person to the trapped list.
 	RegisterSignal(entangled, COMSIG_LIVING_DO_RESIST, TYPE_PROC_REF(/atom/movable, resisted_against))
-	RegisterSignal(entangled, COMSIG_PARENT_QDELETING, PROC_REF(do_razorwire_untangle))
+	RegisterSignal(entangled, COMSIG_QDELETING, PROC_REF(do_razorwire_untangle))
 	RegisterSignal(entangled, COMSIG_MOVABLE_PULL_MOVED, PROC_REF(razorwire_untangle))
 
 
@@ -100,7 +93,7 @@
 
 /obj/structure/razorwire/proc/razorwire_untangle(mob/living/entangled)
 	SIGNAL_HANDLER
-	if((entangled.flags_pass & PASSSMALLSTRUCT) || entangled.status_flags & INCORPOREAL)
+	if((entangled.pass_flags & PASS_DEFENSIVE_STRUCTURE) || entangled.status_flags & INCORPOREAL)
 		return
 	do_razorwire_untangle(entangled)
 	visible_message(span_danger("[entangled] disentangles from [src]!"))
@@ -113,7 +106,7 @@
 ///This proc is used for signals, so if you plan on adding a second argument, or making it return a value, then change those RegisterSignal's referncing it first.
 /obj/structure/razorwire/proc/do_razorwire_untangle(mob/living/entangled)
 	SIGNAL_HANDLER
-	UnregisterSignal(entangled, list(COMSIG_PARENT_QDELETING, COMSIG_LIVING_DO_RESIST, COMSIG_MOVABLE_PULL_MOVED))
+	UnregisterSignal(entangled, list(COMSIG_QDELETING, COMSIG_LIVING_DO_RESIST, COMSIG_MOVABLE_PULL_MOVED))
 	LAZYREMOVE(entangled_list, entangled)
 	DISABLE_BITFIELD(entangled.restrained_flags, RESTRAINED_RAZORWIRE)
 	REMOVE_TRAIT(entangled, TRAIT_IMMOBILE, type)
@@ -134,57 +127,54 @@
 
 /obj/structure/razorwire/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, /obj/item/stack/sheet/metal))
 		var/obj/item/stack/sheet/metal/metal_sheets = I
 
 		visible_message(span_notice("[user] begins to repair  \the [src]."))
 
-		if(!do_after(user, 2 SECONDS, TRUE, src, BUSY_ICON_FRIENDLY) || obj_integrity >= max_integrity)
+		if(!do_after(user, 2 SECONDS, NONE, src, BUSY_ICON_FRIENDLY) || obj_integrity >= max_integrity)
 			return
 
 		if(!metal_sheets.use(1))
 			return
 
-		repair_damage(max_integrity * 0.30)
+		repair_damage(max_integrity * 0.30, user)
 		visible_message(span_notice("[user] repairs \the [src]."))
 		update_icon()
 		return
 
-	if(!istype(I, /obj/item/grab))
+/obj/structure/razorwire/grab_interact(obj/item/grab/grab, mob/user, base_damage = BASE_OBJ_SLAM_DAMAGE, is_sharp = FALSE)
+	if(!isliving(grab.grabbed_thing))
 		return
-	if(isxeno(user))//I am very tempted to remove this >:)
-		return
-
-	var/obj/item/grab/G = I
-	if(!isliving(G.grabbed_thing))
+	if(user.grab_state < GRAB_AGGRESSIVE)
+		to_chat(user, span_warning("You need a better grip to do that!"))
 		return
 
-	var/mob/living/M = G.grabbed_thing
-	if(user.a_intent == INTENT_HARM)
-		if(user.grab_state <= GRAB_AGGRESSIVE)
-			to_chat(user, span_warning("You need a better grip to do that!"))
-			return
-
+	var/mob/living/grabbed_mob = grab.grabbed_thing
+	if(user.a_intent == INTENT_HARM && user.grab_state > GRAB_AGGRESSIVE)
 		var/def_zone = ran_zone()
-		M.apply_damage(RAZORWIRE_BASE_DAMAGE, BRUTE, def_zone, MELEE, TRUE, updating_health = TRUE)
-		user.visible_message(span_danger("[user] spartas [M]'s into [src]!"),
-		span_danger("You sparta [M]'s against [src]!"))
-		log_combat(user, M, "spartaed", "", "against \the [src]")
+		grabbed_mob.apply_damage(RAZORWIRE_BASE_DAMAGE, BRUTE, def_zone, MELEE, TRUE, updating_health = TRUE)
+		user.visible_message(span_danger("[user] spartas [grabbed_mob]'s into [src]!"),
+		span_danger("You sparta [grabbed_mob]'s against [src]!"))
+		log_combat(user, grabbed_mob, "spartaed", "", "against \the [src]")
 		playsound(src, 'sound/effects/barbed_wire_movement.ogg', 25, 1)
+		return TRUE
 
-	else if(user.grab_state >= GRAB_AGGRESSIVE)
-		M.forceMove(loc)
-		M.Paralyze(10 SECONDS)
-		user.visible_message(span_danger("[user] throws [M] on [src]."),
-		span_danger("You throw [M] on [src]."))
+	grabbed_mob.forceMove(loc)
+	grabbed_mob.Paralyze(2 SECONDS)
+	user.visible_message(span_danger("[user] throws [grabbed_mob] on [src]."),
+	span_danger("You throw [grabbed_mob] on [src]."))
+	return TRUE
 
 /obj/structure/razorwire/wirecutter_act(mob/living/user, obj/item/I)
 	user.visible_message(span_notice("[user] starts disassembling [src]."),
 	span_notice("You start disassembling [src]."))
 	var/delay_disassembly = SKILL_TASK_AVERAGE - (0.5 SECONDS + user.skills.getRating(SKILL_ENGINEER))
 
-	if(!do_after(user, delay_disassembly, TRUE, src, BUSY_ICON_BUILD))
+	if(!do_after(user, delay_disassembly, NONE, src, BUSY_ICON_BUILD))
 		return TRUE
 
 	user.visible_message(span_notice("[user] disassembles [src]."),
@@ -193,11 +183,11 @@
 	deconstruct(TRUE)
 	return TRUE
 
-/obj/structure/razorwire/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = 0, isrightclick = FALSE)
-	if(X.status_flags & INCORPOREAL)
+/obj/structure/razorwire/attack_alien(mob/living/carbon/xenomorph/xeno_attacker, damage_amount = xeno_attacker.xeno_caste.melee_damage, damage_type = BRUTE, armor_type = MELEE, effects = TRUE, armor_penetration = xeno_attacker.xeno_caste.melee_ap, isrightclick = FALSE)
+	if(xeno_attacker.status_flags & INCORPOREAL)
 		return FALSE
 
-	X.apply_damage(RAZORWIRE_BASE_DAMAGE, blocked = MELEE, updating_health = TRUE) //About a third as damaging as actually entering
+	xeno_attacker.apply_damage(RAZORWIRE_BASE_DAMAGE, blocked = MELEE, updating_health = TRUE) //About a third as damaging as actually entering
 	update_icon()
 	return ..()
 
@@ -208,26 +198,22 @@
 			deconstruct(FALSE)
 			return
 		if(EXPLODE_HEAVY)
-			take_damage(rand(33, 66))
+			take_damage(rand(33, 66), BRUTE, BOMB)
 		if(EXPLODE_LIGHT)
-			take_damage(rand(10, 33))
+			take_damage(rand(10, 33), BRUTE, BOMB)
+		if(EXPLODE_WEAK)
+			take_damage(10, BRUTE, BOMB)
 	update_icon()
 
 
 /obj/structure/razorwire/CanAllowThrough(atom/movable/mover, turf/target)
-	. = ..()
-	if(CHECK_BITFIELD(mover.flags_pass, PASSSMALLSTRUCT))
-		return TRUE
-	if(istype(mover) && CHECK_BITFIELD(mover.flags_pass, PASSGRILLE))
-		return TRUE
-	if(mover.throwing && istype(mover,/obj/item))
-		return TRUE
-	if(istype(mover, /obj/vehicle/multitile))
-		visible_message(span_danger("[mover] drives over and destroys [src]!"))
-		deconstruct(FALSE)
-		return TRUE
+	if(mover.throwing && ismob(mover) && !(mover.pass_flags & PASS_DEFENSIVE_STRUCTURE))
+		return FALSE
+
+	return ..()
 
 /obj/structure/razorwire/update_icon_state()
+	. = ..()
 	var/health_percent = round(obj_integrity/max_integrity * 100)
 	var/remaining = CEILING(health_percent, 25)
 	icon_state = "[base_icon_state]_[remaining]"
@@ -237,4 +223,4 @@
 	if(!.)
 		return
 	if(CHECK_BITFIELD(S.smoke_traits, SMOKE_XENO_ACID))
-		take_damage(2 * S.strength)
+		take_damage(2 * S.strength, BURN, ACID)

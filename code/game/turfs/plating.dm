@@ -8,6 +8,36 @@
 	barefootstep = FOOTSTEP_HARD
 	mediumxenofootstep = FOOTSTEP_PLATING
 
+/turf/open/floor/plating/broken_states()
+	return pick("platingdmg1", "platingdmg2", "platingdmg3")
+
+/turf/open/floor/plating/burnt_states()
+	return "panelscorched"
+
+/turf/open/floor/plating/make_plating()
+	return //we don't dig past plating
+
+/turf/open/floor/plating/fire_act(burn_level)
+	if(hull_floor)
+		return
+	if(!burnt && prob(5))
+		burn_tile()
+
+/turf/open/floor/plating/welder_act(mob/living/user, obj/item/I)
+	var/obj/item/tool/weldingtool/welder = I
+
+	if(!broken && !burnt)
+		return
+	if(!(welder.use(1)))
+		to_chat(user, span_warning("You need more welding fuel to complete this task."))
+		return
+
+	to_chat(user, span_warning("You fix some dents on the broken plating."))
+	playsound(src, 'sound/items/welder.ogg', 25, 1)
+	burnt = FALSE
+	broken = FALSE
+	update_icon()
+
 /turf/open/floor/plating/mainship
 	icon = 'icons/turf/mainship.dmi'
 
@@ -17,6 +47,12 @@
 /turf/open/floor/plating/airless
 	icon_state = "plating"
 	name = "airless plating"
+
+/turf/open/floor/plating/fake_space
+	icon = 'icons/turf/space.dmi'
+	name = "\proper shielded space"
+	icon_state = "0"
+	plane = PLANE_SPACE
 
 /turf/open/floor/plating/icefloor
 	icon_state = "plating"
@@ -64,6 +100,8 @@
 
 /turf/open/floor/plating/plating_catwalk/attackby(obj/item/I, mob/user)
 	. = ..()
+	if(.)
+		return
 	if(iscrowbar(I))
 		if(covered)
 			var/obj/item/stack/catwalk/R = new(user.loc)
@@ -78,8 +116,6 @@
 			covered = TRUE
 			update_turf_overlay()
 			return
-	return ..()
-
 
 /turf/open/floor/plating/plating_catwalk/prison
 	icon = 'icons/turf/prison.dmi'

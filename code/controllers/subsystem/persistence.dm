@@ -9,6 +9,7 @@
 
 //Season names
 #define SEASONAL_GUNS "seasonal_guns"
+#define SEASONAL_HEAVY "seasonal_heavy"
 
 SUBSYSTEM_DEF(persistence)
 	name = "Persistence"
@@ -18,6 +19,7 @@ SUBSYSTEM_DEF(persistence)
 	///Stores how long each season should last
 	var/list/seasons_durations = list(
 		SEASONAL_GUNS = 24 HOURS,
+		SEASONAL_HEAVY = 24 HOURS,
 	)
 	///Stores the current season for each season group
 	var/list/season_progress = list()
@@ -34,7 +36,14 @@ SUBSYSTEM_DEF(persistence)
 		/datum/season_datum/weapons/guns/copsandrobbers_seasonal,
 		/datum/season_datum/weapons/guns/shotgun_seasonal,
 		/datum/season_datum/weapons/guns/lever_seasonal,
-		)
+		),
+		SEASONAL_HEAVY = list(
+		/datum/season_datum/weapons/guns/heavy_defualt,
+		/datum/season_datum/weapons/guns/heavy_ff,
+		/datum/season_datum/weapons/guns/heavy_autorail,
+		/datum/season_datum/weapons/guns/heavy_shock,
+		/datum/season_datum/weapons/guns/heavy_explosions,
+		),
 	)
 	///The saved list of custom outfits names
 	var/list/custom_loadouts = list()
@@ -45,23 +54,29 @@ SUBSYSTEM_DEF(persistence)
 /datum/controller/subsystem/persistence/Initialize()
 	LoadSeasonalItems()
 	load_custom_loadouts_list()
-	load_last_civil_war_round_time()
+	load_last_game_mode_round_time()
 	return SS_INIT_SUCCESS
 
 ///Stores data at the end of the round
 /datum/controller/subsystem/persistence/proc/CollectData()
 	save_custom_loadouts_list()
-	save_last_civil_war_round_time()
+	save_last_game_mode_round_time()
 	save_player_number()
 	return
 
-///Loads the last civil war round date
-/datum/controller/subsystem/persistence/proc/load_last_civil_war_round_time()
+///Loads the last gamemode's round date
+/datum/controller/subsystem/persistence/proc/load_last_game_mode_round_time()
 	var/json_file = file("data/last_modes_round_date.json")
 	if(!fexists(json_file))
 		last_modes_round_date = list()
 		return
 	last_modes_round_date = json_decode(file2text(json_file))
+
+///Save the date of the last gamemode's round
+/datum/controller/subsystem/persistence/proc/save_last_game_mode_round_time()
+	var/json_file = file("data/last_modes_round_date.json")
+	fdel(json_file)
+	WRITE_FILE(json_file, json_encode(last_modes_round_date))
 
 ///Loads the list of custom outfits names
 /datum/controller/subsystem/persistence/proc/load_custom_loadouts_list()
@@ -82,12 +97,6 @@ SUBSYSTEM_DEF(persistence)
 		return FALSE
 	var/datum/loadout/loadout = jatum_deserialize(loadout_json)
 	return loadout
-
-///Save the date of the last civil war round
-/datum/controller/subsystem/persistence/proc/save_last_civil_war_round_time()
-	var/json_file = file("data/last_modes_round_date.json")
-	fdel(json_file)
-	WRITE_FILE(json_file, json_encode(last_modes_round_date))
 
 ///Saves the list of custom outfits names
 /datum/controller/subsystem/persistence/proc/save_custom_loadouts_list()
@@ -231,8 +240,6 @@ SUBSYSTEM_DEF(persistence)
 		/obj/item/weapon/gun/rifle/m16 = -1,
 		/obj/item/ammo_magazine/rifle/m16 = -1,
 		/obj/item/ammo_magazine/packet/pnato = -1,
-		/obj/item/weapon/gun/rifle/sniper/svd = -1,
-		/obj/item/ammo_magazine/sniper/svd = -1,
 		)
 
 /datum/season_datum/weapons/guns/pistol_seasonal_one
@@ -300,3 +307,69 @@ SUBSYSTEM_DEF(persistence)
 		/obj/item/ammo_magazine/shotgun/mbx900/buckshot = -1,
 		/obj/item/ammo_magazine/shotgun/mbx900/tracking = -1,
 		)
+
+// Heavy Weapons Seasonals //
+
+/datum/season_datum/weapons/guns/heavy_defualt
+	name = "Default Heavy Weapons"
+	description = "The generic set of roundstart TGMC heavy weapons, TAT and RR."
+	item_list = list(
+		/obj/structure/largecrate/supply/weapons/standard_atgun = 1,
+		/obj/item/storage/holster/backholster/rpg/full = 2,
+		/obj/item/ammo_magazine/rocket/recoilless = 4,
+		/obj/item/ammo_magazine/rocket/recoilless/light = 4,
+		/obj/item/ammo_magazine/rocket/recoilless/heat = 16,
+		/obj/item/ammo_magazine/rocket/recoilless/cloak = 16,
+		/obj/item/ammo_magazine/rocket/recoilless/smoke = 16,
+		/obj/item/ammo_magazine/rocket/recoilless/plasmaloss = 16,
+	)
+
+/datum/season_datum/weapons/guns/heavy_ff
+	name = "Fire and Forget Heavy Weapons"
+	description = "TAT, Thermobarics and Disposables for roundstart vendors."
+	item_list = list(
+		/obj/structure/largecrate/supply/weapons/standard_atgun = 1,
+		/obj/item/weapon/gun/launcher/rocket/m57a4/t57/unloaded = 2,
+		/obj/item/ammo_magazine/rocket/m57a4 = 8,
+		/obj/structure/largecrate/supply/explosives/disposable = 1,
+	)
+
+/datum/season_datum/weapons/guns/heavy_autorail
+	name = "Wall and Armor Shredder Weapons"
+	description = "Flak gun and Railgun for roundstart vendors."
+	item_list = list(
+		/obj/structure/largecrate/supply/weapons/standard_flakgun = 1,
+		/obj/item/weapon/gun/rifle/railgun/unloaded = 2,
+		/obj/item/ammo_magazine/railgun = 12,
+		/obj/item/ammo_magazine/railgun/smart = 6,
+	)
+
+/datum/season_datum/weapons/guns/heavy_shock
+	name = "Shock Weapons"
+	description = "RR and MLRS for roundstart vendors."
+	item_list = list(
+		/obj/item/storage/holster/backholster/rpg/full = 2,
+		/obj/item/ammo_magazine/rocket/recoilless = 4,
+		/obj/item/ammo_magazine/rocket/recoilless/light = 4,
+		/obj/item/ammo_magazine/rocket/recoilless/heat = 16,
+		/obj/item/ammo_magazine/rocket/recoilless/cloak = 16,
+		/obj/item/ammo_magazine/rocket/recoilless/smoke = 16,
+		/obj/item/ammo_magazine/rocket/recoilless/plasmaloss = 16,
+		/obj/structure/closet/crate/mortar_ammo/mlrs_kit = 2,
+		/obj/item/storage/box/mlrs_rockets/gas = 4,
+	)
+
+/datum/season_datum/weapons/guns/heavy_explosions
+	name = "Explosive Heavy Weapons"
+	description = "Flak cannon and Recoilless guns for roundstart vendors."
+	item_list = list(
+		/obj/structure/largecrate/supply/weapons/heavy_flakgun = 1,
+		/obj/item/ammo_magazine/heavy_isg/he = 8,
+		/obj/item/ammo_magazine/heavy_isg/sabot = 5,
+		/obj/item/storage/holster/backholster/rpg/full = 2,
+		/obj/item/ammo_magazine/rocket/recoilless = 4,
+		/obj/item/ammo_magazine/rocket/recoilless/light = 4,
+		/obj/item/ammo_magazine/rocket/recoilless/heat = 16,
+		/obj/item/ammo_magazine/rocket/recoilless/cloak = 16,
+		/obj/item/ammo_magazine/rocket/recoilless/smoke = 16,
+	)

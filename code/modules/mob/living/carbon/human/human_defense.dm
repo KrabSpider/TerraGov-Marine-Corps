@@ -4,34 +4,6 @@ Contains most of the procs that are called when a mob is attacked by something
 
 //#define DEBUG_HUMAN_EXPLOSIONS
 
-/mob/living/carbon/human/stun_effect_act(stun_amount, agony_amount, def_zone)
-	var/datum/limb/affected = get_limb(check_zone(def_zone))
-	var/siemens_coeff = get_siemens_coefficient_organ(affected)
-	stun_amount *= siemens_coeff
-	agony_amount *= siemens_coeff
-
-	switch (def_zone)
-		if("head")
-			agony_amount *= 1.50
-		if("l_hand", "r_hand")
-			var/c_hand
-			if (def_zone == "l_hand")
-				c_hand = l_hand
-			else
-				c_hand = r_hand
-
-			if(c_hand && (stun_amount || agony_amount > 10))
-
-				dropItemToGround(c_hand)
-				if (affected.limb_status & LIMB_ROBOT)
-					emote("me", 1, "drops what they were holding, [p_their()] [affected.display_name] malfunctioning!")
-				else
-					var/emote_scream = pick("screams in pain and", "lets out a sharp cry and", "cries out and")
-					emote("me", 1, "[(species?.species_flags & NO_PAIN) ? "" : emote_scream ] drops what they were holding in [p_their()] [affected.display_name]!")
-
-	return ..()
-
-
 //this proc returns the Siemens coefficient of electrical resistivity for a particular external organ.
 /mob/living/carbon/human/proc/get_siemens_coefficient_organ(datum/limb/def_zone)
 	if (!def_zone)
@@ -44,7 +16,7 @@ Contains most of the procs that are called when a mob is attacked by something
 
 	var/list/clothing_items = list(head, wear_mask, wear_suit, w_uniform, gloves, shoes) // What all are we checking?
 	for(var/obj/item/clothing/C in clothing_items)
-		if(istype(C) && (C.flags_armor_protection & def_zone.body_part)) // Is that body part being targeted covered?
+		if(istype(C) && (C.armor_protection_flags & def_zone.body_part)) // Is that body part being targeted covered?
 			siemens_coefficient *= C.siemens_coefficient
 
 	return siemens_coefficient
@@ -52,7 +24,7 @@ Contains most of the procs that are called when a mob is attacked by something
 /mob/living/carbon/human/proc/add_limb_armor(obj/item/armor_item)
 	for(var/i in limbs)
 		var/datum/limb/limb_to_check = i
-		if(!(limb_to_check.body_part & armor_item.flags_armor_protection))
+		if(!(limb_to_check.body_part & armor_item.armor_protection_flags))
 			continue
 		limb_to_check.add_limb_soft_armor(armor_item.soft_armor)
 		limb_to_check.add_limb_hard_armor(armor_item.hard_armor)
@@ -65,7 +37,7 @@ Contains most of the procs that are called when a mob is attacked by something
 /mob/living/carbon/human/proc/remove_limb_armor(obj/item/armor_item)
 	for(var/i in limbs)
 		var/datum/limb/limb_to_check = i
-		if(!(limb_to_check.body_part & armor_item.flags_armor_protection))
+		if(!(limb_to_check.body_part & armor_item.armor_protection_flags))
 			continue
 		limb_to_check.remove_limb_soft_armor(armor_item.soft_armor)
 		limb_to_check.remove_limb_hard_armor(armor_item.hard_armor)
@@ -82,31 +54,24 @@ Contains most of the procs that are called when a mob is attacked by something
 		if(!bp)	continue
 		if(bp && istype(bp ,/obj/item/clothing))
 			var/obj/item/clothing/C = bp
-			if(C.flags_armor_protection & HEAD)
+			if(C.armor_protection_flags & HEAD)
 				return 1
 	return 0
 
 
 /mob/living/carbon/human/emp_act(severity)
-	for(var/obj/O in src)
-		if(!O)	continue
-		O.emp_act(severity)
+	. = ..()
 	for(var/datum/limb/O in limbs)
-		if(O.limb_status & LIMB_DESTROYED)	continue
 		O.emp_act(severity)
-		for(var/datum/internal_organ/I in O.internal_organs)
-			if(I.robotic == 0)	continue
-			I.emp_act(severity)
-	..()
 
 /mob/living/carbon/human/has_smoke_protection()
-	if(istype(wear_mask) && wear_mask.flags_inventory & BLOCKGASEFFECT)
+	if(istype(wear_mask) && wear_mask.inventory_flags & BLOCKGASEFFECT)
 		return TRUE
-	if(istype(glasses) && glasses.flags_inventory & BLOCKGASEFFECT)
+	if(istype(glasses) && glasses.inventory_flags & BLOCKGASEFFECT)
 		return TRUE
 	if(head && istype(head, /obj/item/clothing))
 		var/obj/item/clothing/CH = head
-		if(CH.flags_inventory & BLOCKGASEFFECT)
+		if(CH.inventory_flags & BLOCKGASEFFECT)
 			return TRUE
 	return ..()
 
@@ -120,7 +85,7 @@ Contains most of the procs that are called when a mob is attacked by something
 /mob/living/carbon/human/inhale_smoke(obj/effect/particle_effect/smoke/S)
 	. = ..()
 	if(CHECK_BITFIELD(S.smoke_traits, SMOKE_BLISTERING) && species.has_organ["lungs"])
-		var/datum/internal_organ/lungs/L = internal_organs_by_name["lungs"]
+		var/datum/internal_organ/lungs/L = get_organ_slot(ORGAN_SLOT_LUNGS)
 		L?.take_damage(1, TRUE)
 
 
@@ -134,6 +99,19 @@ Contains most of the procs that are called when a mob is attacked by something
 	else
 		target_zone = def_zone ? check_zone(def_zone) : get_zone_with_miss_chance(user.zone_selected, src)
 
+	var/attack_verb = LAZYLEN(I.attack_verb) ? pick(I.attack_verb) : "attacked"
+
+	if(!target_zone)
+		user.do_attack_animation(src)
+		playsound(loc, 'sound/weapons/punchmiss.ogg', 25, TRUE)
+		visible_message(span_danger("[user] tried to hit [src] with [I]!"), null, null, 5)
+		log_combat(user, src, "[attack_verb]", "(missed)")
+		if(!user.mind?.bypass_ff && !mind?.bypass_ff && user.faction == faction)
+			var/turf/T = get_turf(src)
+			log_ffattack("[key_name(user)] missed a attack against [key_name(src)] with [I] in [AREACOORD(T)].")
+			msg_admin_ff("[ADMIN_TPMONTY(user)] missed an against [ADMIN_TPMONTY(src)] with [I] in [ADMIN_VERBOSEJMP(T)].")
+		return FALSE
+
 	var/datum/limb/affecting = get_limb(target_zone)
 	if(affecting.limb_status & LIMB_DESTROYED)
 		to_chat(user, "What [affecting.display_name]?")
@@ -141,7 +119,7 @@ Contains most of the procs that are called when a mob is attacked by something
 		return FALSE
 	var/hit_area = affecting.display_name
 
-	var/damage = I.force + round(I.force * 0.3 * user.skills.getRating(SKILL_MELEE_WEAPONS)) //30% bonus per melee level
+	var/damage = I.force + round(I.force * MELEE_SKILL_DAM_BUFF * user.skills.getRating(SKILL_MELEE_WEAPONS))
 	if(user != src)
 		damage = check_shields(COMBAT_MELEE_ATTACK, damage, "melee")
 		if(!damage)
@@ -150,7 +128,6 @@ Contains most of the procs that are called when a mob is attacked by something
 
 	var/applied_damage = modify_by_armor(damage, MELEE, I.penetration, target_zone)
 	var/percentage_penetration = applied_damage / damage * 100
-	var/attack_verb = LAZYLEN(I.attack_verb) ? pick(I.attack_verb) : "attacked"
 	var/armor_verb
 	switch(percentage_penetration)
 		if(-INFINITY to 0)
@@ -199,8 +176,8 @@ Contains most of the procs that are called when a mob is attacked by something
 
 		switch(hit_area)
 			if("head")//Harder to score a stun but if you do it lasts a bit longer
-				if(prob(applied_damage) && stat == CONSCIOUS)
-					Paralyze(modify_by_armor(16, MELEE, def_zone = target_zone))
+				if(prob(applied_damage - 5) && stat == CONSCIOUS)
+					apply_effect(modify_by_armor(10 SECONDS, MELEE, def_zone = target_zone), WEAKEN)
 					visible_message(span_danger("[src] has been knocked unconscious!"),
 									span_danger("You have been knocked unconscious!"), null, 5)
 					hit_report += "(KO)"
@@ -218,7 +195,7 @@ Contains most of the procs that are called when a mob is attacked by something
 
 			if("chest")//Easier to score a stun but lasts less time
 				if(prob((applied_damage + 5)) && !incapacitated())
-					apply_effect(modify_by_armor(6, MELEE, def_zone = target_zone), WEAKEN)
+					apply_effect(modify_by_armor(6 SECONDS, MELEE, def_zone = target_zone), WEAKEN)
 					visible_message(span_danger("[src] has been knocked down!"),
 									span_danger("You have been knocked down!"), null, 5)
 					hit_report += "(KO)"
@@ -229,11 +206,8 @@ Contains most of the procs that are called when a mob is attacked by something
 	//Melee weapon embedded object code.
 	if(affecting.limb_status & LIMB_DESTROYED)
 		hit_report += "(delimbed [affecting.display_name])"
-	else if(I.damtype == BRUTE && !(I.flags_item & (NODROP|DELONDROP)))
-		if (percentage_penetration && weapon_sharp && prob(I.embedding.embed_chance))
-			I.embed_into(src, affecting)
-			hit_report += "(embedded in [affecting.display_name])"
 
+	record_melee_damage(user, applied_damage, affecting.limb_status & LIMB_DESTROYED)
 	log_combat(user, src, "attacked", I, "(INTENT: [uppertext(user.a_intent)]) (DAMTYE: [uppertext(I.damtype)]) [hit_report.Join(" ")]")
 	if(damage && !user.mind?.bypass_ff && !mind?.bypass_ff && user.faction == faction)
 		var/turf/T = get_turf(src)
@@ -243,105 +217,118 @@ Contains most of the procs that are called when a mob is attacked by something
 
 	return TRUE
 
-
-//this proc handles being hit by a thrown item
 /mob/living/carbon/human/hitby(atom/movable/AM, speed = 5)
-	if(!isitem(AM))
-		return
-
-	var/obj/item/thrown_item = AM
-
 	var/mob/living/living_thrower
-	if(isliving(thrown_item.thrower))
-		living_thrower = thrown_item.thrower
+	if(isliving(AM.thrower))
+		living_thrower = AM.thrower
 
-	if(in_throw_mode && speed <= 5 && put_in_active_hand(thrown_item))
-		thrown_item.throwing = FALSE //Caught in hand.
-		visible_message(span_warning("[src] catches [thrown_item]!"), null, null, 5)
-		throw_mode_off()
-		if(living_thrower)
-			log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: caught)")
-		return
+	var/throw_damage
+	var/list/hit_report = list()
 
-	var/throw_damage = thrown_item.throwforce * speed * 0.2
+	if(isliving(AM))
+		var/mob/living/thrown_mob = AM
+		if(thrown_mob.mob_size >= mob_size)
+			throw_damage = (thrown_mob.mob_size + 1 - mob_size) * speed
+			apply_damage(throw_damage, BRUTE, BODY_ZONE_CHEST, MELEE, updating_health = TRUE)
+		if(thrown_mob.mob_size <= mob_size)
+			thrown_mob.apply_damage(speed, BRUTE, BODY_ZONE_CHEST, MELEE, updating_health = TRUE)
+		thrown_mob.stop_throw()
 
-	var/zone
-	if(living_thrower)
-		zone = check_zone(living_thrower.zone_selected)
-	else
-		zone = ran_zone("chest", 75)	//Hits a random part of the body, geared towards the chest
+	else if(isitem(AM))
+		var/obj/item/thrown_item = AM
 
-	//check if we hit
-	if(thrown_item.throw_source)
-		var/distance = get_dist(thrown_item.throw_source, loc)
-		zone = get_zone_with_miss_chance(zone, src, min(15*(distance-2), 0))
-	else
-		zone = get_zone_with_miss_chance(zone, src, 15)
-
-	if(!zone)
-		visible_message(span_notice(" \The [thrown_item] misses [src] narrowly!"), null, null, 5)
-		if(living_thrower)
-			log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: missed)")
-		return
-
-	if(thrown_item.thrower != src)
-		throw_damage = check_shields(COMBAT_MELEE_ATTACK, throw_damage, "melee")
-		if(!throw_damage)
-			thrown_item.throwing = FALSE // Hit the shield.
-			visible_message(span_danger("[src] deflects \the [thrown_item]!"))
+		if(in_throw_mode && speed <= 5 && put_in_active_hand(thrown_item))
+			thrown_item.throwing = FALSE //Caught in hand.
+			visible_message(span_warning("[src] catches [thrown_item]!"), null, null, 5)
+			throw_mode_off()
 			if(living_thrower)
-				log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: shield blocked)")
-			return
+				log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: caught)")
+			return TRUE
 
-	var/datum/limb/affecting = get_limb(zone)
+		throw_damage = thrown_item.throwforce * speed * 0.2
 
-	if(affecting.limb_status & LIMB_DESTROYED)
-		log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: target limb missing)")
-		return
+		var/zone
+		if(living_thrower)
+			zone = check_zone(living_thrower.zone_selected)
+		else
+			zone = ran_zone("chest", 75)	//Hits a random part of the body, geared towards the chest
 
-	thrown_item.set_throwing(FALSE) // Hit the limb.
-	var/applied_damage = modify_by_armor(throw_damage, MELEE, thrown_item.penetration, zone)
+		//check if we hit
+		zone = get_zone_with_miss_chance(zone, src)
 
-	if(applied_damage <= 0)
-		visible_message(span_notice("\The [thrown_item] bounces on [src]'s armor!"), null, null, 5)
-		log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: armor blocked)")
-		return
+		if(!zone)
+			visible_message(span_notice(" \The [thrown_item] misses [src] narrowly!"), null, null, 5)
+			if(living_thrower)
+				log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: missed)")
+			return FALSE
 
-	visible_message(span_warning("[src] has been hit in the [affecting.display_name] by \the [thrown_item]."), null, null, 5)
+		if(thrown_item.thrower != src)
+			throw_damage = check_shields(COMBAT_MELEE_ATTACK, throw_damage, MELEE)
+			if(!throw_damage)
+				thrown_item.stop_throw()
+				visible_message(span_danger("[src] deflects \the [thrown_item]!"))
+				if(living_thrower)
+					log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: shield blocked)")
+				return TRUE
 
-	apply_damage(applied_damage, thrown_item.damtype, zone, 0, is_sharp(thrown_item), has_edge(thrown_item), updating_health = TRUE)
+		var/datum/limb/affecting = get_limb(zone)
 
-	var/list/hit_report = list("(RAW DMG: [throw_damage])")
+		if(affecting.limb_status & LIMB_DESTROYED)
+			log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: target limb missing)")
+			return FALSE
 
-	if(thrown_item.item_fire_stacks)
-		fire_stacks += thrown_item.item_fire_stacks
-	if(CHECK_BITFIELD(thrown_item.resistance_flags, ON_FIRE))
-		IgniteMob()
-		hit_report += "(set ablaze)"
+		thrown_item.stop_throw() // Hit the limb.
+		var/applied_damage = modify_by_armor(throw_damage, MELEE, thrown_item.penetration, zone)
 
-	//thrown weapon embedded object code.
-	if(affecting.limb_status & LIMB_DESTROYED)
-		hit_report += "(delimbed [affecting.display_name])"
-	else if(thrown_item.damtype == BRUTE && is_sharp(thrown_item) && prob(thrown_item.embedding.embed_chance))
-		thrown_item.embed_into(src, affecting)
-		hit_report += "(embedded in [affecting.display_name])"
+		if(applied_damage <= 0)
+			visible_message(span_notice("\The [thrown_item] bounces on [src]'s armor!"), null, null, 5)
+			log_combat(living_thrower, src, "thrown at", thrown_item, "(FAILED: armor blocked)")
+			return TRUE
 
-	// Begin BS12 momentum-transfer code.
-	if(thrown_item.throw_source && speed >= 15)
-		var/momentum = speed * 0.5
-		var/dir = get_dir(thrown_item.throw_source, src)
+		visible_message(span_warning("[src] has been hit in the [affecting.display_name] by \the [thrown_item]."), null, null, 5)
+
+		apply_damage(applied_damage, thrown_item.damtype, zone, 0, is_sharp(thrown_item), has_edge(thrown_item), updating_health = TRUE)
+
+		hit_report += "(RAW DMG: [throw_damage])"
+
+		//thrown weapon embedded object code.
+		if(affecting.limb_status & LIMB_DESTROYED)
+			hit_report += "(delimbed [affecting.display_name])"
+		else if(thrown_item.damtype == BRUTE && is_sharp(thrown_item) && prob(thrown_item.embedding.embed_chance))
+			thrown_item.embed_into(src, affecting)
+			hit_report += "(embedded in [affecting.display_name])"
+
+	if(AM.throw_source && speed >= 15)
 		visible_message(span_warning(" [src] staggers under the impact!"),span_warning(" You stagger under the impact!"), null, null, 5)
-		throw_at(get_edge_target_turf(src, dir), 1, momentum)
+		throw_at(get_edge_target_turf(src, get_dir(AM.throw_source, src)), 1, speed * 0.5)
 		hit_report += "(thrown away)"
 
 	if(living_thrower)
-		log_combat(living_thrower, src, "thrown at", thrown_item, "[hit_report.Join(" ")]")
+		log_combat(living_thrower, src, "thrown at", AM, "[hit_report.Join(" ")]")
 		if(throw_damage && !living_thrower.mind?.bypass_ff && !mind?.bypass_ff && living_thrower.faction == faction)
 			var/turf/T = get_turf(src)
 			living_thrower.ff_check(throw_damage, src)
-			log_ffattack("[key_name(living_thrower)] hit [key_name(src)] with \the [thrown_item] (thrown) in [AREACOORD(T)] [hit_report.Join(" ")].")
-			msg_admin_ff("[ADMIN_TPMONTY(living_thrower)] hit [ADMIN_TPMONTY(src)] with \the [thrown_item] (thrown) in [ADMIN_VERBOSEJMP(T)] [hit_report.Join(" ")].")
+			log_ffattack("[key_name(living_thrower)] hit [key_name(src)] with \the [AM] (thrown) in [AREACOORD(T)] [hit_report.Join(" ")].")
+			msg_admin_ff("[ADMIN_TPMONTY(living_thrower)] hit [ADMIN_TPMONTY(src)] with \the [AM] (thrown) in [ADMIN_VERBOSEJMP(T)] [hit_report.Join(" ")].")
 
+	return TRUE
+
+/mob/living/carbon/human/IgniteMob()
+	. = ..()
+	if(!.)
+		return
+	if(!stat && !(species.species_flags & NO_PAIN))
+		emote("scream")
+
+/mob/living/carbon/human/fire_act(burn_level)
+	. = ..()
+	if(!.)
+		return
+	if(stat || (species.species_flags & NO_PAIN))
+		return
+	if(prob(75))
+		return
+	emote("scream")
 
 /mob/living/carbon/human/resist_fire(datum/source)
 	spin(30, 1.5)
@@ -397,7 +384,7 @@ Contains most of the procs that are called when a mob is attacked by something
 	Stun(stun_duration)
 	Paralyze(stun_duration)
 	//15 Next to queen , 3 at max distance.
-	adjust_stagger(LERP(7, 3, dist_pct) * reduction)
+	adjust_stagger(LERP(7, 3, dist_pct) * reduction SECONDS)
 	//Max 140 under Queen, 130 beside Queen, 70 at the edge. Reduction of 10 per tile distance from Queen.
 	apply_damage(LERP(140, 70, dist_pct) * reduction, STAMINA, updating_health = TRUE)
 	if(!ear_deaf)
@@ -407,25 +394,25 @@ Contains most of the procs that are called when a mob is attacked by something
 /mob/living/carbon/human/attackby(obj/item/I, mob/living/user, params)
 	if(stat != DEAD || I.sharp < IS_SHARP_ITEM_ACCURATE || user.a_intent != INTENT_HARM)
 		return ..()
-	if(!internal_organs_by_name["heart"])
+	if(!get_organ_slot(ORGAN_SLOT_HEART))
 		to_chat(user, span_notice("[src] no longer has a heart."))
 		return
 	if(!HAS_TRAIT(src, TRAIT_UNDEFIBBABLE))
 		to_chat(user, span_warning("You cannot resolve yourself to destroy [src]'s heart, as [p_they()] can still be saved!"))
 		return
 	to_chat(user, span_notice("You start to remove [src]'s heart, preventing [p_them()] from rising again!"))
-	if(!do_after(user, 2 SECONDS, TRUE, src))
+	if(!do_after(user, 2 SECONDS, NONE, src))
 		return
-	if(!internal_organs_by_name["heart"])
+	if(!get_organ_slot(ORGAN_SLOT_HEART))
 		to_chat(user, span_notice("The heart is no longer here!"))
 		return
 	log_combat(user, src, "ripped [src]'s heart", I)
 	visible_message(span_notice("[user] ripped off [src]'s heart!"), span_notice("You ripped off [src]'s heart!"))
-	internal_organs_by_name -= "heart"
+	remove_organ_slot(ORGAN_SLOT_HEART)
 	var/obj/item/organ/heart/heart = new
 	heart.die()
 	user.put_in_hands(heart)
-	chestburst = 2
+	chestburst = CARBON_CHEST_BURSTED
 	update_burst()
 
 /mob/living/carbon/human/welder_act(mob/living/user, obj/item/I)
@@ -463,7 +450,7 @@ Contains most of the procs that are called when a mob is attacked by something
 		span_notice("You start fixing some of the dents on [src == user ? "your" : "[src]'s"] [affecting.display_name]."))
 
 	add_overlay(GLOB.welding_sparks)
-	while(do_after(user, repair_time, TRUE, src, BUSY_ICON_BUILD) && I.use_tool(volume = 50, amount = 2))
+	while(do_after(user, repair_time, NONE, src, BUSY_ICON_BUILD) && I.use_tool(src, user, volume = 50, amount = 2))
 		user.visible_message(span_warning("\The [user] patches some dents on [src]'s [affecting.display_name]."), \
 			span_warning("You patch some dents on \the [src]'s [affecting.display_name]."))
 		if(affecting.heal_limb_damage(15, robo_repair = TRUE, updating_health = TRUE))

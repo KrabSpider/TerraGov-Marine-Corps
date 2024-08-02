@@ -78,16 +78,6 @@
 
 	to_chat(src, span_notice("You will [(prefs.toggles_chat & CHAT_DEAD) ? "now" : "no longer"] see deadchat."))
 
-
-/client/verb/toggle_admin_music()
-	set category = "Preferences"
-	set name = "Toggle Admin Music"
-
-	prefs.toggles_sound ^= SOUND_MIDI
-	prefs.save_preferences()
-
-	to_chat(src, span_notice("You will [(prefs.toggles_sound & SOUND_MIDI) ? "now" : "no longer"] hear admin music."))
-
 /client/verb/toggle_radial_medical()
 	set category = "Preferences"
 	set name = "Toggle Radial Medical Wheel"
@@ -105,26 +95,6 @@
 	prefs.save_preferences()
 
 	to_chat(src, span_notice("You will [(prefs.toggles_gameplay & RADIAL_STACKS) ? "now" : "no longer"] use the radial menu when interacting with material stacks."))
-
-/client/verb/toggle_lobby_music()
-	set category = "Preferences"
-	set name = "Toggle Lobby Music"
-
-	prefs.toggles_sound ^= SOUND_LOBBY
-	prefs.save_preferences()
-
-	if(prefs.toggles_sound & SOUND_LOBBY)
-		to_chat(src, span_notice("You will now hear music in the game lobby."))
-		if(!isnewplayer(mob))
-			return
-		play_title_music()
-
-	else
-		to_chat(src, span_notice("You will no longer hear music in the game lobby."))
-		if(!isnewplayer(mob))
-			return
-		mob.stop_sound_channel(CHANNEL_LOBBYMUSIC)
-
 
 /client/verb/toggle_ooc_self()
 	set category = "Preferences"
@@ -144,22 +114,6 @@
 	prefs.save_preferences()
 
 	to_chat(src, span_notice("You will [(prefs.toggles_chat & CHAT_LOOC) ? "now" : "no longer"] see messages on the LOOC channel."))
-
-
-/client/verb/toggle_ambience()
-	set category = "Preferences"
-	set name = "Toggle Ambience"
-
-	prefs.toggles_sound ^= SOUND_AMBIENCE
-	prefs.save_preferences()
-
-	if(prefs.toggles_sound & SOUND_AMBIENCE)
-		to_chat(src, span_notice("You will now hear ambient sounds."))
-	else
-		to_chat(src, span_notice("You will no longer hear ambient sounds."))
-		mob.stop_sound_channel(CHANNEL_AMBIENT)
-	usr.client.update_ambience_pref()
-
 
 /client/verb/toggle_special(role in BE_SPECIAL_FLAGS)
 	set category = "Preferences"
@@ -203,7 +157,7 @@ GLOBAL_LIST_INIT(ghost_forms, list("Default" = GHOST_DEFAULT_FORM, "Ghost Ian 1"
 		return
 
 	var/mob/dead/observer/O = mob
-	O.update_icon(GLOB.ghost_forms[new_form])
+	O.pick_form(GLOB.ghost_forms[new_form])
 
 
 GLOBAL_LIST_INIT(ghost_orbits, list(GHOST_ORBIT_CIRCLE, GHOST_ORBIT_TRIANGLE, GHOST_ORBIT_SQUARE, GHOST_ORBIT_HEXAGON, GHOST_ORBIT_PENTAGON))
@@ -275,62 +229,6 @@ GLOBAL_LIST_INIT(ghost_others_options, list(GHOST_OTHERS_SIMPLE, GHOST_OTHERS_DE
 
 	TOGGLE_BITFIELD(prefs.toggles_deadchat, DISABLE_DEATHRATTLE)
 	to_chat(usr, span_notice("Death announcements have been [(prefs.toggles_deadchat & DISABLE_DEATHRATTLE) ? "disabled" : "enabled"]."))
-
-
-/client/verb/toggle_instrument_sound()
-	set category = "Preferences"
-	set name = "Toggle Instrument Sound"
-
-	usr.client.prefs.toggles_sound ^= SOUND_INSTRUMENTS_OFF
-	usr.client.prefs.save_preferences()
-
-	to_chat(usr, span_notice("You will [(usr.client.prefs.toggles_sound & SOUND_INSTRUMENTS_OFF) ? "no longer" : "now"] hear instruments."))
-
-/client/verb/toggle_weather_sounds()
-	set category = "Preferences"
-	set name = "Toggle Weather Sound"
-
-	usr.client.prefs.toggles_sound ^= SOUND_WEATHER
-	prefs.save_preferences()
-
-	to_chat(usr, span_notice("You will [(usr.client.prefs.toggles_sound & SOUND_WEATHER) ? "no longer" : "now"] hear weather."))
-
-/client/verb/toggle_gas_mask_sound()
-	set category = "Preferences"
-	set name = "Toggle Gas Mask sounds."
-
-	usr.client.prefs.toggles_sound ^= SOUND_GAS_MASK
-	usr.client.prefs.save_preferences()
-
-	to_chat(usr, span_notice("You will [(usr.client.prefs.toggles_sound & SOUND_GAS_MASK) ? "no longer" : "now"] hear gas masks breathy noises."))
-
-
-/client/verb/toggle_round_end_sounds()
-	set category = "Preferences"
-	set name = "Toggle round end sounds."
-
-	usr.client.prefs.toggles_sound ^= SOUND_NOENDOFROUND
-	usr.client.prefs.save_preferences()
-
-	to_chat(usr, span_notice("You will [(usr.client.prefs.toggles_sound & SOUND_NOENDOFROUND) ? "no longer" : "now"] hear round end sounds."))
-
-///Toggles whether or not you need to hold shift to access the right click menu
-/client/verb/toggle_right_click()
-	set name = "Toggle Right Click"
-	set category = "Preferences"
-
-	if(shift_to_open_context_menu)
-		winset(src, "mapwindow.map", "right-click=false")
-		winset(src, "default.Shift", "is-disabled=true")
-		winset(src, "default.ShiftUp", "is-disabled=true")
-		shift_to_open_context_menu = FALSE
-		to_chat(usr, span_notice("You will no longer need to hold the Shift key to access the right click menu"))
-	else
-		winset(src, "mapwindow.map", "right-click=true")
-		winset(src, "ShiftUp", "is-disabled=false")
-		winset(src, "Shift", "is-disabled=false")
-		shift_to_open_context_menu = TRUE
-		to_chat(usr, span_notice("You will now need to hold the Shift key to access the right click menu"))
 
 ///Same thing as the character creator preference, but as a byond verb, because not everyone can reach it in tgui preference menu
 /client/verb/toggle_tgui_fancy()

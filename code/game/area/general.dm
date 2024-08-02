@@ -7,14 +7,22 @@
 	power_light = 0
 	power_equip = 0
 	power_environ = 0
+	max_ambience_cooldown = 180 SECONDS
+	min_ambience_cooldown = 180 SECONDS
 	ambience = list('sound/ambience/ambispace.ogg')
 	temperature = TCMB
 	pressure = 0
-	flags_area = NO_DROPPOD
+	area_flags = NO_DROPPOD
+	///What type of debuff do we apply when someone enters this area?
+	var/debuff_type = /datum/status_effect/spacefreeze
 
-/area/engine/
+/area/space/light
+	debuff_type = /datum/status_effect/spacefreeze/light
+
+/area/engine
 	ambience = list('sound/ambience/ambisin1.ogg','sound/ambience/ambisin2.ogg','sound/ambience/ambisin3.ogg','sound/ambience/ambisin4.ogg')
-/area/turret_protected/
+
+/area/turret_protected
 
 /area/arrival
 	requires_power = 0
@@ -34,9 +42,9 @@
 //All shuttles show now be under shuttle since we have smooth-wall code.
 
 /area/shuttle //DO NOT TURN THE dynamic_lighting STUFF ON FOR SHUTTLES. IT BREAKS THINGS.
-	requires_power = 0
+	requires_power = FALSE
 	outside = FALSE
-	flags_area = OB_CAS_IMMUNE
+	area_flags = OB_CAS_IMMUNE
 	minimap_color = MINIMAP_AREA_LZ
 
 /area/shuttle/arrival
@@ -217,6 +225,14 @@
 	requires_power = 0
 	static_lighting = FALSE
 	base_lighting_alpha = 255
+
+/area/testroom
+	requires_power = FALSE
+	// Mobs should be able to see inside the testroom
+	static_lighting = FALSE
+	base_lighting_alpha = 255
+	name = "Test Room"
+	icon_state = "test_room"
 
 
 /area/syndicate_mothership
@@ -724,11 +740,10 @@
 	icon_state = "Holodeck"
 	static_lighting = FALSE
 	base_lighting_alpha = 255
-
+	always_unpowered = TRUE
 
 /area/holodeck/alphadeck
 	name = "Abandoned Holodeck Alpha"
-
 
 /area/holodeck/source_plating
 	name = "Abandoned Holodeck - Off"
@@ -1188,7 +1203,7 @@
 	requires_power = 0
 	name = "Abandoned Test Room"
 	icon_state = "storage"
-	flags_area = NO_DROPPOD
+	area_flags = NO_DROPPOD
 
 
 //DJSTATION

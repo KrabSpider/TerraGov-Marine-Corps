@@ -1,5 +1,5 @@
 SUBSYSTEM_DEF(advanced_pathfinding)
-	name = "Advanced_pathfinding"
+	name = "Advanced Pathfinding"
 	priority = FIRE_PRIORITY_ADVANCED_PATHFINDING
 	wait = 1 SECONDS
 	///List of ai_behaviour datum asking for a tile pathfinding
@@ -60,8 +60,10 @@ SUBSYSTEM_DEF(advanced_pathfinding)
 		if (MC_TICK_CHECK)
 			return
 
-/datum/controller/subsystem/advanced_pathfinding/stat_entry()
-	..("Node pathfinding : [length(node_pathfinding_to_do)] || Tile pathfinding : [length(tile_pathfinding_to_do)]")
+/datum/controller/subsystem/advanced_pathfinding/stat_entry(msg)
+	msg = "Node pathfinding : [length(node_pathfinding_to_do)] || Tile pathfinding : [length(tile_pathfinding_to_do)]"
+	return ..()
+
 
 #define NODE_PATHING "node_pathing" //Looking through the network of nodes the best node path
 #define TILE_PATHING "tile_pathing" //Looking the best tile path
@@ -80,8 +82,8 @@ GLOBAL_LIST_EMPTY(goal_nodes)
 
 /datum/path_step/New(atom/previous_atom, atom/current_atom, atom/goal_atom, old_distance_walked)
 	..()
-	distance_to_goal = get_dist_euclide_square(current_atom, goal_atom)
-	distance_walked = old_distance_walked + get_dist_euclide_square(current_atom, previous_atom)
+	distance_to_goal = get_dist_euclidean_square(current_atom, goal_atom)
+	distance_walked = old_distance_walked + get_dist_euclidean_square(current_atom, previous_atom)
 	src.current_atom = current_atom
 	src.previous_atom = previous_atom
 
@@ -111,7 +113,7 @@ GLOBAL_LIST_EMPTY(goal_nodes)
 					atom_to_check = current_node.adjacent_nodes[direction]
 				if(TILE_PATHING)
 					var/turf/turf_to_check = get_step(current_atom, direction)
-					if(turf_to_check.density || turf_to_check.flags_atom & AI_BLOCKED)
+					if(turf_to_check.density || turf_to_check.atom_flags & AI_BLOCKED)
 						continue
 					atom_to_check = turf_to_check
 			if(paths_to_check[atom_to_check] || paths_checked[atom_to_check] || !atom_to_check) //We already found a better path to get to this atom
@@ -155,8 +157,8 @@ GLOBAL_LIST_EMPTY(goal_nodes)
 	if(!creator)
 		return
 	src.creator = creator
-	RegisterSignal(creator, COMSIG_PARENT_QDELETING, PROC_REF(clean_creator))
-	goal_image = image('icons/mob/actions.dmi', src, "minion_rendez_vous")
+	RegisterSignal(creator, COMSIG_QDELETING, PROC_REF(clean_creator))
+	goal_image = image('icons/Xeno/actions/leader.dmi', src, "minion_rendez_vous")
 	goal_image.layer = HUD_PLANE
 	goal_image.alpha = 180
 	goal_image.pixel_y += 10

@@ -4,9 +4,10 @@
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
-	dir = 8
+/obj/structure/stairs/seamless/edge{
+	dir = 4
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "ai" = (
 /turf/open/floor/tile/arrival{
@@ -20,8 +21,8 @@
 	},
 /area/deathmatch)
 "av" = (
-/obj/structure/table/woodentable,
-/obj/structure/paper_bin,
+/obj/structure/table/wood,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /obj/effect/landmark/weapon_spawn/tier3_weapon_spawn,
 /obj/effect/decal/cleanable/dirt,
@@ -46,7 +47,7 @@
 	},
 /area/deathmatch)
 "bC" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/effect/landmark/weapon_spawn/tier2_weapon_spawn,
 /turf/open/floor/tile/dark/blue2{
 	dir = 4
@@ -128,7 +129,7 @@
 /turf/open/floor/plating/ground/snow/layer1,
 /area/deathmatch)
 "dF" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/radio,
 /obj/machinery/light{
 	dir = 4
@@ -176,7 +177,7 @@
 /area/deathmatch)
 "eG" = (
 /obj/structure/table,
-/obj/structure/paper_bin,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /obj/effect/landmark/weapon_spawn/tier3_weapon_spawn,
 /turf/open/floor/tile/dark/blue2{
@@ -250,7 +251,7 @@
 /area/deathmatch)
 "gJ" = (
 /obj/structure/table,
-/obj/structure/paper_bin,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/tile/dark2,
@@ -266,7 +267,7 @@
 /turf/open/floor/stairs,
 /area/deathmatch)
 "gX" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/radio,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/tile/dark/blue2{
@@ -278,9 +279,7 @@
 	desc = "You can't get in. Heh.";
 	name = "Blocker"
 	},
-/turf/closed/wall/mainship/gray/outer{
-	icon = null
-	},
+/turf/open/floor/plating/ground/snow/layer2,
 /area/deathmatch)
 "hl" = (
 /obj/effect/decal/cleanable/dirt,
@@ -343,7 +342,7 @@
 /turf/open/floor/tile/cmo,
 /area/deathmatch)
 "ix" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/flashlight/lamp,
 /obj/item/tool/hand_labeler,
 /turf/open/floor/tile/dark2,
@@ -355,7 +354,7 @@
 	},
 /area/deathmatch)
 "iI" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/machinery/light{
 	dir = 4
 	},
@@ -373,7 +372,7 @@
 /turf/open/floor/tile/arrival,
 /area/deathmatch)
 "js" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/tool/pen,
 /obj/item/clipboard,
 /turf/open/floor/tile/dark/blue2{
@@ -398,8 +397,8 @@
 	},
 /area/deathmatch)
 "kx" = (
-/obj/structure/table/woodentable,
-/obj/structure/paper_bin,
+/obj/structure/table/wood,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /obj/effect/landmark/weapon_spawn/tier3_weapon_spawn,
 /turf/open/floor/tile/dark2,
@@ -414,9 +413,10 @@
 "kP" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "kV" = (
 /obj/structure/prop/mainship/ship_memorial,
@@ -441,7 +441,7 @@
 /turf/open/floor/tile/dark/blue2,
 /area/deathmatch)
 "lk" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /turf/open/floor/stairs,
 /area/deathmatch)
 "lm" = (
@@ -489,7 +489,7 @@
 	},
 /area/deathmatch)
 "ml" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/machinery/recharger,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/tile/dark2,
@@ -528,7 +528,7 @@
 	},
 /area/deathmatch)
 "nK" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/flashlight/lamp,
 /turf/open/floor/tile/dark/blue2{
 	dir = 4
@@ -553,7 +553,7 @@
 	},
 /area/deathmatch)
 "og" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/radio,
 /obj/machinery/light{
 	dir = 4
@@ -623,6 +623,11 @@
 	},
 /turf/open/floor/tile/dark2,
 /area/deathmatch)
+"pm" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless/edge,
+/turf/open/floor/tile/dark,
+/area/deathmatch)
 "pn" = (
 /obj/structure/reagent_dispensers/water_cooler,
 /turf/open/floor/tile/dark/blue2{
@@ -679,7 +684,7 @@
 /area/deathmatch)
 "qw" = (
 /obj/structure/table,
-/obj/structure/paper_bin,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /obj/structure/window/reinforced{
 	dir = 8
@@ -711,14 +716,14 @@
 /turf/open/floor/stairs,
 /area/deathmatch)
 "ri" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/tile/dark/blue2{
 	dir = 4
 	},
 /area/deathmatch)
 "rl" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /turf/open/floor/plating/ground/snow/layer2,
 /area/deathmatch)
 "ro" = (
@@ -813,6 +818,13 @@
 "tn" = (
 /turf/open/floor/tile/dark/blue2,
 /area/deathmatch)
+"tp" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless/edge{
+	dir = 4
+	},
+/turf/open/floor/tile/dark,
+/area/deathmatch)
 "tv" = (
 /obj/structure/window/framed/mainship/gray/toughened/hull,
 /obj/structure/platform{
@@ -900,8 +912,8 @@
 /turf/open/floor/tile/arrival,
 /area/deathmatch)
 "vL" = (
-/obj/structure/table/woodentable,
-/obj/structure/paper_bin,
+/obj/structure/table/wood,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /turf/open/floor/tile/dark/blue2{
 	dir = 4
@@ -947,7 +959,7 @@
 	},
 /area/deathmatch)
 "wN" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/radio,
 /obj/effect/landmark/weapon_spawn/tier3_weapon_spawn,
 /turf/open/floor/tile/dark2,
@@ -1000,7 +1012,8 @@
 /area/deathmatch)
 "xM" = (
 /obj/structure/inflatable/popped,
-/turf/open/floor/stairs/rampbottom,
+/obj/structure/stairs/edge,
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "xN" = (
 /obj/machinery/vending/snack,
@@ -1101,6 +1114,13 @@
 /obj/effect/landmark/deathmatch,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/tile/dark2,
+/area/deathmatch)
+"zD" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless/edge{
+	dir = 1
+	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "zR" = (
 /obj/structure/cargo_container/hd,
@@ -1222,7 +1242,7 @@
 	},
 /area/deathmatch)
 "Cq" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/tool/hand_labeler,
 /obj/effect/landmark/weapon_spawn/tier3_weapon_spawn,
 /turf/open/floor/tile/dark2,
@@ -1262,7 +1282,7 @@
 /turf/open/floor/tile/dark2,
 /area/deathmatch)
 "Dp" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /turf/open/floor/tile/arrival{
 	dir = 1
 	},
@@ -1312,7 +1332,7 @@
 	},
 /area/deathmatch)
 "Eq" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/stack/sheet/cardboard{
 	amount = 50
 	},
@@ -1428,7 +1448,7 @@
 /turf/open/floor/tile/dark/blue2,
 /area/deathmatch)
 "Hg" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/flashlight/lamp,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/tile/dark2,
@@ -1449,9 +1469,10 @@
 /area/deathmatch)
 "HB" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
-	dir = 4
+/obj/structure/stairs/seamless/edge{
+	dir = 8
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "HR" = (
 /obj/machinery/light{
@@ -1554,11 +1575,6 @@
 	dir = 6
 	},
 /area/deathmatch)
-"KH" = (
-/turf/closed/wall/mainship/gray/outer{
-	icon = null
-	},
-/area/deathmatch)
 "KK" = (
 /turf/open/floor/tile/dark/blue2{
 	dir = 10
@@ -1570,16 +1586,17 @@
 /area/deathmatch)
 "Le" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/seamless{
 	dir = 8
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "Lf" = (
 /obj/structure/platform_decoration,
 /turf/open/floor/stairs,
 /area/deathmatch)
 "Lo" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/clipboard,
 /turf/open/floor/tile/dark2,
 /area/deathmatch)
@@ -1672,7 +1689,7 @@
 /turf/open/floor/tile/cmo,
 /area/deathmatch)
 "MW" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /turf/open/floor/tile/dark/blue2{
 	dir = 1
 	},
@@ -1691,9 +1708,10 @@
 /area/deathmatch)
 "Np" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "ND" = (
 /obj/effect/landmark/weapon_spawn/tier2_weapon_spawn,
@@ -1782,8 +1800,8 @@
 	},
 /area/deathmatch)
 "PH" = (
-/obj/structure/table/woodentable,
-/obj/structure/paper_bin,
+/obj/structure/table/wood,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /turf/open/floor/tile/dark/blue2/corner,
 /area/deathmatch)
@@ -1824,7 +1842,7 @@
 	},
 /area/deathmatch)
 "Qj" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/machinery/recharger,
 /turf/open/floor/tile/dark2,
 /area/deathmatch)
@@ -1841,9 +1859,7 @@
 /area/deathmatch)
 "Qw" = (
 /obj/structure/window/framed/mainship/gray/toughened/hull,
-/turf/closed/wall/mainship/gray/outer{
-	icon = null
-	},
+/turf/open/floor/plating,
 /area/deathmatch)
 "QF" = (
 /obj/structure/bed/chair/comfy/black,
@@ -1868,8 +1884,8 @@
 	},
 /area/deathmatch)
 "Rw" = (
-/obj/structure/table/woodentable,
-/obj/structure/paper_bin,
+/obj/structure/table/wood,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /turf/open/floor/tile/dark2,
 /area/deathmatch)
@@ -1916,14 +1932,14 @@
 /turf/open/floor/tile/dark/blue2,
 /area/deathmatch)
 "Sg" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/effect/landmark/weapon_spawn/tier3_weapon_spawn,
 /turf/open/floor/tile/dark/blue2{
 	dir = 4
 	},
 /area/deathmatch)
 "Sh" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/megaphone,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/tile/dark2,
@@ -1954,7 +1970,7 @@
 	},
 /area/deathmatch)
 "Tp" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/camera,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/tile/dark2,
@@ -1983,7 +1999,7 @@
 	},
 /area/deathmatch)
 "Uc" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/megaphone,
 /turf/open/floor/tile/dark/blue2{
 	dir = 4
@@ -2100,7 +2116,8 @@
 /area/deathmatch)
 "Xb" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom,
+/obj/structure/stairs/edge,
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "Xg" = (
 /obj/structure/flora/pottedplant/twentytwo,
@@ -2114,8 +2131,8 @@
 /obj/effect/spawner/random/food_or_drink/kitchenknife/butcherweighted,
 /obj/item/tool/kitchen/rollingpin,
 /obj/item/clothing/head/chefhat,
-/obj/item/clothing/suit/chef/classic,
-/obj/item/clothing/suit/chef,
+/obj/item/clothing/suit/storage/chef/classic,
+/obj/item/clothing/suit/storage/chef,
 /turf/open/floor/tile/cmo,
 /area/deathmatch)
 "Xo" = (
@@ -2146,7 +2163,7 @@
 /turf/open/floor/tile/dark/gray,
 /area/deathmatch)
 "XK" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /turf/open/floor/tile/dark2,
 /area/deathmatch)
 "XS" = (
@@ -2168,7 +2185,7 @@
 	},
 /area/deathmatch)
 "Yc" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /turf/open/floor/tile/dark/gray,
 /area/deathmatch)
 "Ye" = (
@@ -2228,7 +2245,7 @@
 /turf/open/floor/stairs,
 /area/deathmatch)
 "Zs" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/flashlight/lamp,
 /obj/effect/landmark/weapon_spawn/tier2_weapon_spawn,
 /turf/open/floor/tile/dark2,
@@ -2243,11 +2260,11 @@
 /turf/open/floor/stairs,
 /area/deathmatch)
 "ZD" = (
-/turf/closed/brock,
+/turf/closed/mineral/smooth/basalt,
 /area/deathmatch)
 "ZF" = (
 /obj/structure/table,
-/obj/structure/paper_bin,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /turf/open/floor/tile/dark2,
 /area/deathmatch)
@@ -2878,7 +2895,7 @@ qe
 qe
 ad
 Le
-Le
+pm
 Xv
 Mr
 Mr
@@ -3358,8 +3375,8 @@ ZD
 ZD
 ZD
 Xv
-Le
-Le
+tp
+pm
 Nm
 YU
 YU
@@ -3414,7 +3431,7 @@ gE
 WK
 Nm
 HB
-HB
+zD
 Nm
 Xv
 "}
@@ -3454,8 +3471,8 @@ ZD
 ZD
 ZD
 Xv
-Le
-Le
+tp
+pm
 If
 Jz
 tl
@@ -3512,7 +3529,7 @@ WK
 WK
 uX
 WK
-KH
+gY
 "}
 (27,1,1) = {"
 Xv
@@ -3560,7 +3577,7 @@ IQ
 uX
 uX
 WK
-KH
+gY
 "}
 (28,1,1) = {"
 Qw
@@ -3608,7 +3625,7 @@ WK
 WK
 WK
 gE
-KH
+gY
 "}
 (29,1,1) = {"
 Qw
@@ -3656,7 +3673,7 @@ uX
 NM
 WK
 ND
-KH
+gY
 "}
 (30,1,1) = {"
 Xv
@@ -3704,7 +3721,7 @@ uX
 WK
 uX
 WK
-KH
+gY
 "}
 (31,1,1) = {"
 Qw
@@ -3752,7 +3769,7 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (32,1,1) = {"
 Qw
@@ -3800,7 +3817,7 @@ WK
 WK
 wn
 WK
-KH
+gY
 "}
 (33,1,1) = {"
 Xv
@@ -3848,7 +3865,7 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (34,1,1) = {"
 Qw
@@ -3896,7 +3913,7 @@ do
 xB
 xB
 xB
-KH
+gY
 "}
 (35,1,1) = {"
 Qw
@@ -3944,7 +3961,7 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (36,1,1) = {"
 Xv
@@ -3992,7 +4009,7 @@ uX
 WK
 WK
 WK
-KH
+gY
 "}
 (37,1,1) = {"
 Xv
@@ -4040,10 +4057,10 @@ WK
 rP
 uX
 WK
-KH
+gY
 "}
 (38,1,1) = {"
-KH
+gY
 RE
 WK
 cc
@@ -4088,10 +4105,10 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (39,1,1) = {"
-KH
+gY
 WK
 WK
 uX
@@ -4136,10 +4153,10 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (40,1,1) = {"
-KH
+gY
 ds
 tI
 uX
@@ -4184,10 +4201,10 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (41,1,1) = {"
-KH
+gY
 kV
 WK
 uX
@@ -4232,10 +4249,10 @@ uX
 WK
 WK
 WK
-KH
+gY
 "}
 (42,1,1) = {"
-KH
+gY
 WK
 Bx
 WK
@@ -4280,10 +4297,10 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (43,1,1) = {"
-KH
+gY
 WK
 WK
 WK
@@ -4328,10 +4345,10 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (44,1,1) = {"
-KH
+gY
 WK
 uX
 WK
@@ -4376,10 +4393,10 @@ uX
 WK
 WK
 WK
-KH
+gY
 "}
 (45,1,1) = {"
-KH
+gY
 WK
 WK
 WK
@@ -4424,20 +4441,20 @@ WK
 WK
 WK
 WK
-KH
+gY
 "}
 (46,1,1) = {"
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
 Xv
 Xv
 Xv
@@ -4455,22 +4472,22 @@ Xv
 Xv
 Xv
 Xv
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
-KH
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
+gY
 "}

@@ -27,7 +27,6 @@
 /turf/open/floor/plating/plating_catwalk,
 /area/shuttle/minidropship)
 "i" = (
-/obj/structure/barricade/plasteel,
 /obj/machinery/door/poddoor/shutters/transit/nonsmoothing{
 	dir = 1
 	},
@@ -113,7 +112,6 @@
 /turf/open/floor/mainship/mono,
 /area/shuttle/minidropship)
 "C" = (
-/obj/structure/barricade/plasteel,
 /obj/machinery/door/poddoor/shutters/transit/nonsmoothing{
 	dir = 1
 	},
@@ -129,14 +127,8 @@
 	},
 /turf/open/floor/mainship/mono,
 /area/shuttle/minidropship)
-"E" = (
-/obj/structure/barricade/plasteel{
-	dir = 8
-	},
-/obj/machinery/door/poddoor/shutters/transit/nonsmoothing,
-/obj/machinery/door/poddoor/mainship/open{
-	id = "minidropship_podlock"
-	},
+"J" = (
+/obj/machinery/holopad,
 /turf/open/floor/plating/plating_catwalk,
 /area/shuttle/minidropship)
 "L" = (
@@ -159,9 +151,6 @@
 	},
 /area/shuttle/minidropship)
 "S" = (
-/obj/structure/barricade/plasteel{
-	dir = 4
-	},
 /obj/machinery/door/poddoor/shutters/transit/nonsmoothing,
 /obj/machinery/door/poddoor/mainship/open{
 	id = "minidropship_podlock"
@@ -188,10 +177,10 @@
 	dir = 1
 	},
 /obj/machinery/door_control{
+	dir = 4;
 	id = "minidropship_podlock";
 	name = "inner door-control";
 	pixel_x = -25;
-	dir = 4;
 	pixel_y = 3
 	},
 /obj/effect/turf_decal/tile/transparent/dark_blue/anticorner/contrasted{
@@ -217,7 +206,7 @@ A
 b
 b
 b
-E
+S
 b
 b
 b
@@ -240,7 +229,7 @@ c
 D
 o
 c
-c
+J
 g
 C
 "}

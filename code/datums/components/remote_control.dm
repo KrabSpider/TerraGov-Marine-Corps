@@ -24,14 +24,14 @@
 	RegisterSignal(controlled, COMSIG_UNMANNED_TURRET_UPDATED, PROC_REF(update_left_clickproc))
 	RegisterSignal(controlled, COMSIG_UNMANNED_ABILITY_UPDATED, PROC_REF(update_right_clickproc))
 	RegisterSignal(parent, COMSIG_REMOTECONTROL_TOGGLE, PROC_REF(toggle_remote_control))
-	RegisterSignal(controlled, COMSIG_PARENT_QDELETING, PROC_REF(on_control_terminate))
+	RegisterSignal(controlled, COMSIG_QDELETING, PROC_REF(on_control_terminate))
 	RegisterSignal(controlled, COMSIG_MOVABLE_HEAR, PROC_REF(on_hear))
-	RegisterSignal(parent, list(COMSIG_REMOTECONTROL_UNLINK, COMSIG_PARENT_QDELETING), PROC_REF(on_control_terminate))
-	RegisterSignal(controlled, COMSIG_PARENT_PREQDELETED, PROC_REF(disable_controls))
+	RegisterSignals(parent, list(COMSIG_REMOTECONTROL_UNLINK, COMSIG_QDELETING), PROC_REF(on_control_terminate))
+	RegisterSignal(controlled, COMSIG_PREQDELETED, PROC_REF(disable_controls))
 
 
 /datum/component/remote_control/Destroy(force=FALSE, silent=FALSE)
-	UnregisterSignal(controlled, COMSIG_PARENT_PREQDELETED)
+	UnregisterSignal(controlled, COMSIG_PREQDELETED)
 	controlled = null
 	left_click_proc = null
 	right_click_proc = null
@@ -81,9 +81,12 @@
 	if(type == CLOAK_ABILITY)
 		right_click_proc = CALLBACK(controlled, /obj/vehicle/unmanned/droid/scout/proc/cloak_drone)
 		return
+	if(type == CARGO_ABILITY)
+		right_click_proc = CALLBACK(controlled, /obj/vehicle/unmanned/droid/ripley/proc/handle_cargo)
+		return
 	right_click_proc = null
 
-/// called by control click, allow to interact with the target 
+/// called by control click, allow to interact with the target
 /datum/component/remote_control/proc/remote_interact(mob/user, atom/target, params)
 	if(!istype(target, /obj/structure/barricade/plasteel))
 		return
@@ -149,7 +152,7 @@
 	SEND_SIGNAL(controlled, COMSIG_REMOTECONTROL_CHANGED, FALSE, user)
 	is_controlling = FALSE
 	user.set_remote_control(null)
-	REMOVE_TRAIT(controlled, TRAIT_HEARING_SENSITIVE, TRAIT_GENERIC)
+	controlled.lose_hearing_sensitivity()
 	UnregisterSignal(user, list(COMSIG_MOB_CLICKON, COMSIG_MOB_LOGOUT, COMSIG_RELAYED_SPEECH))
 	UnregisterSignal(parent, COMSIG_ITEM_DROPPED)
 	user = null

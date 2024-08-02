@@ -1,6 +1,17 @@
 import { useBackend } from '../../backend';
-import { Box, Button, Section, LabeledList, Grid, ColorBox } from '../../components';
-import { ToggleFieldPreference, TextFieldPreference, SelectFieldPreference, LoopingSelectionPreference } from './FieldPreferences';
+import {
+  Button,
+  ColorBox,
+  LabeledList,
+  Section,
+  Stack,
+} from '../../components';
+import {
+  LoopingSelectionPreference,
+  SelectFieldPreference,
+  TextFieldPreference,
+  ToggleFieldPreference,
+} from './FieldPreferences';
 
 const ParallaxNumToString = (integer) => {
   let returnval = '';
@@ -26,14 +37,14 @@ const ParallaxNumToString = (integer) => {
   return returnval;
 };
 
-export const GameSettings = (props, context) => {
-  const { act, data } = useBackend<GameSettingData>(context);
-  const { ui_style_color, scaling_method, pixel_size, parallax, quick_equip } =
+export const GameSettings = (props) => {
+  const { act, data } = useBackend<GameSettingData>();
+  const { ui_style_color, scaling_method, pixel_size, parallax, is_admin } =
     data;
   return (
     <Section title="Game Settings">
-      <Grid>
-        <Grid.Column>
+      <Stack fill>
+        <Stack.Item grow>
           <Section title="Window settings">
             <LabeledList>
               <ToggleFieldPreference
@@ -57,23 +68,14 @@ export const GameSettings = (props, context) => {
                 leftLabel={'Muted'}
                 rightLabel={'Enabled'}
               />
-              <ToggleFieldPreference
+              <SelectFieldPreference
                 label="Play Text-to-Speech"
                 value="sound_tts"
                 action="sound_tts"
-                leftLabel={'Enabled'}
-                rightLabel={'Disabled'}
               />
               <TextFieldPreference
                 label="Text to speech volume"
                 value="volume_tts"
-              />
-              <ToggleFieldPreference
-                label="Use Blips instead of text to speech"
-                value="sound_tts_blips"
-                action="sound_tts_blips"
-                leftLabel={'Enabled'}
-                rightLabel={'Disabled'}
               />
               <ToggleFieldPreference
                 label="Fullscreen mode"
@@ -141,10 +143,17 @@ export const GameSettings = (props, context) => {
                 leftLabel={'Enabled'}
                 rightLabel={'Disabled'}
               />
+              <ToggleFieldPreference
+                label="Use directional attacks"
+                value="directional_attacks"
+                action="directional_attacks"
+                leftLabel={'Enabled'}
+                rightLabel={'Disabled'}
+              />
             </LabeledList>
           </Section>
-        </Grid.Column>
-        <Grid.Column>
+        </Stack.Item>
+        <Stack.Item grow>
           <Section title="Message settings">
             <LabeledList>
               <ToggleFieldPreference
@@ -205,12 +214,21 @@ export const GameSettings = (props, context) => {
                 rightValue={1}
                 rightLabel={'Disabled'}
               />
+              <ToggleFieldPreference
+                label="Show xeno rank"
+                value="show_xeno_rank"
+                action="show_xeno_rank"
+                leftValue={1}
+                leftLabel={'Enabled'}
+                rightValue={0}
+                rightLabel={'Disabled'}
+              />
             </LabeledList>
           </Section>
-        </Grid.Column>
-      </Grid>
-      <Grid>
-        <Grid.Column>
+        </Stack.Item>
+      </Stack>
+      <Stack>
+        <Stack.Item grow>
           <Section title="UI settings">
             <LabeledList>
               <SelectFieldPreference
@@ -255,6 +273,13 @@ export const GameSettings = (props, context) => {
                 leftLabel={'Enabled'}
                 rightLabel={'Disabled'}
               />
+              <ToggleFieldPreference
+                label="Radial laser gun wheel"
+                value="radiallasersgunpref"
+                action="radiallasersgunpref"
+                leftLabel={'Enabled'}
+                rightLabel={'Disabled'}
+              />
               <LoopingSelectionPreference
                 label="Scaling Method"
                 value={scaling_method}
@@ -272,26 +297,87 @@ export const GameSettings = (props, context) => {
               />
             </LabeledList>
           </Section>
-        </Grid.Column>
-        <Grid.Column>
-          <Section title="Keybinding Settings">
+        </Stack.Item>
+        <Stack.Item grow>
+          <Section title="Sound settings">
             <LabeledList>
-              {quick_equip.map((equip_slot, index_slot) => (
-                <>
-                  <Box>Quick equip #{index_slot + 1}</Box>
-                  <Button
-                    key={equip_slot}
-                    content={equip_slot}
-                    onClick={() =>
-                      act('change_quick_equip', { selection: index_slot + 1 })
-                    }
-                  />
-                </>
-              ))}
+              <ToggleFieldPreference
+                label="Toggle admin music"
+                value="toggle_admin_music"
+                action="toggle_admin_music"
+                leftLabel={'Enabled'}
+                rightLabel={'Disabled'}
+              />
+              <ToggleFieldPreference
+                label="Toggle ambience sound"
+                value="toggle_ambience_sound"
+                action="toggle_ambience_sound"
+                leftLabel={'Enabled'}
+                rightLabel={'Disabled'}
+              />
+              <ToggleFieldPreference
+                label="Toggle lobby music"
+                value="toggle_lobby_music"
+                action="toggle_lobby_music"
+                leftLabel={'Enabled'}
+                rightLabel={'Disabled'}
+              />
+              <ToggleFieldPreference
+                label="Toggle instruments sound"
+                value="toggle_instruments_sound"
+                action="toggle_instruments_sound"
+                leftLabel={'Enabled'}
+                rightLabel={'Disabled'}
+              />
+              <ToggleFieldPreference
+                label="Toggle weather sound"
+                value="toggle_weather_sound"
+                action="toggle_weather_sound"
+                leftLabel={'Enabled'}
+                rightLabel={'Disabled'}
+              />
+              <ToggleFieldPreference
+                label="Toggle round end sounds"
+                value="toggle_round_end_sounds"
+                action="toggle_round_end_sounds"
+                leftLabel={'Enabled'}
+                rightLabel={'Disabled'}
+              />
             </LabeledList>
           </Section>
-        </Grid.Column>
-      </Grid>
+        </Stack.Item>
+      </Stack>
+      {!!is_admin && (
+        <Stack>
+          <Stack.Item grow>
+            <Section title="Administration (admin only)">
+              <LabeledList>
+                <ToggleFieldPreference
+                  label="Fast MC Refresh"
+                  value="fast_mc_refresh"
+                  action="fast_mc_refresh"
+                  leftLabel={'Enabled'}
+                  rightLabel={'Disabled'}
+                />
+                <ToggleFieldPreference
+                  label="Split admin tabs"
+                  value="split_admin_tabs"
+                  action="split_admin_tabs"
+                  leftLabel={'Enabled'}
+                  rightLabel={'Disabled'}
+                />
+                <ToggleFieldPreference
+                  label="Toggle adminhelp sound"
+                  value="toggle_adminhelp_sound"
+                  action="toggle_adminhelp_sound"
+                  leftLabel={'Enabled'}
+                  rightLabel={'Disabled'}
+                />
+              </LabeledList>
+            </Section>
+          </Stack.Item>
+        </Stack>
+      )}
     </Section>
   );
 };

@@ -2,8 +2,9 @@
 	name = "stunbaton"
 	desc = "A stun baton for incapacitating people with."
 	icon_state = "stunbaton"
-	item_state = "baton"
-	flags_equip_slot = ITEM_SLOT_BELT
+	worn_icon_state = "baton"
+	icon = 'icons/obj/items/weapons/batons.dmi'
+	equip_slot_flags = ITEM_SLOT_BELT
 	force = 15
 	sharp = 0
 	edge = 0
@@ -27,7 +28,6 @@
 	bcell = new/obj/item/cell/high(src)
 	update_icon()
 
-
 /obj/item/weapon/baton/proc/deductcharge(chrgdeductamt)
 	if(bcell)
 		if(bcell.use(chrgdeductamt))
@@ -38,6 +38,7 @@
 			return 0
 
 /obj/item/weapon/baton/update_icon_state()
+	. = ..()
 	if(status)
 		icon_state = "[initial(name)]_active"
 	else if(!bcell)
@@ -58,11 +59,9 @@
 		return
 	check_user_auth(user)
 
-
 /obj/item/weapon/baton/equipped(mob/user, slot)
 	..()
 	check_user_auth(user)
-
 
 //checks if the mob touching the baton has proper access
 /obj/item/weapon/baton/proc/check_user_auth(mob/user)
@@ -84,6 +83,8 @@
 
 /obj/item/weapon/baton/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, /obj/item/cell))
 		if(bcell)
@@ -116,7 +117,7 @@
 	if(bcell?.charge > hitcost)
 		status = !status
 		to_chat(user, span_notice("[src] is now [status ? "on" : "off"]."))
-		playsound(loc, "sparks", 25, 1, 6)
+		playsound(loc, SFX_SPARKS, 25, 1, 6)
 		update_icon()
 	else
 		status = 0
@@ -124,7 +125,6 @@
 			to_chat(user, span_warning("[src] does not have a power source!"))
 		else
 			to_chat(user, span_warning("[src] is out of charge."))
-
 
 /obj/item/weapon/baton/attack(mob/M, mob/user)
 	if(M.status_flags & INCORPOREAL || user.status_flags & INCORPOREAL) //Incorporeal beings cannot attack or be attacked
@@ -134,16 +134,16 @@
 		to_chat(user, span_warning("You don't seem to know how to use [src]..."))
 		return
 
-	var/agony = agonyforce
-	var/stun = stunforce
+	var/agony_applied = agonyforce
+	var/stun_applied = stunforce
 	var/mob/living/L = M
 
 	var/target_zone = check_zone(user.zone_selected)
 	if(user.a_intent == INTENT_HARM)
 		if (!..())	//item/attack() does it's own messaging and logs
 			return 0	// item/attack() will return 1 if they hit, 0 if they missed.
-		agony *= 0.5	//whacking someone causes a much poorer contact than prodding them.
-		stun *= 0.5
+		agony_applied *= 0.5	//whacking someone causes a much poorer contact than prodding them.
+		stun_applied *= 0.5
 		//we can't really extract the actual hit zone from ..(), unfortunately. Just act like they attacked the area they intended to.
 	else
 		//copied from human_defense.dm - human defence code should really be refactored some time.
@@ -173,8 +173,8 @@
 
 	//stun effects
 	if(!HAS_TRAIT(L, TRAIT_BATONIMMUNE))
-		L.stun_effect_act(stun, agony, target_zone)
-		L.ParalyzeNoChain(80)
+		L.apply_effects(stun = stun_applied, stutter = agony_applied * 0.1, eyeblur = agony_applied * 0.1, agony = agony_applied)
+		L.ParalyzeNoChain(8 SECONDS)
 
 	playsound(loc, 'sound/weapons/egloves.ogg', 25, 1, 6)
 	log_combat(user, L, "stunned", src)
@@ -184,61 +184,57 @@
 	return 1
 
 /obj/item/weapon/baton/emp_act(severity)
+	. = ..()
 	if(bcell)
 		bcell.emp_act(severity)	//let's not duplicate code everywhere if we don't have to please.
-	..()
 
 //Makeshift stun baton. Replacement for stun gloves.
 /obj/item/weapon/baton/cattleprod
 	name = "stunprod"
 	desc = "An improvised stun baton."
 	icon_state = "stunprod_nocell"
-	item_state = "prod"
+	worn_icon_state = "prod"
 	force = 3
 	throwforce = 5
 	stunforce = 0
 	agonyforce = 60	//same force as a stunbaton, but uses way more charge.
 	hitcost = 2500
 	attack_verb = list("poked")
-	flags_equip_slot = NONE
+	equip_slot_flags = NONE
 	has_user_lock = FALSE
-
 
 /obj/item/weapon/stunprod
 	name = "electrified prodder"
 	desc = "A specialised prod designed for incapacitating xenomorphic lifeforms with."
 	icon_state = "stunbaton"
-	item_state = "baton"
-	flags_equip_slot = ITEM_SLOT_BELT
+	worn_icon_state = "baton"
+	equip_slot_flags = ITEM_SLOT_BELT
 	force = 12
 	throwforce = 7
 	w_class = WEIGHT_CLASS_NORMAL
 	var/charges = 12
 	var/status = 0
 
-
 /obj/item/weapon/stunprod/suicide_act(mob/user)
 	user.visible_message(span_danger("[user] is putting the live [src] in [user.p_their()] mouth! It looks like [p_theyre()] trying to commit suicide."))
 	return FIRELOSS
 
-
 /obj/item/weapon/stunprod/update_icon_state()
+	. = ..()
 	if(status)
 		icon_state = "stunbaton_active"
 	else
 		icon_state = "stunbaton"
 
-
 /obj/item/weapon/stunprod/attack_self(mob/user)
 	if(charges > 0)
 		status = !status
 		to_chat(user, span_notice("\The [src] is now [status ? "on" : "off"]."))
-		playsound(loc, "sparks", 15, 1)
+		playsound(loc, SFX_SPARKS, 15, 1)
 		update_icon()
 	else
 		status = 0
 		to_chat(user, span_warning("\The [src] is out of charge."))
-
 
 /obj/item/weapon/stunprod/attack(mob/M, mob/user)
 	if(user.a_intent == INTENT_HARM)
@@ -261,25 +257,20 @@
 			status = 0
 			update_icon()
 
-
-
 /obj/item/weapon/stunprod/emp_act(severity)
-	switch(severity)
-		if(1)
-			charges = 0
-		if(2)
-			charges = max(0, charges - 5)
+	. = ..()
+	if(severity == EMP_DEVASTATE)
+		charges = 0
+	else
+		charges = max(0, charges - (6 - severity))
 	if(charges < 1)
 		status = 0
 		update_icon()
-
-
 /obj/item/weapon/stunprod/improved
 	charges = 30
 	name = "improved electrified prodder"
 	desc = "A specialised prod designed for incapacitating xenomorphic lifeforms with. This one seems to be much more effective than its predecessor."
 	color = "#FF6666"
-
 
 /obj/item/weapon/stunprod/improved/attack(mob/M, mob/user)
 	. = ..()
@@ -287,7 +278,6 @@
 		return
 	var/mob/living/L = M
 	L.Paralyze(28 SECONDS)
-
 
 /obj/item/weapon/stunprod/improved/examine(mob/user)
 	. = ..()

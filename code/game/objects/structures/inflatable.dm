@@ -11,7 +11,7 @@
 /obj/item/inflatable/attack_self(mob/user)
 	. = ..()
 	balloon_alert(user, "Inflating...")
-	if(!do_after(user, 3 SECONDS, TRUE, src))
+	if(!do_after(user, 3 SECONDS, NONE, src))
 		balloon_alert(user, "Interrupted!")
 		return
 	playsound(loc, 'sound/items/zip.ogg', 25, 1)
@@ -38,7 +38,7 @@
 	name = "generic inflatable"
 	desc = "You shouldn't be seeing this."
 	density = TRUE
-	flags_pass = NONE
+	allow_pass_flags = NONE
 	icon = 'icons/obj/inflatable.dmi'
 	max_integrity = 50
 	resistance_flags = XENO_DAMAGEABLE
@@ -66,10 +66,15 @@
 		if(EXPLODE_LIGHT)
 			if(prob(50))
 				deflate(TRUE)
+		if(EXPLODE_WEAK)
+			if(prob(20))
+				deflate(TRUE)
 
 
 /obj/structure/inflatable/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 	if(can_puncture(I))
 		visible_message(span_danger("[user] pierces [src] with [I]!"))
 		deflate(TRUE)
@@ -166,11 +171,11 @@
 	return try_toggle_state(user)
 
 /obj/structure/inflatable/door/CanAllowThrough(atom/movable/mover, turf/target, height = 0, air_group = 0)
-	. = ..()
 	if(air_group)
 		return open
 	if(istype(mover, /obj/effect/beam))
 		return !opacity
+	return ..()
 
 /*
  * Checks all the requirements for opening/closing a door before opening/closing it. Copypasta. TODO: un-copypasta this
@@ -203,11 +208,11 @@
 	name = "inflatable barrier box"
 	desc = "Contains inflatable walls and doors."
 	icon_state = "inf_box"
-	item_state = "syringe_kit"
-	max_storage_space = 21
+	worn_icon_state = "syringe_kit"
 
 /obj/item/storage/briefcase/inflatable/Initialize(mapload, ...)
 	. = ..()
+	storage_datum.max_storage_space = 21
 	for(var/i in 1 to 3)
 		new /obj/item/inflatable/door(src)
 	for(var/i in 1 to 4)

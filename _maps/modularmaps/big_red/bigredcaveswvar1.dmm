@@ -1,7 +1,4 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
-"a" = (
-/turf/open/space/basic,
-/area/space)
 "d" = (
 /obj/effect/landmark/lv624/fog_blocker,
 /turf/open/floor/plating/ground/mars/random/cave,
@@ -20,13 +17,6 @@
 "l" = (
 /obj/effect/landmark/xeno_resin_wall,
 /turf/open/floor/plating/ground/mars/random/cave,
-/area/bigredv2/caves/southwest)
-"m" = (
-/obj/effect/landmark/patrol_point{
-	id = "SOM_14";
-	name = "SOM exit point 14"
-	},
-/turf/open/floor/plating/ground/mars/random/cave/rock,
 /area/bigredv2/caves/southwest)
 "n" = (
 /obj/effect/landmark/weed_node,
@@ -61,13 +51,6 @@
 /obj/effect/ai_node,
 /turf/open/floor/plating/ground/mars/random/cave,
 /area/bigredv2/caves/southwest)
-"z" = (
-/obj/effect/landmark/patrol_point{
-	id = "SOM_13";
-	name = "SOM exit point 13"
-	},
-/turf/open/floor/plating/ground/mars/random/cave,
-/area/bigredv2/caves/southwest)
 "B" = (
 /obj/effect/landmark/lv624/fog_blocker/xeno_spawn,
 /turf/open/floor/plating/ground/mars/random/cave,
@@ -76,22 +59,13 @@
 /obj/effect/ai_node,
 /turf/open/floor/plating/ground/mars/random/cave/rock,
 /area/bigredv2/caves/southwest)
-"G" = (
-/obj/effect/landmark/patrol_point{
-	id = "SOM_12";
-	name = "SOM exit point 12"
-	},
-/turf/open/floor/plating/ground/mars/random/cave/rock,
+"H" = (
+/obj/effect/landmark/weed_node,
+/obj/effect/landmark/patrol_point/som/som_11,
+/turf/open/floor/plating/ground/mars/random/cave,
 /area/bigredv2/caves/southwest)
 "J" = (
 /obj/effect/landmark/excavation_site_spawner,
-/turf/open/floor/plating/ground/mars/random/cave,
-/area/bigredv2/caves/southwest)
-"K" = (
-/obj/effect/landmark/patrol_point{
-	id = "SOM_11";
-	name = "SOM exit point 11"
-	},
 /turf/open/floor/plating/ground/mars/random/cave,
 /area/bigredv2/caves/southwest)
 "L" = (
@@ -102,6 +76,10 @@
 /obj/effect/landmark/lv624/fog_blocker,
 /turf/closed/mineral/smooth/bigred,
 /area/bigredv2/caves/rock)
+"N" = (
+/obj/effect/landmark/xeno_tunnel_spawn,
+/turf/open/floor/plating/ground/mars/random/cave,
+/area/bigredv2/caves/southwest)
 "P" = (
 /turf/closed/mineral/smooth/bigred,
 /area/bigredv2/caves/rock)
@@ -148,13 +126,13 @@ t
 t
 t
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (2,1,1) = {"
 P
@@ -193,13 +171,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (3,1,1) = {"
 P
@@ -238,13 +216,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (4,1,1) = {"
 P
@@ -283,13 +261,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (5,1,1) = {"
 P
@@ -328,13 +306,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (6,1,1) = {"
 P
@@ -354,7 +332,7 @@ P
 P
 P
 P
-K
+h
 p
 p
 p
@@ -373,13 +351,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (7,1,1) = {"
 P
@@ -404,7 +382,7 @@ h
 h
 h
 h
-h
+N
 p
 P
 P
@@ -418,13 +396,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (8,1,1) = {"
 P
@@ -463,13 +441,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (9,1,1) = {"
 P
@@ -508,13 +486,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (10,1,1) = {"
 h
@@ -553,13 +531,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (11,1,1) = {"
 q
@@ -598,13 +576,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (12,1,1) = {"
 h
@@ -643,13 +621,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (13,1,1) = {"
 h
@@ -688,13 +666,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (14,1,1) = {"
 h
@@ -733,13 +711,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (15,1,1) = {"
 h
@@ -755,13 +733,13 @@ P
 P
 P
 j
-m
+p
 h
 h
 h
 h
 h
-q
+H
 h
 h
 h
@@ -778,13 +756,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (16,1,1) = {"
 h
@@ -823,13 +801,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (17,1,1) = {"
 h
@@ -859,7 +837,7 @@ h
 h
 h
 h
-G
+p
 P
 P
 P
@@ -868,13 +846,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (18,1,1) = {"
 h
@@ -913,13 +891,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (19,1,1) = {"
 h
@@ -958,13 +936,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (20,1,1) = {"
 P
@@ -1003,13 +981,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (21,1,1) = {"
 P
@@ -1048,13 +1026,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (22,1,1) = {"
 P
@@ -1078,7 +1056,7 @@ j
 p
 h
 h
-z
+h
 p
 P
 P
@@ -1093,13 +1071,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (23,1,1) = {"
 P
@@ -1138,13 +1116,13 @@ j
 j
 j
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (24,1,1) = {"
 P
@@ -1183,13 +1161,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (25,1,1) = {"
 P
@@ -1228,13 +1206,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (26,1,1) = {"
 P
@@ -1273,13 +1251,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (27,1,1) = {"
 P
@@ -1318,13 +1296,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (28,1,1) = {"
 P
@@ -1363,13 +1341,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (29,1,1) = {"
 P
@@ -1408,17 +1386,17 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (30,1,1) = {"
 P
-P
+h
 h
 q
 h
@@ -1453,13 +1431,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (31,1,1) = {"
 P
@@ -1498,13 +1476,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (32,1,1) = {"
 P
@@ -1543,13 +1521,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (33,1,1) = {"
 P
@@ -1588,13 +1566,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (34,1,1) = {"
 P
@@ -1633,19 +1611,19 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (35,1,1) = {"
 P
 h
 h
-P
+h
 P
 P
 P
@@ -1678,19 +1656,19 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (36,1,1) = {"
 P
 h
 h
-P
+h
 P
 P
 P
@@ -1723,19 +1701,19 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (37,1,1) = {"
 h
 h
 h
-P
+h
 P
 P
 P
@@ -1768,19 +1746,19 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (38,1,1) = {"
 h
 h
 h
-P
+h
 P
 P
 P
@@ -1813,19 +1791,19 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (39,1,1) = {"
 h
 h
 h
-P
+h
 P
 P
 P
@@ -1858,19 +1836,19 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (40,1,1) = {"
 h
 q
 h
-P
+h
 P
 P
 P
@@ -1903,13 +1881,13 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}
 (41,1,1) = {"
 d
@@ -1948,11 +1926,11 @@ P
 P
 P
 t
-a
-a
-a
-a
-a
-a
-a
+t
+t
+t
+t
+t
+t
+t
 "}

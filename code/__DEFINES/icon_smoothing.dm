@@ -70,6 +70,7 @@
 #define SMOOTH_GROUP_BASALT S_TURF(38)
 #define SMOOTH_GROUP_RIVER S_TURF(39)
 #define SMOOTH_GROUP_ICE_WALL S_TURF(40)
+#define SMOOTH_GROUP_SAND S_TURF(41)
 
 #define MAX_S_TURF SMOOTH_GROUP_ICE_WALL //Always match this value with the one above it.
 
@@ -93,7 +94,7 @@
 #define SMOOTH_GROUP_SURVIVAL_TIANIUM_POD S_OBJ(14)		///turf/closed/wall/mineral/titanium/survival/pod, /obj/machinery/door/airlock/survival_pod, /obj/structure/window/shuttle/survival_pod
 #define SMOOTH_GROUP_HIERO_WALL S_OBJ(15)				///obj/effect/temp_visual/elite_tumor_wall, /obj/effect/temp_visual/hierophant/wall
 
-#define SMOOTH_GROUP_PAPERFRAME S_OBJ(20)				///obj/structure/window/paperframe, /obj/structure/mineral_door/paperframe
+#define SMOOTH_GROUP_PAPERFRAME S_OBJ(20)				///obj/structure/window/paperframe, /obj/structure/door/mineral_door/paperframe
 
 #define SMOOTH_GROUP_WINDOW_FULLTILE S_OBJ(21)			///obj/structure/window/fulltile, /obj/structure/window/reinforced/fulltile, /obj/structure/window/reinforced/tinted/fulltile, /obj/structure/window/plasma/fulltile, /obj/structure/window/plasma/reinforced/fulltile
 #define SMOOTH_GROUP_WINDOW_FULLTILE_BRONZE S_OBJ(22)	///obj/structure/window/bronze/fulltile
@@ -103,6 +104,9 @@
 #define SMOOTH_GROUP_SHUTTERS S_OBJ(26)
 
 #define SMOOTH_GROUP_LATTICE  S_OBJ(30)
+#define SMOOTH_GROUP_FENCE  S_OBJ(31)
+#define SMOOTH_GROUP_GIRDER  S_OBJ(32)
+#define SMOOTH_GROUP_LATTICE_ABOVE  S_OBJ(33)
 
 #define SMOOTH_GROUP_AIRLOCK  S_OBJ(40)							///obj/structure/lattice
 #define SMOOTH_GROUP_GRILLE  S_OBJ(41)
@@ -136,3 +140,5 @@
 #define SMOOTH_GROUP_XENO_STRUCTURES S_OBJ(69) //Resin structures.
 
 #define SMOOTH_GROUP_FOAM_WALL S_OBJ(70) //foam walls.
+#define SMOOTH_GROUP_TALL_GRASS S_OBJ(71) //tall grass
+#define SMOOTH_GROUP_GRASS_DECAL S_OBJ(72) //grass decal

@@ -3,8 +3,8 @@
 	name = "dropship picker"
 	desc = "A computer that lets you choose the model of the tadpole.."
 	density = TRUE
-	icon = 'icons/obj/machines/computer.dmi'
-	icon_state = "computer_generic"
+	icon_state = "computer"
+	screen_overlay = "computer_generic"
 	circuit = null
 	resistance_flags = RESIST_ALL
 	interaction_flags = INTERACT_MACHINE_TGUI
@@ -33,6 +33,8 @@
 	. = list()
 	var/list/shuttles = list()
 	for (var/datum/map_template/shuttle/minidropship/shuttle_template AS in SSmapping.minidropship_templates)
+		if(!shuttle_template.admin_enable && !SSticker.mode.enable_fun_tads)
+			continue
 		shuttles += list(list(
 			"name" = shuttle_template.display_name,
 			"description" = shuttle_template.description,
@@ -60,13 +62,17 @@
 		"_big" = 'icons/ui_icons/dropshippicker/_big.png',
 		"_food" = 'icons/ui_icons/dropshippicker/_food.png',
 		"_factorio" = 'icons/ui_icons/dropshippicker/_factorio.png',
+		"_combat_tad" = 'icons/ui_icons/dropshippicker/_combat_tad.png',
+		"_mobile_bar" = 'icons/ui_icons/dropshippicker/_mobile_bar.png',
+		"_umbilical" = 'icons/ui_icons/dropshippicker/_umbilical.png',
+		"_outrider" = 'icons/ui_icons/dropshippicker/_outrider.png',
 	)
 
 /obj/machinery/computer/dropship_picker/ui_act(action, list/params, datum/tgui/ui)
 	. = ..()
 	if(.)
 		return
-	
+
 	if(dropship_selected)
 		return FALSE
 
@@ -76,11 +82,11 @@
 		if("confirm")
 			if(!current_template_ref)
 				return FALSE
+			dropship_selected = TRUE
 			var/datum/map_template/shuttle/template = locate(current_template_ref) in SSmapping.minidropship_templates
 			var/obj/docking_port/mobile/shuttle = SSshuttle.action_load(template)
 			SSshuttle.moveShuttleQuickToDock(template.shuttle_id, dock_id)
 			shuttle.setTimer(0)
-			dropship_selected = TRUE
 			balloon_alert(usr, "shuttle selected, locking")
 			ui.close()
 	return TRUE

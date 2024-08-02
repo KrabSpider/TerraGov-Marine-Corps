@@ -1,14 +1,11 @@
-/mob/living/carbon/xenomorph/fire_act()
+/mob/living/carbon/xenomorph/fire_act(burn_level)
 	if(status_flags & GODMODE)
 		return
-	return ..()
-
-/mob/living/carbon/xenomorph/flamer_fire_act(burnlevel)
 	if(xeno_caste.caste_flags & CASTE_FIRE_IMMUNE)
 		return
 	return ..()
 
-/mob/living/carbon/xenomorph/modify_by_armor(damage_amount, armor_type, penetration, def_zone)
+/mob/living/carbon/xenomorph/modify_by_armor(damage_amount, armor_type, penetration, def_zone, attack_dir)
 	var/hard_armor_remaining = get_hard_armor(armor_type, def_zone)
 
 	var/effective_penetration = max(0, penetration - hard_armor_remaining)
@@ -22,30 +19,45 @@
 	if(status_flags & (INCORPOREAL|GODMODE))
 		return
 
-	var/bomb_armor_ratio = modify_by_armor(1, BOMB)
+	var/ex_damage
+	var/stagger_amount = 0
+	var/slowdown_amount = 0
+	var/sunder_amount = 0
+	var/bomb_armor_ratio = modify_by_armor(1, BOMB) //percentage that pierces overall bomb armor
 
-	if(bomb_armor_ratio <= 0)
-		return //immune
-
-	var/bomb_slow_multiplier = max(0, 1 - 3.5*bomb_armor_ratio)
-	var/bomb_sunder_multiplier = max(0, 1 - bomb_armor_ratio)
+	if(bomb_armor_ratio <= 0) //we have 100 effective bomb armor
+		return
 
 	if((severity == EXPLODE_DEVASTATE) && (bomb_armor_ratio > XENO_EXPLOSION_GIB_THRESHOLD))
 		return gib() //Gibs unprotected benos
 
-	//Slowdown and stagger
-	var/ex_slowdown = (2 + (4 - severity)) * bomb_slow_multiplier
+	switch(severity)
+		if(EXPLODE_DEVASTATE)
+			ex_damage = rand(190, 210)
+			stagger_amount = 4 * bomb_armor_ratio - 1
+			slowdown_amount = 5 * bomb_armor_ratio
+			sunder_amount = 30 * bomb_armor_ratio
+		if(EXPLODE_HEAVY)
+			ex_damage = rand(140, 160)
+			stagger_amount = 3 * bomb_armor_ratio - 1
+			slowdown_amount = 4 * bomb_armor_ratio
+			sunder_amount = 20 * bomb_armor_ratio
+		if(EXPLODE_LIGHT)
+			ex_damage = rand(90, 110)
+			stagger_amount = 2 * bomb_armor_ratio - 1
+			slowdown_amount = 3 * bomb_armor_ratio
+			sunder_amount = 10 * bomb_armor_ratio
+		if(EXPLODE_WEAK)
+			ex_damage = rand(40, 60)
+			slowdown_amount = 2 * bomb_armor_ratio
+			sunder_amount = 5 * bomb_armor_ratio
 
-	add_slowdown(max(0, ex_slowdown)) //Slowdown 2 for sentiel from nade
-	adjust_stagger(max(0, ex_slowdown - 2)) //Stagger 2 less than slowdown
+	if(stagger_amount > 0)
+		adjust_stagger(stagger_amount)
+	adjust_sunder(sunder_amount)
+	add_slowdown(slowdown_amount)
 
-	//Sunder
-	adjust_sunder(max(0, 50 * (3 - severity) * bomb_sunder_multiplier))
-
-	//Damage
-	var/ex_damage = 40 + rand(0, 20) + 50*(4 - severity)  //changed so overall damage stays similar
 	apply_damages(ex_damage * 0.5, ex_damage * 0.5, blocked = BOMB, updating_health = TRUE)
-
 
 /mob/living/carbon/xenomorph/apply_damage(damage = 0, damagetype = BRUTE, def_zone, blocked = 0, sharp = FALSE, edge = FALSE, updating_health = FALSE, penetration)
 	if(status_flags & GODMODE)
@@ -102,7 +114,7 @@
 		if(X.client.prefs.mute_xeno_health_alert_messages) //Build the filter list; people who opted not to receive health alert messages
 			filter_list += X //Add the xeno to the filter list
 
-	xeno_message("Our sister [name] is badly hurt with <font color='red'>([health]/[maxHealth])</font> health remaining at [AREACOORD_NO_Z(src)]!", "xenoannounce", 5, hivenumber, FALSE, src, 'sound/voice/alien_help1.ogg', TRUE, filter_list, /atom/movable/screen/arrow/silo_damaged_arrow)
+	xeno_message("Our sister [name] is badly hurt with <font color='red'>([health]/[maxHealth])</font> health remaining at [AREACOORD_NO_Z(src)]!", "xenoannounce", 5, hivenumber, FALSE, src, 'sound/voice/alien/help1.ogg', TRUE, filter_list, /atom/movable/screen/arrow/silo_damaged_arrow)
 	COOLDOWN_START(src, xeno_health_alert_cooldown, XENO_HEALTH_ALERT_COOLDOWN) //set the cooldown.
 
 	return damage

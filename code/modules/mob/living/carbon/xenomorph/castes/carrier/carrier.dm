@@ -1,8 +1,8 @@
 /mob/living/carbon/xenomorph/carrier
-	caste_base_type = /mob/living/carbon/xenomorph/carrier
+	caste_base_type = /datum/xeno_caste/carrier
 	name = "Carrier"
 	desc = "A strange-looking alien creature. It carries a number of scuttling jointed crablike creatures."
-	icon = 'icons/Xeno/2x2_Xenos.dmi' //They are now like, 2x2
+	icon = 'icons/Xeno/castes/carrier.dmi' //They are now like, 2x2
 	icon_state = "Carrier Walking"
 	bubble_icon = "alienroyal"
 	health = 200
@@ -11,9 +11,8 @@
 	///Number of huggers the carrier is currently carrying
 	var/huggers = 0
 	tier = XENO_TIER_TWO
-	upgrade = XENO_UPGRADE_ZERO
+	upgrade = XENO_UPGRADE_NORMAL
 	pixel_x = -16 //Needed for 2x2
-	old_x = -16
 	inherent_verbs = list(
 		/mob/living/carbon/xenomorph/proc/vent_crawl,
 	)
@@ -25,12 +24,11 @@
 // ***************************************
 /mob/living/carbon/xenomorph/carrier/Initialize(mapload)
 	. = ..()
-	hugger_overlays_icon = mutable_appearance('icons/Xeno/2x2_Xenos.dmi',"empty")
+	hugger_overlays_icon = mutable_appearance('icons/Xeno/castes/carrier.dmi',"empty")
 
-/mob/living/carbon/xenomorph/carrier/Stat()
+/mob/living/carbon/xenomorph/carrier/get_status_tab_items()
 	. = ..()
-	if(statpanel("Game"))
-		stat("Stored Huggers:", "[huggers] / [xeno_caste.huggers_max]")
+	. += "Stored Huggers: [huggers] / [xeno_caste.huggers_max]"
 
 /mob/living/carbon/xenomorph/carrier/update_icons()
 	. = ..()

@@ -5,14 +5,14 @@
 	icon_state = "left"
 	layer = ABOVE_WINDOW_LAYER
 	resistance_flags = XENO_DAMAGEABLE
-	obj_flags = CAN_BE_HIT
+	obj_flags = CAN_BE_HIT | BLOCKS_CONSTRUCTION_DIR
 	var/base_state = "left"
 	max_integrity = 50
 	soft_armor = list(MELEE = 20, BULLET = 50, LASER = 50, ENERGY = 50, BOMB = 10, BIO = 100, FIRE = 70, ACID = 100)
 	visible = FALSE
 	use_power = FALSE
-	flags_atom = ON_BORDER
-	flags_pass = PASSLASER
+	atom_flags = ON_BORDER
+	allow_pass_flags = PASS_GLASS
 	opacity = FALSE
 	var/obj/item/circuitboard/airlock/electronics = null
 
@@ -22,7 +22,6 @@
 	icon_state = "leftsecure"
 	base_state = "leftsecure"
 	max_integrity = 100
-
 
 /obj/machinery/door/window/Initialize(mapload, set_dir)
 	. = ..()
@@ -39,24 +38,22 @@
 	)
 	AddElement(/datum/element/connect_loc, connections)
 
-/obj/machinery/door/window/proc/on_try_exit(datum/source, atom/movable/mover, direction, list/moveblockers)
-	SIGNAL_HANDLER
-	if(!density || !(flags_atom & ON_BORDER) || !(direction & dir) || (mover.status_flags & INCORPOREAL))
-		return NONE
-	moveblockers += src
-	return COMPONENT_ATOM_BLOCK_EXIT
-
 /obj/machinery/door/window/Destroy()
 	density = FALSE
-	playsound(src, "shatter", 50, 1)
+	playsound(src, SFX_SHATTER, 50, 1)
 	return ..()
 
 
-/obj/machinery/door/window/update_icon()
+/obj/machinery/door/window/update_icon_state()
+	. = ..()
 	if(operating)
 		return
 	icon_state = density ? base_state : "[base_state]open"
 
+/obj/machinery/door/window/emp_act(severity)
+	. = ..()
+	if(prob(30 / severity))
+		open()
 
 /obj/machinery/door/window/proc/open_and_close()
 	open()
@@ -85,13 +82,6 @@
 		open_and_close()
 	else
 		do_animate("deny")
-
-/obj/machinery/door/window/CanAllowThrough(atom/movable/mover, turf/target)
-	if(istype(mover) && CHECK_BITFIELD(mover.flags_pass, PASSGLASS))
-		return TRUE
-	if(get_dir(loc, target) & dir) //Make sure looking at appropriate border
-		return ..()
-	return TRUE
 
 /obj/machinery/door/window/open(forced = DOOR_NOT_FORCED)
 	if(operating)
@@ -143,6 +133,8 @@
 
 /obj/machinery/door/window/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(operating)
 		return TRUE
@@ -151,7 +143,7 @@
 		playsound(loc, 'sound/items/crowbar.ogg', 25, 1)
 		user.visible_message("[user] starts to remove the electronics from the windoor.", "You start to remove electronics from the windoor.")
 
-		if(!do_after(user, 40, TRUE, src, BUSY_ICON_BUILD))
+		if(!do_after(user, 40, NONE, src, BUSY_ICON_BUILD))
 			return TRUE
 
 		to_chat(user, span_notice("You removed the windoor electronics!"))
@@ -249,13 +241,6 @@
 	icon_state = "rightsecure"
 	base_state = "rightsecure"
 
-/obj/machinery/door/window/secure/bridge/rebel
-	req_access = list(ACCESS_MARINE_BRIDGE_REBEL)
-
-/obj/machinery/door/window/secure/bridge/rebel/right
-	icon_state = "rightsecure"
-	base_state = "rightsecure"
-
 /obj/machinery/door/window/secure/bridge/aidoor //special door with similar integrity to protective ai glass
 	max_integrity = 1200
 
@@ -267,13 +252,6 @@
 	icon_state = "rightsecure"
 	base_state = "rightsecure"
 
-/obj/machinery/door/window/secure/req/rebel
-	req_one_access = list(ACCESS_MARINE_LOGISTICS_REBEL, ACCESS_MARINE_CARGO_REBEL)
-
-/obj/machinery/door/window/secure/req/rebel/right
-	icon_state = "rightsecure"
-	base_state = "rightsecure"
-
 // Engi Doors
 /obj/machinery/door/window/secure/engineering
 	req_access = list(ACCESS_MARINE_ENGINEERING)
@@ -282,9 +260,6 @@
 	icon_state = "rightsecure"
 	base_state = "rightsecure"
 
-/obj/machinery/door/window/secure/engineering/rebel
-	req_access = list(ACCESS_MARINE_ENGINEERING_REBEL)
-
-/obj/machinery/door/window/secure/engineering/rebel/right
-	icon_state = "rightsecure"
-	base_state = "rightsecure"
+// Med Doors
+/obj/machinery/door/window/secure/medical
+	req_access = list(ACCESS_MARINE_CHEMISTRY)

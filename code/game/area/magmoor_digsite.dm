@@ -22,7 +22,8 @@
 /area/magmoor/volcano
 	name = "Magmoor Central Fissure"
 	ceiling = CEILING_DEEP_UNDERGROUND
-	flags_area = NO_DROPPOD
+	area_flags = NO_DROPPOD
+	always_unpowered = TRUE
 
 //Caves
 
@@ -30,6 +31,7 @@
 	ceiling = CEILING_DEEP_UNDERGROUND
 	ambience = list('sound/ambience/ambicave.ogg', 'sound/ambience/ambilava1.ogg', 'sound/ambience/ambilava2.ogg', 'sound/ambience/ambilava3.ogg')
 	minimap_color = MINIMAP_AREA_CAVES
+	always_unpowered = TRUE
 
 /area/magmoor/cave/central
 	name = "Central Caves"
@@ -74,6 +76,7 @@
 /area/magmoor/cave/rock
 	name = "Enclosed Area"
 	icon_state = "transparent"
+	area_flags = CANNOT_NUKE
 
 //Compound Outside
 /area/magmoor/compound
@@ -82,6 +85,7 @@
 	icon_state = "central"
 	outside = TRUE
 	ambience = list('sound/ambience/ambilava1.ogg', 'sound/ambience/ambilava2.ogg', 'sound/ambience/ambilava3.ogg')
+	always_unpowered = TRUE
 
 /area/magmoor/compound/north
 	name = "North Magmoor Compound"
@@ -188,6 +192,12 @@
 /area/magmoor/engi/storage
 	name = "Engineering Lobby & Storage"
 	icon_state = "lava_engi_storage"
+
+/area/magmoor/engi/garage
+	name = "Engineering Garage"
+	ceiling = CEILING_DEEP_UNDERGROUND_METAL
+	icon_state = "lava_eng1"
+	minimap_color = MINIMAP_AREA_ENGI_CAVE
 
 //Security
 

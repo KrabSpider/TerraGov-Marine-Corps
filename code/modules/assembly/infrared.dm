@@ -57,16 +57,18 @@
 	update_icon()
 	return secured
 
-/obj/item/assembly/infra/update_icon()
-	cut_overlays()
+/obj/item/assembly/infra/update_overlays()
+	. = ..()
 	attached_overlays = list()
 	if(on)
-		add_overlay("infrared_on")
+		. += "infrared_on"
 		attached_overlays += "infrared_on"
 		if(visible && secured)
-			add_overlay("infrared_visible")
+			. += "infrared_visible"
 			attached_overlays += "infrared_visible"
 
+/obj/item/assembly/infra/update_icon()
+	. = ..()
 	if(holder)
 		holder.update_icon()
 
@@ -134,12 +136,14 @@
 	. = ..()
 	setDir(t)
 
-/obj/item/assembly/infra/throw_at(atom/target, range, speed, mob/thrower, spin=1, diagonals_first = 0, datum/callback/callback, force)
+/obj/item/assembly/infra/throw_at(atom/target, range, speed, thrower, spin, flying = FALSE, targetted_throw = TRUE)
 	. = ..()
 	olddir = dir
 
 /obj/item/assembly/infra/throw_impact(atom/hit_atom)
 	. = ..()
+	if(!.)
+		return
 	if(!olddir)
 		return
 	setDir(olddir)
@@ -174,7 +178,7 @@
 		return
 	if(offender && isitem(offender))
 		var/obj/item/I = offender
-		if(I.flags_item & ITEM_ABSTRACT)
+		if(I.item_flags & ITEM_ABSTRACT)
 			return
 	return refreshBeam()
 
@@ -231,7 +235,7 @@
 	var/obj/item/assembly/infra/master
 	anchored = TRUE
 	density = FALSE
-	flags_pass = PASSTABLE|PASSGLASS|PASSGRILLE
+	allow_pass_flags = PASS_LOW_STRUCTURE|PASS_GLASS|PASS_GRILLE
 
 /obj/effect/beam/i_beam/Initialize(mapload)
 	. = ..()
@@ -244,6 +248,6 @@
 		return
 	if(isitem(AM))
 		var/obj/item/I = AM
-		if(I.flags_item & ITEM_ABSTRACT)
+		if(I.item_flags & ITEM_ABSTRACT)
 			return
 	master.trigger_beam(AM, get_turf(src))

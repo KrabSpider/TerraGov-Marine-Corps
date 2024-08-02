@@ -5,13 +5,13 @@
 #define ADD_TRAIT(target, trait, source) \
 	do { \
 		var/list/_L; \
-		if (!target.status_traits) { \
-			target.status_traits = list(); \
-			_L = target.status_traits; \
+		if (!target._status_traits) { \
+			target._status_traits = list(); \
+			_L = target._status_traits; \
 			_L[trait] = list(source); \
 			SEND_SIGNAL(target, SIGNAL_ADDTRAIT(trait)); \
 		} else { \
-			_L = target.status_traits; \
+			_L = target._status_traits; \
 			if (_L[trait]) { \
 				_L[trait] |= list(source); \
 			} else { \
@@ -22,7 +22,7 @@
 	} while (0)
 #define REMOVE_TRAIT(target, trait, sources) \
 	do { \
-		var/list/_L = target.status_traits; \
+		var/list/_L = target._status_traits; \
 		var/list/_S; \
 		if (sources && !islist(sources)) { \
 			_S = list(sources); \
@@ -40,13 +40,13 @@
 				SEND_SIGNAL(target, SIGNAL_REMOVETRAIT(trait)); \
 			}; \
 			if (!length(_L)) { \
-				target.status_traits = null \
+				target._status_traits = null \
 			}; \
 		} \
 	} while (0)
 #define REMOVE_TRAITS_NOT_IN(target, sources) \
 	do { \
-		var/list/_L = target.status_traits; \
+		var/list/_L = target._status_traits; \
 		var/list/_S = sources; \
 		if (_L) { \
 			for (var/_T in _L) { \
@@ -57,19 +57,19 @@
 					}; \
 				};\
 			if (!length(_L)) { \
-				target.status_traits = null\
+				target._status_traits = null\
 			};\
 		}\
 	} while (0)
-#define HAS_TRAIT(target, trait) (target.status_traits ? (target.status_traits[trait] ? TRUE : FALSE) : FALSE)
-#define HAS_TRAIT_FROM(target, trait, source) (target.status_traits ? (target.status_traits[trait] ? (source in target.status_traits[trait]) : FALSE) : FALSE)
+#define HAS_TRAIT(target, trait) (target._status_traits ? (target._status_traits[trait] ? TRUE : FALSE) : FALSE)
+#define HAS_TRAIT_FROM(target, trait, source) (target._status_traits ? (target._status_traits[trait] ? (source in target._status_traits[trait]) : FALSE) : FALSE)
 #define HAS_TRAIT_FROM_ONLY(target, trait, source) (\
-	target.status_traits ?\
-		(target.status_traits[trait] ?\
-			((source in target.status_traits[trait]) && (length(target.status_traits) == 1))\
+	target._status_traits ?\
+		(target._status_traits[trait] ?\
+			((source in target._status_traits[trait]) && (length(target._status_traits) == 1))\
 			: FALSE)\
 		: FALSE)
-#define HAS_TRAIT_NOT_FROM(target, trait, source) (target.status_traits ? (target.status_traits[trait] ? (length(target.status_traits[trait] - source) > 0) : FALSE) : FALSE)
+#define HAS_TRAIT_NOT_FROM(target, trait, source) (target._status_traits ? (target._status_traits[trait] ? (length(target._status_traits[trait] - source) > 0) : FALSE) : FALSE)
 
 // common trait
 #define TRAIT_GENERIC "generic"
@@ -104,13 +104,28 @@
 #define WIDOW_ABILITY_TRAIT "widow_ability_trait"
 #define PSYCHIC_BLAST_ABILITY_TRAIT "psychic_blast_ability_trait"
 #define PSYCHIC_CRUSH_ABILITY_TRAIT "psychic_crush_ability_trait"
+#define VORTEX_ABILITY_TRAIT "vortex_ability_trait"
 #define PETRIFY_ABILITY_TRAIT "petrify_ability_trait"
 #define SHATTERING_ROAR_ABILITY_TRAIT "shattering_roar_ability_trait"
 #define ZERO_FORM_BEAM_ABILITY_TRAIT "zero_form_beam_ability_trait"
+#define HEATRAY_BEAM_ABILITY_TRAIT "heatray_ability_trait"
 #define VALHALLA_TRAIT "valhalla"
 #define WEIGHTBENCH_TRAIT "weightbench"
 #define BOILER_ROOTED_TRAIT "boiler_rooted"
+#define STRAPPABLE_ITEM_TRAIT "strappable_item"
+#define MOUNTED_TRAIT "mounted"
+#define VALI_TRAIT "vali"
+#define HELDGLOVE_TRAIT "heldglove"
+#define SECTOID_TRAIT "sectoid"
+#define HUGGER_TRAIT "hugger"
+#define PISTOL_LACE_TRAIT "pistol_lace"
+#define NIGHT_VISION_GOGGLES_TRAIT "night_vision_goggles"
+#define SUBMERGED_TRAIT "submerged_trait"
+#define TRAIT_DWARF "dwarf"
+/// Makes you way too tall. Like just too much, dude, it's kind of creepy. Humanoid only.
+#define TRAIT_TOO_TALL "too_tall"
 
+#define ABSTRACT_ITEM_TRAIT "abstract_item"
 /// A trait given by any status effect
 #define STATUS_EFFECT_TRAIT "status-effect"
 /// A trait given by a specific status effect (not sure why we need both but whatever!)
@@ -121,15 +136,25 @@
 /// inherited from riding vehicles
 #define VEHICLE_TRAIT "vehicle"
 
+///AM is currently submerged
+#define TRAIT_SUBMERGED "trait_submerged"
+///AM will not be submerged. Trait must ALWAYS be added via the add_nosubmerge_trait proc for correct behavior
+#define TRAIT_NOSUBMERGE "trait_nosubmerge"
+
 
 
 //added b grilling a food
 #define TRAIT_FOOD_GRILLED "food_grilled"
 
+//atom/movable traits
+/// Trait that tracks if something has been renamed. Typically holds a REF() to the object itself (AKA src) for wide addition/removal.
+#define TRAIT_WAS_RENAMED "was_renamed"
+
 //mob traits
 #define TRAIT_POSSESSING "possessing" // Prevents mob from being taken by ghosts
 #define TRAIT_BURROWED "burrowed" // Burrows the xeno
 #define TRAIT_KNOCKEDOUT "knockedout" //Forces the user to stay unconscious.
+#define TRAIT_STAGGERED "staggered" //damage or ability debuffs
 #define TRAIT_INCAPACITATED "incapacitated"
 #define TRAIT_FLOORED "floored" //User is forced to the ground on a prone position.
 #define TRAIT_IMMOBILE "immobile" //User is unable to move by its own volition.
@@ -139,13 +164,28 @@
 #define TRAIT_TIME_SHIFTED "time_shifted"
 #define TRAIT_LEASHED "leashed"
 #define TRAIT_CAN_VENTCRAWL "can_ventcrawl"
-#define TRAIT_WORKED_OUT "worked_out" //user has a cqc buff from working out
+#define TRAIT_WORKED_OUT "worked_out" //user has a unarmed buff from working out
 ///Makes no footsteps at all
 #define TRAIT_SILENT_FOOTSTEPS "silent_footsteps"
 ///quieter footsteps
 #define TRAIT_LIGHT_STEP "light_step"
 ///noisier footsteps
 #define TRAIT_HEAVY_STEP "heavy_step"
+///indicates this mob was spawned by a corpse spawner
+#define TRAIT_MAPSPAWNED "mapspawned"
+///Mindmelded with another mob
+#define TRAIT_MINDMELDED "mindmelded"
+///You swing axe good
+#define TRAIT_AXE_EXPERT "axe_expert"
+///You swing sword good
+#define TRAIT_SWORD_EXPERT "sword_expert"
+///Pain reduction light
+#define TRAIT_LIGHT_PAIN_RESIST "light_pain_resist"
+///Pain reduction medium
+#define TRAIT_MEDIUM_PAIN_RESIST "medium_pain_resist"
+///is currently riding an armored vehicle
+#define TRAIT_TANK_DESANT "tank_desant"
+
 
 /// Prevents usage of manipulation appendages (picking, holding or using items, manipulating storage).
 #define TRAIT_HANDS_BLOCKED "handsblocked"
@@ -157,6 +197,7 @@
 #define TRAIT_LEGLESS "legless" //Has lost all the appendages needed to stay standing up.
 #define TRAIT_NOPLASMAREGEN "noplasmaregen"//xeno plasma wont recharge
 #define TRAIT_UNDEFIBBABLE "undefibbable"//human can't be revived
+#define TRAIT_HOLLOW "hollowedout" //examine trait for puppeteer
 #define TRAIT_IMMEDIATE_DEFIB "immediate_defib"//immediately revives when defibbed, rather than just healing
 #define TRAIT_HEALING_INFUSION "healing_infusion"//greatly improves natural healing for xenos
 #define TRAIT_PSY_DRAINED "psy_drained"//mob was drained of life force by a xenos
@@ -168,8 +209,10 @@
 #define TRAIT_SEE_IN_DARK "see_in_dark" //Able to see in dark
 #define TRAIT_MUTED "muted" //target is mute and can't speak
 #define TRAIT_TURRET_HIDDEN "turret_hidden" //target gets passed over by turrets choosing a victim
-#define TRAIT_MOB_ICON_UPDATE_BLOCKED "icon_blocked" //target should not update its icon_state
+///The target xenomorph's wound overlays won't be visible
+#define TRAIT_XENOMORPH_INVISIBLE_BLOOD "invisible_blood"
 #define TRAIT_VALHALLA_XENO "valhalla_xeno"
+#define TRAIT_BULWARKED_TURF "bulwarked_turf" // turf is affected by bulwark ability
 
 //important_recursive_contents traits
 /*
@@ -199,7 +242,9 @@
 #define TRAIT_GUN_RELOADING "reloading"
 
 // item traits
+#define TRAIT_NODROP "nodrop" // Cannot be dropped/unequipped at all, only deleted.
 #define TRAIT_T_RAY_VISIBLE "t-ray-visible" // Visible on t-ray scanners if the atom/var/level == 1
+#define TRAIT_STRAPPABLE "strappable"
 // turf traits
 #define TRAIT_TURF_BULLET_MANIPULATION "bullet_manipulation" //This tile is doing something to projectile
 // projectile traits
@@ -215,6 +260,8 @@
 
 //this mech is melee core boosted
 #define TRAIT_MELEE_CORE "melee_core"
+///stops tanks from being able to ram this mob
+#define TRAIT_STOPS_TANK_COLLISION "stops_tanks"
 
 //added to escaped humans
 #define TRAIT_HAS_ESCAPED "escaped_marine"
@@ -222,3 +269,11 @@
 
 //added to AIs firing railguns
 #define TRAIT_IS_FIRING_RAILGUN "firing_railgun"
+
+//regress and caste swap UI
+#define TRAIT_CASTE_SWAP "caste_swap"
+#define TRAIT_REGRESSING "regressing"
+#define TRAIT_STRAIN_SWAP "strain swap"
+
+///Pauses campaign mission timer
+#define CAMPAIGN_MISSION_TIMER_PAUSED "campaign_mission_timer_paused"

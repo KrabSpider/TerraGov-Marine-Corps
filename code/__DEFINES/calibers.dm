@@ -13,6 +13,7 @@
 #define CALIBER_50AE ".50 AE"
 #define CALIBER_41RIM ".41 Rimfire" //Derringer
 #define CALIBER_70MANKEY ".70 Mankey" //Don't ask
+#define CALIBER_41AE ".41 AE"
 
 // Revolvers
 #define CALIBER_44 ".44 Magnum"
@@ -52,6 +53,7 @@
 // --- Snipers ---
 #define CALIBER_86X70 "8.6x70mm"
 #define CALIBER_10X99 "10x99mm"
+#define CALIBER_14X5 "14x5mm"
 #define CALIBER_762X54 "7.62x54mm Rimmed" //SVD and mosin
 #define CALIBER_557 ".557/440" //Martini Henry
 #define CALIBER_RAILGUN "rail projectile"
@@ -63,7 +65,7 @@
 #define CALIBER_67MM "67mm shell"
 #define CALIBER_68MM "68mm rocket"
 #define CALIBER_37MM "37mm"
-#define CALIBER_75MM "75mm" //Heavy Recoilless Rifle
+#define CALIBER_15CM "155mm" //Heavy Infantry Support Gun
 
 #define CALIBER_ROCKETARRAY "rocket array"
 #define CALIBER_ROCKETTOY "toy rocket"
@@ -73,7 +75,6 @@
 #define CALIBER_FUEL_THICK "UT-Napthal Fuel"
 #define CALIBER_WATER "Water"
 #define CALIBER_10X28 "10x28mm" //Sentry, OG Smartgun and SR-26 Sniper?
-#define CALIBER_86 "86mm" //MBT Main Cannon
 #define CALIBER_PEPPERBALL "SAN Ball " //Pepperball gun
 #define CALIBER_10G_RAIL "10 gauge rail"
 
@@ -83,5 +84,6 @@
 #define CALIBER_10X30 "10x30mm caseless"
 #define CALIBER_20 "20mm" //Dualcannon
 
-///Unmanned vehicles
+/// Vehicles
 #define CALIBER_11X35 "11x35mm"
+#define CALIBER_105MM "105mm" //MBT Main Cannon

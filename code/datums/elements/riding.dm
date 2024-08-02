@@ -27,7 +27,7 @@
 	RegisterSignal(target, COMSIG_MOVABLE_PREBUCKLE, PROC_REF(check_mounting))
 
 /datum/element/ridable/Detach(datum/target)
-	UnregisterSignal(target, list(COMSIG_MOVABLE_PREBUCKLE, COMSIG_PARENT_ATTACKBY))
+	UnregisterSignal(target, list(COMSIG_MOVABLE_PREBUCKLE, COMSIG_ATOM_ATTACKBY))
 	return ..()
 
 /// Someone is buckling to this movable, which is literally the only thing we care about (other than speed potions)
@@ -101,10 +101,10 @@
 
 /obj/item/riding_offhand
 	name = "offhand"
-	icon = 'icons/obj/items/weapons.dmi'
+	icon = 'icons/obj/items/weapons/misc.dmi'
 	icon_state = "offhand"
 	w_class = WEIGHT_CLASS_HUGE
-	flags_item = ITEM_ABSTRACT | DELONDROP | NOBLUDGEON
+	item_flags = ITEM_ABSTRACT | DELONDROP | NOBLUDGEON
 	resistance_flags = INDESTRUCTIBLE | UNACIDABLE | PROJECTILE_IMMUNE
 	var/mob/living/carbon/rider
 	var/mob/living/parent

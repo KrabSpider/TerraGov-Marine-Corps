@@ -14,10 +14,11 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 	var/round_finished
 	var/list/round_end_states = list()
 	var/list/valid_job_types = list()
+	var/list/job_points_needed_by_job_type = list()
 
 	var/round_time_fog
-	var/flags_round_type = NONE
-	var/flags_xeno_abilities = NONE
+	var/round_type_flags = NONE
+	var/xeno_abilities_flags = NONE
 
 	///Determines whether rounds with the gamemode will be factored in when it comes to persistency
 	var/allow_persistence_save = TRUE
@@ -27,6 +28,8 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 	var/deploy_time_lock = 15 MINUTES
 	///The respawn time for marines
 	var/respawn_time = 30 MINUTES
+	//The respawn time for Xenomorphs
+	var/xenorespawn_time = 5 MINUTES
 	///How many points do you need to win in a point gamemode
 	var/win_points_needed = 0
 	///The points per faction, assoc list
@@ -54,11 +57,13 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 	///If the gamemode has a whitelist of valid ship maps. Whitelist overrides the blacklist
 	var/list/whitelist_ship_maps
 	///If the gamemode has a blacklist of disallowed ship maps
-	var/list/blacklist_ship_maps = list(MAP_COMBAT_PATROL_BASE, MAP_TWIN_PILLARS)
+	var/list/blacklist_ship_maps = list(MAP_COMBAT_PATROL_BASE, MAP_ITERON)
 	///If the gamemode has a whitelist of valid ground maps. Whitelist overrides the blacklist
 	var/list/whitelist_ground_maps
 	///If the gamemode has a blacklist of disallowed ground maps
-	var/list/blacklist_ground_maps = list(MAP_DELTA_STATION, MAP_WHISKEY_OUTPOST, MAP_OSCAR_OUTPOST)
+	var/list/blacklist_ground_maps = list(MAP_DELTA_STATION, MAP_RESEARCH_OUTPOST, MAP_PRISON_STATION, MAP_LV_624, MAP_WHISKEY_OUTPOST, MAP_OSCAR_OUTPOST, MAP_FORT_PHOBOS)
+	///if fun tads are enabled by default
+	var/enable_fun_tads = FALSE
 
 
 /datum/game_mode/New()
@@ -86,17 +91,9 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 
 
 /datum/game_mode/proc/pre_setup()
-	if(flags_round_type & MODE_TWO_HUMAN_FACTIONS)
-		for(var/turf/T AS in GLOB.lz1_shuttle_console_turfs_list)
-			new /obj/machinery/computer/shuttle/shuttle_control/dropship/rebel(T)
-		for(var/turf/T AS in GLOB.lz2_shuttle_console_turfs_list)
-			new /obj/machinery/computer/shuttle/shuttle_control/dropship/loyalist(T)
-	else
-		for(var/turf/T AS in GLOB.lz1_shuttle_console_turfs_list + GLOB.lz2_shuttle_console_turfs_list)
-			new /obj/machinery/computer/shuttle/shuttle_control/dropship(T)
-
 	setup_blockers()
 	GLOB.balance.Initialize()
+	RegisterSignal(SSdcs, COMSIG_GLOB_MOB_GET_STATUS_TAB_ITEMS, PROC_REF(get_status_tab_items))
 
 	GLOB.landmarks_round_start = shuffle(GLOB.landmarks_round_start)
 	var/obj/effect/landmark/L
@@ -104,6 +101,12 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 		L = GLOB.landmarks_round_start[length(GLOB.landmarks_round_start)]
 		GLOB.landmarks_round_start.len--
 		L.after_round_start()
+
+	for(var/datum/job/job AS in valid_job_types)
+		job = SSjob.GetJobType(job)
+		if(!job) //dunno how or why but it errored in ci and i couldnt reproduce on local
+			continue
+		job.on_pre_setup()
 
 	return TRUE
 
@@ -113,7 +116,7 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 	create_characters()
 	spawn_characters()
 	transfer_characters()
-	SSpoints.prepare_supply_packs_list(CHECK_BITFIELD(flags_round_type, MODE_HUMAN_ONLY))
+	SSpoints.prepare_supply_packs_list(CHECK_BITFIELD(round_type_flags, MODE_HUMAN_ONLY))
 	SSpoints.dropship_points = 0
 	SSpoints.supply_points[FACTION_TERRAGOV] = 0
 
@@ -125,9 +128,9 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 ///Gamemode setup run after the game has started
 /datum/game_mode/proc/post_setup()
 	addtimer(CALLBACK(src, PROC_REF(display_roundstart_logout_report)), ROUNDSTART_LOGOUT_REPORT_TIME)
-	if(flags_round_type & MODE_SILO_RESPAWN)
-		var/datum/hive_status/normal/HN = GLOB.hive_datums[XENO_HIVE_NORMAL]
-		HN.RegisterSignal(SSdcs, list(COMSIG_GLOB_OPEN_TIMED_SHUTTERS_LATE, COMSIG_GLOB_OPEN_SHUTTERS_EARLY), TYPE_PROC_REF(/datum/hive_status/normal, set_siloless_collapse_timer))
+	if(round_type_flags & MODE_FORCE_CUSTOMSQUAD_UI)
+		addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(send_global_signal), COMSIG_GLOB_DEPLOY_TIMELOCK_ENDED), deploy_time_lock)
+
 	if(!SSdbcore.Connect())
 		return
 	var/sql
@@ -174,9 +177,11 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 		var/mob/living = player.transfer_character()
 		if(!living)
 			continue
-
 		qdel(player)
+		living.client.init_verbs()
 		living.notransform = TRUE
+		SEND_GLOBAL_SIGNAL(COMSIG_GLOB_PLAYER_ROUNDSTART_SPAWNED, living)
+		log_manifest(living.ckey, living.mind, living)
 		livings += living
 
 	if(length(livings))
@@ -194,7 +199,7 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 
 
 /datum/game_mode/proc/declare_completion()
-	to_chat(world, span_round_body("Thus ends the story of the brave men and women of the [SSmapping.configs[SHIP_MAP].map_name] and their struggle on [SSmapping.configs[GROUND_MAP].map_name]."))
+	end_round_fluff()
 	log_game("The round has ended.")
 	SSdbcore.SetRoundEnd()
 	if(time_between_round)
@@ -204,9 +209,11 @@ GLOBAL_VAR(common_report) //Contains common part of roundend report
 		SSpersistence.CollectData()
 	display_report()
 	addtimer(CALLBACK(src, PROC_REF(end_of_round_deathmatch)), ROUNDEND_EORG_DELAY)
-	//end_of_round_deathmatch()
 	return TRUE
 
+///End of round messaging
+/datum/game_mode/proc/end_round_fluff()
+	to_chat(world, span_round_body("Thus ends the story of the brave men and women of the [SSmapping.configs[SHIP_MAP].map_name] and their struggle on [SSmapping.configs[GROUND_MAP].map_name]."))
 
 /datum/game_mode/proc/display_roundstart_logout_report()
 	var/msg = "<hr>[span_notice("<b>Roundstart logout report</b>")]<br>"
@@ -260,17 +267,17 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 ))
 
 ///Annonce to everyone the number of xeno and marines on ship and ground
-/datum/game_mode/proc/announce_bioscans(show_locations = TRUE, delta = 2, announce_humans = TRUE, announce_xenos = TRUE, send_fax = TRUE)
+/datum/game_mode/proc/announce_bioscans(show_locations = TRUE, delta = 2, ai_operator = FALSE, announce_humans = TRUE, announce_xenos = TRUE, send_fax = TRUE)
 	return
 
 /datum/game_mode/proc/setup_blockers()
 	set waitfor = FALSE
 
-	if(flags_round_type & MODE_LATE_OPENING_SHUTTER_TIMER)
+	if(round_type_flags & MODE_LATE_OPENING_SHUTTER_TIMER)
 		addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(send_global_signal), COMSIG_GLOB_OPEN_TIMED_SHUTTERS_LATE), SSticker.round_start_time + shutters_drop_time)
 			//Called late because there used to be shutters opened earlier. To re-add them just copy the logic.
 
-	if(flags_round_type & MODE_XENO_SPAWN_PROTECT)
+	if(round_type_flags & MODE_XENO_SPAWN_PROTECT)
 		var/turf/T
 		while(length(GLOB.xeno_spawn_protection_locations))
 			T = GLOB.xeno_spawn_protection_locations[length(GLOB.xeno_spawn_protection_locations)]
@@ -278,10 +285,13 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 			new /obj/effect/forcefield/fog(T)
 			stoplag()
 
+///respawns the player, overrides verb respawn behavior as required
+/datum/game_mode/proc/player_respawn(mob/respawnee)
+	respawnee.respawn()
 
 /datum/game_mode/proc/grant_eord_respawn(datum/dcs, mob/source)
 	SIGNAL_HANDLER
-	source.verbs |= /mob/proc/eord_respawn
+	add_verb(source, /mob/proc/eord_respawn)
 
 /datum/game_mode/proc/end_of_round_deathmatch()
 	RegisterSignal(SSdcs, COMSIG_GLOB_MOB_LOGIN, PROC_REF(grant_eord_respawn)) // New mobs can now respawn into EORD
@@ -295,7 +305,7 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 
 	for(var/i in GLOB.player_list)
 		var/mob/M = i
-		M.verbs |= /mob/proc/eord_respawn
+		add_verb(M, /mob/proc/eord_respawn)
 		if(isnewplayer(M))
 			continue
 		if(!(M.client?.prefs?.be_special & BE_DEATHMATCH))
@@ -331,24 +341,17 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 			var/mob/living/carbon/human/H = M
 			do_eord_respawn(H)
 
+		M.on_eord(picked)
 		to_chat(M, "<br><br><h1>[span_danger("Fight for your life!")]</h1><br><br>")
 		CHECK_TICK
 
 	for(var/obj/effect/landmark/eord_roomba/landmark in GLOB.eord_roomba_spawns)
-		new /obj/machinery/roomba/valhalla/eord(get_turf(landmark))
+		new /obj/machinery/bot/roomba/valhalla/eord(get_turf(landmark))
 
 /datum/game_mode/proc/orphan_hivemind_collapse()
 	return
 
 /datum/game_mode/proc/get_hivemind_collapse_countdown()
-	return
-
-/// called to check for updates that might require starting/stopping the siloless collapse timer
-/datum/game_mode/proc/update_silo_death_timer(datum/hive_status/silo_owner)
-	return
-
-///starts the timer to end the round when no silo is left
-/datum/game_mode/proc/get_siloless_collapse_countdown()
 	return
 
 ///Provides the amount of time left before the game ends, used for the stat panel
@@ -393,6 +396,8 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 		parts += "[GLOB.round_statistics.howitzer_shells_fired] howitzer shells were fired."
 	if(GLOB.round_statistics.rocket_shells_fired)
 		parts += "[GLOB.round_statistics.rocket_shells_fired] rocket artillery shells were fired."
+	if(GLOB.round_statistics.obs_fired)
+		parts += "[GLOB.round_statistics.obs_fired] orbital bombardements were fired."
 	if(GLOB.round_statistics.total_human_deaths[FACTION_TERRAGOV])
 		parts += "[GLOB.round_statistics.total_human_deaths[FACTION_TERRAGOV]] people were killed, among which [GLOB.round_statistics.total_human_revives[FACTION_TERRAGOV]] were revived and [GLOB.round_statistics.total_human_respawns] respawned. For a [(GLOB.round_statistics.total_human_revives[FACTION_TERRAGOV] / max(GLOB.round_statistics.total_human_deaths[FACTION_TERRAGOV], 1)) * 100]% revival rate and a [(GLOB.round_statistics.total_human_respawns / max(GLOB.round_statistics.total_human_deaths[FACTION_TERRAGOV], 1)) * 100]% respawn rate."
 	if(SSevacuation.human_escaped)
@@ -476,14 +481,25 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 		parts += "[GLOB.round_statistics.points_from_mining] requisitions points gained from mining."
 	if(GLOB.round_statistics.points_from_research)
 		parts += "[GLOB.round_statistics.points_from_research] requisitions points gained from research."
+	if(GLOB.round_statistics.points_from_xenos)
+		parts += "[GLOB.round_statistics.points_from_xenos] requisitions points gained from xenomorph sales."
+	if(GLOB.round_statistics.runner_items_stolen)
+		parts += "[GLOB.round_statistics.runner_items_stolen] items stolen by runners."
+
+	if(GLOB.round_statistics.sandevistan_uses)
+		var/sandevistan_text = "[GLOB.round_statistics.sandevistan_uses] number of times someone was boosted by a sandevistan"
+		if(GLOB.round_statistics.sandevistan_gibs)
+			sandevistan_text += ", of which [GLOB.round_statistics.sandevistan_gibs] resulted in a gib!"
+		else
+			sandevistan_text += ", and nobody was gibbed by it!"
+		parts += sandevistan_text
+
 	if(length(GLOB.round_statistics.req_items_produced))
+		parts += ""  // make it special from other stats above
 		parts += "Requisitions produced: "
 		for(var/atom/movable/path AS in GLOB.round_statistics.req_items_produced)
-			parts += "[GLOB.round_statistics.req_items_produced[path]] [initial(path.name)]"
-			if(path == GLOB.round_statistics.req_items_produced[length(GLOB.round_statistics.req_items_produced)]) //last element
-				parts += "."
-			else
-				parts += ","
+			var/last = GLOB.round_statistics.req_items_produced[length(GLOB.round_statistics.req_items_produced)]
+			parts += "[GLOB.round_statistics.req_items_produced[path]] [initial(path.name)][last ? "." : ","]"
 
 	if(length(parts))
 		return "<div class='panel stationborder'>[parts.Join("<br>")]</div>"
@@ -570,7 +586,7 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 	if(!SSticker || SSticker.current_state != GAME_STATE_PLAYING)
 		to_chat(usr, "<span class='warning'>The round is either not ready, or has already finished!<spawn>")
 		return FALSE
-	if(!GLOB.enter_allowed)
+	if(!GLOB.enter_allowed || (!GLOB.xeno_enter_allowed && istype(job, /datum/job/xenomorph)))
 		to_chat(usr, "<span class='warning'>Spawning currently disabled, please observe.<spawn>")
 		return FALSE
 	if(!NP.client.prefs.random_name)
@@ -578,7 +594,7 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 		if(job.job_flags & JOB_FLAG_SPECIALNAME)
 			name_to_check = job.get_special_name(NP.client)
 		if(CONFIG_GET(flag/prevent_dupe_names) && GLOB.real_names_joined.Find(name_to_check))
-			to_chat(usr, "<span class='warning'>Someone has already joined the round with this character name. Please pick another.<spawn>")
+			to_chat(usr, span_warning("Someone has already joined the round with this character name. Please pick another."))
 			return FALSE
 	if(!SSjob.AssignRole(NP, job, TRUE))
 		to_chat(usr, "<span class='warning'>Failed to assign selected role.<spawn>")
@@ -591,9 +607,12 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 	player.spawning = TRUE
 	player.create_character()
 	SSjob.spawn_character(player, TRUE)
-	player.mind.transfer_to(player.new_character)
+	player.mind.transfer_to(player.new_character, TRUE)
+	SEND_GLOBAL_SIGNAL(COMSIG_GLOB_PLAYER_LATE_SPAWNED, player.new_character)
+	log_manifest(player.new_character.ckey, player.new_character.mind, player.new_character, latejoin = TRUE)
 	var/datum/job/job = player.assigned_role
 	job.on_late_spawn(player.new_character)
+	player.new_character.client?.init_verbs()
 	var/area/A = get_area(player.new_character)
 	deadchat_broadcast(span_game(" has woken at [span_name("[A?.name]")]."), span_game("[span_name("[player.new_character.real_name]")] ([job.title])"), follow_target = player.new_character, message_type = DEADCHAT_ARRIVALRATTLE)
 	qdel(player)
@@ -682,6 +701,12 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 		return FALSE
 	if(length(SSjob.active_squads[FACTION_TERRAGOV]))
 		scale_squad_jobs()
+	for(var/job_type in job_points_needed_by_job_type)
+		if(!(job_type in subtypesof(/datum/job)))
+			stack_trace("Invalid job type in job_points_needed_by_job_type. Current mode : [name], Invalid type: [job_type]")
+			continue
+		var/datum/job/scaled_job = SSjob.GetJobType(job_type)
+		scaled_job.job_points_needed = job_points_needed_by_job_type[job_type]
 	return TRUE
 
 /datum/game_mode/proc/scale_squad_jobs()
@@ -742,8 +767,9 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 /datum/game_mode/proc/personal_report(client/C, popcount)
 	var/list/parts = list()
 	var/mob/M = C.mob
+	//Always display that the round ended
+	parts += span_round_header("<span class='body' style=font-size:20px;text-align:center valign='top'>Round Complete:[round_finished]</span>")
 	if(M.mind && !isnewplayer(M))
-		parts += span_round_header("<span class='body' style=font-size:20px;text-align:center valign='top'>Round Complete:[round_finished]</span>")
 		if(M.stat != DEAD && !isbrain(M))
 			if(ishuman(M))
 				var/turf/current_turf = get_turf(M)
@@ -763,6 +789,9 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 		else
 			parts += "<div class='panel redborder'>"
 			parts += span_redtext("You did not survive the events on [SSmapping.configs[GROUND_MAP].map_name]...")
+		if(GLOB.personal_statistics_list[C.ckey])
+			var/datum/personal_statistics/personal_statistics = GLOB.personal_statistics_list[C.ckey]
+			parts += personal_statistics.compose_report()
 	else
 		parts += "<div class='panel stationborder'>"
 	parts += "<br>"
@@ -776,6 +805,7 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 	parts += "<div class='panel stationborder'>"
 	parts += "</div>"
 	parts += GLOB.common_report
+
 	var/content = parts.Join()
 	//Log the rendered HTML in the round log directory
 	fdel(roundend_file)
@@ -897,8 +927,83 @@ GLOBAL_LIST_INIT(bioscan_locations, list(
 
 ///Generates nuke disk consoles from a list of valid locations
 /datum/game_mode/proc/generate_nuke_disk_spawners()
+	if(!length(SSmapping.configs[GROUND_MAP].disk_sets))
+		CRASH("Map Json invalid for generating nuke disks on this map - set up at least one disk set in it. Have you tried \"basic\", assuming only one disk set exists?")
+	var/chosen_disk_set = pickweight(SSmapping.configs[GROUND_MAP].disk_sets)
+	var/list/viable_disks = list()
+	var/list/forced_disks = list()
+	for(var/obj/structure/nuke_disk_candidate/candidate AS in GLOB.nuke_disk_spawn_locs)
+		if(chosen_disk_set in candidate.set_associations)
+			if(chosen_disk_set in candidate.force_for_sets)
+				forced_disks += candidate
+			else
+				viable_disks += candidate
+	if((length(viable_disks) + length(forced_disks)) < length(GLOB.nuke_disk_generator_types)) //Lets in maps with > 3 disks for a given set and just behaves like the previous rng in that case.
+		CRASH("Warning: Current map has too few nuke disk generators to correctly generate disks for set \">[chosen_disk_set]<\". Make sure both generators and json are set up correctly.")
+	if(length(forced_disks) > length(GLOB.nuke_disk_generator_types))
+		CRASH("Warning: Current map has too many forced disks for the current set type \">[chosen_disk_set]<\". Amount is [length(forced_disks)]. Please revisit your disk candidates.")
 	for(var/obj/machinery/computer/nuke_disk_generator AS in GLOB.nuke_disk_generator_types)
-		var/spawn_loc = pick(GLOB.nuke_disk_spawn_locs)
+		var/spawn_loc
+		if(length(forced_disks))
+			spawn_loc = pick_n_take(forced_disks)
+		else
+			spawn_loc = pick_n_take(viable_disks)
 		new nuke_disk_generator(get_turf(spawn_loc))
-		GLOB.nuke_disk_spawn_locs -= spawn_loc
 		qdel(spawn_loc)
+
+/// Add gamemode related items to statpanel
+/datum/game_mode/proc/get_status_tab_items(datum/dcs, mob/source, list/items)
+	SIGNAL_HANDLER
+	var/patrol_end_countdown = game_end_countdown()
+	if(patrol_end_countdown)
+		items += "Round End timer: [patrol_end_countdown]"
+	var/patrol_wave_countdown = wave_countdown()
+	if(patrol_wave_countdown)
+		items += "Respawn wave timer: [patrol_wave_countdown]"
+
+	if (isobserver(source) || isxeno(source))
+		handle_collapse_timer(dcs, source, items)
+
+	if (source.can_wait_in_larva_queue())
+		handle_larva_timer(dcs, source, items)
+		handle_xeno_respawn_timer(dcs, source, items)
+
+/// Displays the orphan hivemind collapse timer, if applicable
+/datum/game_mode/proc/handle_collapse_timer(datum/dcs, mob/source, list/items)
+	if (isxeno(source))
+		var/mob/living/carbon/xenomorph/xeno = source
+		if(xeno.hivenumber != XENO_HIVE_NORMAL)
+			return // Don't show for non-normal hives
+	var/rulerless_countdown = get_hivemind_collapse_countdown()
+	if(rulerless_countdown)
+		items += "Orphan hivemind collapse timer: [rulerless_countdown]"
+
+/// Displays your position in the larva queue and how many burrowed larva there are, if applicable
+/datum/game_mode/proc/handle_larva_timer(datum/dcs, mob/source, list/items)
+	if(!(round_type_flags & MODE_INFESTATION))
+		return
+	var/larva_position = SEND_SIGNAL(source.client, COMSIG_CLIENT_GET_LARVA_QUEUE_POSITION)
+	if (larva_position) // If non-zero, we're in queue
+		items += "Position in larva candidate queue: [larva_position]"
+
+	var/datum/job/xeno_job = SSjob.GetJobType(/datum/job/xenomorph)
+	var/stored_larva = xeno_job.total_positions - xeno_job.current_positions
+	if(stored_larva)
+		items += "Burrowed larva: [stored_larva]"
+
+/// Displays your xeno respawn timer, if applicable
+/datum/game_mode/proc/handle_xeno_respawn_timer(datum/dcs, mob/source, list/items)
+	if(GLOB.respawn_allowed)
+		var/status_value = ((GLOB.key_to_time_of_xeno_death[source.key] ? GLOB.key_to_time_of_xeno_death[source.key] : -INFINITY)  + SSticker.mode?.xenorespawn_time - world.time) * 0.1 //If xeno_death is null, use -INFINITY
+		if(status_value <= 0)
+			items += "Xeno respawn timer: READY"
+		else
+			items += "Xeno respawn timer: [(status_value / 60) % 60]:[add_leading(num2text(status_value % 60), 2, "0")]"
+
+///Returns a list of verbs to give ghosts in this gamemode
+/datum/game_mode/proc/ghost_verbs(mob/dead/observer/observer)
+	return
+
+///Returns the armor color variant applicable for this mode
+/datum/game_mode/proc/get_map_color_variant()
+	return SSmapping.configs[GROUND_MAP].armor_style

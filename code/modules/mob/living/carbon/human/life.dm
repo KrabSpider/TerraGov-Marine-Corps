@@ -43,22 +43,21 @@
 	//Handle temperature/pressure differences between body and environment
 	handle_environment() //Optimized a good bit.
 
+/**
+ * Marks the mob as unrevivable
+ * Arguments:
+ * * affects_synth - If synths should be affected
+ */
 
-/mob/living/carbon/human/proc/set_undefibbable()
-	if(issynth(src)) //synths do not dnr.
+/mob/living/carbon/human/proc/set_undefibbable(affects_synth = FALSE)
+	if(issynth(src) && !affects_synth) //synths do not dnr (unless they want to, todo: dnr'd synths should probably be put into ssd mob list or something).
 		return
-	SEND_SIGNAL(src, COMSIG_HUMAN_SET_UNDEFIBBABLE)
 	ADD_TRAIT(src, TRAIT_UNDEFIBBABLE , TRAIT_UNDEFIBBABLE)
+	SEND_SIGNAL(src, COMSIG_HUMAN_SET_UNDEFIBBABLE)
 	SSmobs.stop_processing(src) //Last round of processing.
 
-	if(CHECK_BITFIELD(status_flags, XENO_HOST))
-		var/obj/item/alien_embryo/parasite = locate(/obj/item/alien_embryo) in src
-		if(parasite) //The larva cannot survive without a host.
-			qdel(parasite)
-		DISABLE_BITFIELD(status_flags, XENO_HOST)
-
-	if(SSticker.mode?.flags_round_type & MODE_TWO_HUMAN_FACTIONS)
-		job.add_job_positions(1)
+	if((SSticker.mode?.round_type_flags & MODE_TWO_HUMAN_FACTIONS) && job?.job_cost)
+		job.free_job_positions(1)
 	if(hud_list)
 		med_hud_set_status()
 
@@ -66,10 +65,13 @@
 	if(species.species_flags & NO_BREATHE)
 		return
 
-	if(losebreath <= 10)
-		adjust_Losebreath(-1) //Since this happens before checking to take/heal oxyloss, a losebreath of 1 or less won't do anything.
-	else
+	if(pulledby?.grab_state >= GRAB_KILL)
+		Losebreath(1)
+		adjustOxyLoss(4)
+	else if(losebreath > 10)
 		set_Losebreath(10) //Any single hit is functionally capped - to keep someone suffocating, you need continued losebreath applications.
+	else if(losebreath > 0)
+		adjust_Losebreath(-1) //Since this happens before checking to take/heal oxyloss, a losebreath of 1 or less won't do anything.
 
 	if(health < get_crit_threshold() || losebreath)
 		if(HAS_TRAIT(src, TRAIT_IGNORE_SUFFOCATION)) //Prevent losing health from asphyxiation, but natural recovery can still happen.

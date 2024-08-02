@@ -134,12 +134,12 @@
 /obj/structure/largecrate/supply/weapons/sentries
 	name = "\improper ST-571 sentry chest (x2)"
 	desc = "A supply crate containing two boxed ST-571 sentries."
-	supplies = list(/obj/item/storage/box/sentry = 2)
+	supplies = list(/obj/item/storage/box/crate/sentry = 2)
 
 /obj/structure/largecrate/supply/weapons/standard_hmg
 	name = "\improper HSG-102 mounted heavy smartgun chest (x2)"
 	desc = "A supply crate containing two boxed HSG-102 mounted heavy smartguns."
-	supplies = list(/obj/item/storage/box/tl102 = 2)
+	supplies = list(/obj/item/storage/box/hsg_102 = 2)
 
 /obj/structure/largecrate/supply/weapons/standard_atgun
 	name = "\improper AT-36 anti tank gun and ammo chest (x1, x10)"
@@ -150,6 +150,20 @@
 		/obj/item/ammo_magazine/standard_atgun/apcr = 3,
 		/obj/item/ammo_magazine/standard_atgun/he = 3,
 	)
+
+/obj/structure/largecrate/supply/weapons/standard_flakgun
+	name = "\improper ATR-22 flak gun and ammo chest (x1, x6)"
+	desc = "A supply crate containing a ATR-22 and a full set of ammo to load into the sponson."
+	supplies = list(
+		/obj/item/weapon/gun/standard_auto_cannon = 1,
+		/obj/item/ammo_magazine/auto_cannon = 3,
+		/obj/item/ammo_magazine/auto_cannon/flak = 3,
+	)
+
+/obj/structure/largecrate/supply/weapons/heavy_flakgun
+	name = "\improper FK-88 mounted flak gun (x1)"
+	desc = "A supply crate containing a FK-88 mounted flak gun. Ammo sold separately."
+	supplies = list(/obj/item/weapon/gun/heavy_isg = 1)
 
 /obj/structure/largecrate/supply/ammo
 	name = "ammunition case"
@@ -188,7 +202,7 @@
 /obj/structure/largecrate/supply/ammo/standard_hmg
 	name = "\improper HSG-102 ammunition box case (x6)"
 	desc = "An ammunition case containing six HSG-102 ammunition boxes."
-	supplies = list(/obj/item/ammo_magazine/tl102 = 6)
+	supplies = list(/obj/item/ammo_magazine/hsg_102 = 6)
 
 /obj/structure/largecrate/supply/ammo/standard_ammo
 	name = "large surplus ammuniton crate"
@@ -198,6 +212,7 @@
 		/obj/item/shotgunbox = 1,
 		/obj/item/shotgunbox/buckshot = 1,
 		/obj/item/shotgunbox/flechette = 1,
+		/obj/item/shotgunbox/tracker = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_pistol/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_heavypistol/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_revolver/full = 1,
@@ -206,19 +221,20 @@
 		/obj/item/storage/box/visual/magazine/compact/plasma_pistol/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_smg/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_machinepistol/full = 1,
+		/obj/item/storage/box/visual/magazine/compact/standard_heavysmg/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_assaultrifle/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_carbine/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_skirmishrifle/full = 1,
-		/obj/item/storage/box/visual/magazine/compact/martini/full = 1,
-		/obj/item/storage/box/visual/magazine/compact/tx11/full = 1,
+		/obj/item/storage/box/visual/magazine/compact/ar11/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/lasrifle/marine/full = 1,
-		/obj/item/storage/box/visual/magazine/compact/tx15/flechette/full = 1,
-		/obj/item/storage/box/visual/magazine/compact/tx15/slug/full = 1,
+		/obj/item/storage/box/visual/magazine/compact/sh15/flechette/full = 1,
+		/obj/item/storage/box/visual/magazine/compact/sh15/slug/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_dmr/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_br/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/chamberedrifle/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_lmg/full = 1,
 		/obj/item/storage/box/visual/magazine/compact/standard_gpmg/full = 1,
+		/obj/item/storage/box/visual/magazine/compact/standard_mmg/full = 1,
 	)
 
 
@@ -253,6 +269,10 @@
 	desc = "A case containing twenty five 80mm flare mortar shells."
 	supplies = list(/obj/item/mortal_shell/flare = 25)
 
+/obj/structure/largecrate/supply/explosives/disposable
+	name = "RL-72 disposable rocket launchers (x8)"
+	desc = "A case containing eight RL-72 disposables."
+	supplies = list(/obj/item/weapon/gun/launcher/rocket/oneuse = 8)
 
 /obj/structure/largecrate/supply/supplies
 	name = "supplies crate"
@@ -383,7 +403,7 @@
 
 /obj/structure/largecrate/machine/autodoc/attackby(obj/item/I, mob/user, params)
 	. = ..()
-	if(!.)
+	if(.)
 		return
 
 	if(iscrowbar(I))
@@ -392,7 +412,7 @@
 			return
 
 		var/obj/machinery/autodoc/event/E = new (T)
-		var/obj/machinery/autodoc_console/C = new (T)
+		var/obj/machinery/computer/autodoc_console/C = new (T)
 		C.loc = get_step(T, EAST)
 		E.connected = C
 		C.connected = E
@@ -403,7 +423,7 @@
 
 /obj/structure/largecrate/supply/machine/bodyscanner/attackby(obj/item/I, mob/user, params)
 	. = ..()
-	if(!.)
+	if(.)
 		return
 
 	if(iscrowbar(I))
@@ -412,7 +432,7 @@
 			return
 
 		var/obj/machinery/bodyscanner/E = new (T)
-		var/obj/machinery/body_scanconsole/C = new (T)
+		var/obj/machinery/computer/body_scanconsole/C = new (T)
 		C.loc = get_step(T, EAST)
 		C.connected = E
 
@@ -422,7 +442,7 @@
 
 /obj/structure/largecrate/machine/sleeper/attackby(obj/item/I, mob/user, params)
 	. = ..()
-	if(!.)
+	if(.)
 		return
 
 	if(iscrowbar(I))
@@ -431,7 +451,7 @@
 			return
 
 		var/obj/machinery/sleeper/E = new (T)
-		var/obj/machinery/sleep_console/C = new (T)
+		var/obj/machinery/computer/sleep_console/C = new (T)
 		C.loc = get_step(T, EAST)
 		E.connected = C
 		C.connected = E

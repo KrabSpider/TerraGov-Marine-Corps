@@ -87,9 +87,10 @@
 /turf/open/floor/plating/asteroidplating,
 /area/deathmatch)
 "bN" = (
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 4
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "bO" = (
 /obj/machinery/door/airlock/mainship/medical/glass/free_access{
@@ -105,7 +106,7 @@
 /turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
 "ca" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plating/asteroidplating,
 /area/deathmatch)
@@ -127,7 +128,7 @@
 "cm" = (
 /obj/effect/decal/remains/human,
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "cx" = (
 /obj/machinery/light{
@@ -199,11 +200,11 @@
 	dir = 10
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "dA" = (
 /obj/item/storage/bible,
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/effect/landmark/weapon_spawn/tier1_weapon_spawn,
 /turf/open/floor/wood/broken,
 /area/deathmatch)
@@ -215,7 +216,7 @@
 /turf/closed/wall/wood,
 /area/deathmatch)
 "dK" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/effect/landmark/weapon_spawn/tier1_weapon_spawn,
 /turf/open/floor/wood,
 /area/deathmatch)
@@ -255,9 +256,10 @@
 /area/deathmatch)
 "dT" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 8
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "dV" = (
 /obj/machinery/light{
@@ -382,9 +384,10 @@
 /turf/open/floor/plating/asteroidfloor,
 /area/space)
 "eO" = (
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "eP" = (
 /obj/structure/platform{
@@ -437,14 +440,15 @@
 /turf/open/floor/grass,
 /area/deathmatch)
 "fg" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
 "fs" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "fx" = (
 /obj/machinery/light{
@@ -511,7 +515,14 @@
 "hH" = (
 /obj/effect/landmark/weapon_spawn/tier1_weapon_spawn,
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
+/area/deathmatch)
+"hS" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless{
+	dir = 4
+	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "hX" = (
 /obj/machinery/door/airlock/mainship/medical/glass/free_access{
@@ -544,7 +555,7 @@
 /turf/open/floor/wood,
 /area/deathmatch)
 "jc" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/item/toy/plush/farwa,
 /turf/open/floor/industrial,
 /area/deathmatch)
@@ -558,7 +569,7 @@
 /turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
 "jA" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/effect/landmark/weapon_spawn/tier1_weapon_spawn,
 /turf/open/floor/wood,
 /area/deathmatch)
@@ -571,13 +582,13 @@
 /turf/open/floor/plating/asteroidplating,
 /area/deathmatch)
 "kh" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/storage/bible,
 /obj/effect/landmark/weapon_spawn/tier4_weapon_spawn,
 /turf/open/floor/wood/broken,
 /area/deathmatch)
 "kq" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/item/toy/plush/rouny,
 /turf/open/floor/industrial,
 /area/deathmatch)
@@ -586,7 +597,13 @@
 	dir = 4
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
+/area/deathmatch)
+"kE" = (
+/obj/structure/platform_decoration{
+	dir = 4
+	},
+/turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
 "kI" = (
 /obj/structure/largecrate/guns/merc,
@@ -604,13 +621,20 @@
 /obj/effect/ai_node,
 /turf/open/floor/wood,
 /area/deathmatch)
+"kR" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless/edge{
+	dir = 8
+	},
+/turf/open/floor/tile/dark,
+/area/deathmatch)
 "lc" = (
 /obj/effect/decal/cleanable/blood/gibs/xeno,
 /obj/structure/platform,
 /turf/open/floor/plating/asteroidplating,
 /area/deathmatch)
 "lK" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/structure/largecrate/random/case/small,
 /turf/open/floor/wood,
 /area/deathmatch)
@@ -678,7 +702,7 @@
 /turf/open/floor/plating/asteroidplating,
 /area/deathmatch)
 "nv" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/effect/landmark/weapon_spawn/tier1_weapon_spawn,
 /turf/open/floor/wood/broken,
 /area/deathmatch)
@@ -768,9 +792,10 @@
 /obj/structure/platform{
 	dir = 1
 	},
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 8
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "ql" = (
 /obj/structure/platform_decoration{
@@ -807,13 +832,20 @@
 /turf/open/floor/grass,
 /area/deathmatch)
 "rO" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/effect/landmark/weapon_spawn/tier4_weapon_spawn,
 /turf/open/floor/wood,
 /area/deathmatch)
 "rP" = (
 /obj/structure/flora/ausbushes/leafybush,
 /turf/open/ground/grass,
+/area/deathmatch)
+"rT" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless/edge{
+	dir = 1
+	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "sa" = (
 /obj/structure/bed/chair/wood/wings{
@@ -823,12 +855,13 @@
 /area/deathmatch)
 "si" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 4
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "sp" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/effect/landmark/weapon_spawn/tier4_weapon_spawn,
 /obj/effect/spawner/random/misc/plushie/nospawnninetyfive,
 /turf/open/floor/wood,
@@ -849,9 +882,10 @@
 "th" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 4
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "tq" = (
 /obj/structure/inflatable/wall,
@@ -900,8 +934,13 @@
 /obj/effect/decal/cleanable/cobweb2,
 /turf/open/floor/wood,
 /area/deathmatch)
+"uF" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless/edge,
+/turf/open/floor/tile/dark,
+/area/deathmatch)
 "uG" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/item/toy/plush/rouny{
 	dir = 4
 	},
@@ -911,12 +950,13 @@
 /obj/structure/platform{
 	dir = 8
 	},
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "uS" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/item/toy/plush/lizard,
 /turf/open/floor/industrial,
 /area/deathmatch)
@@ -926,7 +966,8 @@
 /area/deathmatch)
 "va" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom,
+/obj/structure/stairs/edge,
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "vg" = (
 /obj/effect/landmark/weapon_spawn/tier4_weapon_spawn,
@@ -945,7 +986,7 @@
 /turf/open/floor/wood/broken,
 /area/deathmatch)
 "wu" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/item/storage/bible,
 /obj/machinery/light{
 	dir = 8
@@ -955,7 +996,7 @@
 /turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
 "wN" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /obj/effect/decal/cleanable/cobweb2,
 /turf/open/floor/wood,
 /area/deathmatch)
@@ -1010,7 +1051,7 @@
 /area/deathmatch)
 "zx" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "zB" = (
 /obj/structure/platform,
@@ -1050,9 +1091,10 @@
 /obj/effect/turf_decal/warning_stripes/thin{
 	dir = 8
 	},
-/turf/open/floor/stairs/rampbottom{
-	dir = 4
+/obj/structure/stairs/seamless/edge{
+	dir = 8
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "Bs" = (
 /obj/effect/decal/cleanable/dirt,
@@ -1096,7 +1138,7 @@
 /turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
 "Dn" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/effect/landmark/weapon_spawn/tier2_weapon_spawn,
 /turf/open/floor/wood,
 /area/deathmatch)
@@ -1110,9 +1152,10 @@
 	dir = 8
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "DT" = (
 /obj/structure/platform_decoration,
@@ -1136,7 +1179,7 @@
 /turf/open/floor/wood,
 /area/deathmatch)
 "FN" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /obj/effect/decal/cleanable/cobweb,
 /turf/open/floor/wood,
 /area/deathmatch)
@@ -1156,13 +1199,20 @@
 /obj/structure/flora/ausbushes/brflowers,
 /turf/open/ground/grass,
 /area/deathmatch)
+"Gf" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless/edge{
+	dir = 1
+	},
+/turf/open/floor/plating/asteroidfloor,
+/area/deathmatch)
 "Gr" = (
 /obj/structure/largecrate/random/secure,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plating/asteroidplating,
 /area/deathmatch)
 "GE" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/effect/landmark/weapon_spawn/tier3_weapon_spawn,
 /turf/open/floor/wood,
 /area/deathmatch)
@@ -1298,7 +1348,7 @@
 /obj/effect/turf_decal/sandedge{
 	dir = 4
 	},
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "Li" = (
 /obj/structure/flora/ausbushes/ppflowers,
@@ -1306,9 +1356,9 @@
 /turf/open/floor/grass,
 /area/deathmatch)
 "Lp" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "LH" = (
 /obj/machinery/light{
@@ -1343,9 +1393,10 @@
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 8
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "Ms" = (
 /obj/effect/landmark/deathmatch,
@@ -1353,7 +1404,7 @@
 /turf/open/floor/plating/asteroidplating,
 /area/deathmatch)
 "Mz" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/item/toy/plush/snake,
 /turf/open/floor/industrial,
 /area/deathmatch)
@@ -1367,7 +1418,7 @@
 /obj/effect/turf_decal/sandedge{
 	dir = 4
 	},
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "Nd" = (
 /obj/structure/cargo_container/green{
@@ -1385,7 +1436,7 @@
 /turf/open/floor/grass,
 /area/deathmatch)
 "NF" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /turf/open/floor/wood,
 /area/deathmatch)
 "NG" = (
@@ -1446,10 +1497,10 @@
 /area/deathmatch)
 "OK" = (
 /obj/effect/landmark/deathmatch,
-/obj/structure/platform_decoration{
-	dir = 4
-	},
 /obj/effect/decal/cleanable/dirt,
+/obj/structure/platform{
+	dir = 8
+	},
 /turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
 "OS" = (
@@ -1462,8 +1513,15 @@
 /obj/structure/largecrate/random/barrel/yellow,
 /turf/open/floor/wood,
 /area/deathmatch)
+"Pq" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless/edge{
+	dir = 4
+	},
+/turf/open/floor/tile/dark,
+/area/deathmatch)
 "PO" = (
-/obj/structure/table/gamblingtable,
+/obj/structure/table/wood/gambling,
 /obj/item/toy/plush/moth,
 /turf/open/floor/industrial,
 /area/deathmatch)
@@ -1487,11 +1545,18 @@
 /obj/structure/prop/mainship/ship_memorial,
 /turf/open/floor/plating/mainship,
 /area/deathmatch)
+"RH" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/structure/stairs/seamless{
+	dir = 8
+	},
+/turf/open/floor/tile/dark,
+/area/deathmatch)
 "RO" = (
 /obj/effect/landmark/deathmatch,
 /obj/effect/landmark/weapon_spawn/tier2_weapon_spawn,
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "RT" = (
 /obj/effect/landmark/deathmatch,
@@ -1528,9 +1593,10 @@
 	dir = 4
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "Tx" = (
 /obj/structure/reagent_dispensers/fueltank/barrel,
@@ -1592,7 +1658,7 @@
 	dir = 2
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "Vw" = (
 /turf/open/liquid/water/river,
@@ -1632,10 +1698,10 @@
 "Xl" = (
 /obj/vehicle/train/cargo/trolley,
 /obj/effect/decal/cleanable/dirt,
-/turf/open/floor/plating/ground/dirt/desert,
+/turf/open/floor/plating/ground/dirt_desert,
 /area/deathmatch)
 "Xn" = (
-/obj/structure/ore_box,
+/obj/effect/spawner/random/engineering/ore_box,
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
@@ -1650,8 +1716,18 @@
 /area/deathmatch)
 "YJ" = (
 /obj/effect/landmark/weapon_spawn/tier3_weapon_spawn,
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /turf/open/floor/wood,
+/area/deathmatch)
+"YM" = (
+/obj/effect/decal/cleanable/dirt,
+/obj/effect/turf_decal/warning_stripes/thin{
+	dir = 8
+	},
+/obj/structure/stairs/seamless{
+	dir = 4
+	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "YO" = (
 /obj/effect/landmark/weapon_spawn/tier1_weapon_spawn,
@@ -2531,9 +2607,9 @@ eB
 Sq
 eB
 eB
-dT
-dT
-dT
+Pq
+RH
+uF
 yG
 ce
 ce
@@ -2581,7 +2657,7 @@ dG
 Ow
 eB
 eB
-nu
+eB
 ce
 ce
 ce
@@ -2628,10 +2704,10 @@ zD
 dG
 ei
 Ba
-Ba
-Bs
+YM
+Gf
 OK
-fI
+kE
 fI
 fI
 Xz
@@ -3597,9 +3673,9 @@ fI
 pj
 pj
 pj
-si
-si
-si
+kR
+hS
+rT
 dG
 jA
 Dn

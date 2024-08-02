@@ -1,7 +1,7 @@
 //Update this whenever the db schema changes
 //make sure you add an update to the schema_version stable in the db changelog
 #define DB_MAJOR_VERSION 2
-#define DB_MINOR_VERSION 1
+#define DB_MINOR_VERSION 2
 
 //Timing subsystem
 //Don't run if there is an identical unique timer active
@@ -47,7 +47,7 @@
 //type and all subtypes should always call Initialize in New()
 #define INITIALIZE_IMMEDIATE(X) ##X/New(loc, ...){\
 	..();\
-	if(!(flags_atom & INITIALIZED)) {\
+	if(!(atom_flags & INITIALIZED)) {\
 		args[1] = TRUE;\
 		SSatoms.InitAtom(src, FALSE, args);\
 	}\
@@ -80,6 +80,7 @@
 #define INIT_ORDER_DBCORE 25
 #define INIT_ORDER_SERVER_MAINT 23
 #define INIT_ORDER_INPUT 21
+#define INIT_ORDER_VIS 20
 #define INIT_ORDER_SOUNDS 19
 #define INIT_ORDER_INSTRUMENTS 17
 #define INIT_ORDER_GREYSCALE 16
@@ -89,13 +90,14 @@
 #define INIT_ORDER_JOBS 12
 #define INIT_ORDER_TICKER 11
 #define INIT_ORDER_MAPPING 10
-#define INIT_ORDER_SPATIAL_GRID 9
-#define INIT_ORDER_PERSISTENCE 8 //before assets because some assets take data from SSPersistence, such as vendor items
-#define INIT_ORDER_TTS 7
-#define INIT_ORDER_ATOMS 6
-#define INIT_ORDER_MODULARMAPPING 5
-#define INIT_ORDER_MACHINES 4
-#define INIT_ORDER_AI_NODES 3
+#define INIT_ORDER_EARLY_ASSETS 9
+#define INIT_ORDER_SPATIAL_GRID 8
+#define INIT_ORDER_PERSISTENCE 7 //before assets because some assets take data from SSPersistence, such as vendor items
+#define INIT_ORDER_TTS 6
+#define INIT_ORDER_ATOMS 5
+#define INIT_ORDER_MODULARMAPPING 4
+#define INIT_ORDER_MACHINES 3
+#define INIT_ORDER_AI_NODES 2
 #define INIT_ORDER_TIMER 1
 #define INIT_ORDER_DEFAULT 0
 #define INIT_ORDER_AIR -1
@@ -110,6 +112,7 @@
 #define INIT_ORDER_PATH -50
 #define INIT_ORDER_EXPLOSIONS -69
 #define INIT_ORDER_EXCAVATION -78
+#define INIT_ORDER_STATPANELS -97
 #define INIT_ORDER_CHAT -100 //Should be last to ensure chat remains smooth during init.
 
 // Subsystem fire priority, from lowest to highest priority
@@ -123,6 +126,7 @@
 #define FIRE_PRIORITY_AMBIENCE 10
 #define FIRE_PRIORITY_WEED 11
 #define FIRE_PRIORITY_GARBAGE 15
+#define FIRE_PRIORITY_VIS 15
 #define FIRE_PRIORITY_MINIMAPS 17
 #define FIRE_PRIORITY_DIRECTION 19
 #define FIRE_PRIORITY_SPAWNING 20
@@ -138,8 +142,10 @@
 #define FIRE_PRIORITY_SILO 91
 #define FIRE_PRIORITY_PATHFINDING 95
 #define FIRE_PRIORITY_MOBS 100
+#define FIRE_PRIORITY_ASSETS 105
 #define FIRE_PRIORITY_TGUI 110
 #define FIRE_PRIORITY_TICKER 200
+#define FIRE_PRIORITY_STATPANEL 390
 #define FIRE_PRIORITY_CHAT 400
 #define FIRE_PRIORITY_LOOPINGSOUND 405
 #define FIRE_PRIORITY_RUNECHAT 410

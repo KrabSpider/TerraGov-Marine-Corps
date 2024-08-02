@@ -4,9 +4,13 @@
 	anchored = TRUE
 	layer = ABOVE_MOB_LAYER
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	///How long before the temp_visual gets deleted
 	var/duration = 1 SECONDS
-	var/randomdir = TRUE
+	///Timer that our duration is stored in
 	var/timerid
+	///Gives our effect a random direction on init
+	var/randomdir = TRUE
+
 
 
 /obj/effect/temp_visual/Initialize(mapload)
@@ -14,7 +18,7 @@
 	if(randomdir)
 		setDir(pick(GLOB.cardinals))
 
-	timerid = QDEL_IN(src, duration)
+	timerid = QDEL_IN_STOPPABLE(src, duration)
 
 
 /obj/effect/temp_visual/Destroy()
@@ -69,27 +73,63 @@
 	holder = hud_list[XENO_TACTICAL_HUD]
 	if(!holder)
 		return
-	holder.icon = 'icons/Marine/marine-items.dmi'
-	holder.icon_state = "detector_blip"
+	holder.icon = 'icons/effects/blips.dmi'
+	holder.icon_state = "close_blip_hostile"
 	tracker_target = target
 	tracker_target.overlays += holder
 	hud_list[XENO_TACTICAL_HUD] = holder
 
-///Name_swap of the CAS flare
+GLOBAL_DATUM_INIT(flare_particles, /particles/flare_smoke, new)
+/particles/flare_smoke
+	icon = 'icons/effects/effects.dmi'
+	icon_state = "smoke"
+	width = 100
+	height = 200
+	count = 1000
+	spawning = 3
+	lifespan = 2 SECONDS
+	fade = 7 SECONDS
+	velocity = list(0, 5, 0)
+	drift = generator(GEN_CIRCLE, 0, 1, NORMAL_RAND)
+	spin = generator(GEN_NUM, -20, 20)
+	scale = 0.3
+	friction = 0.2
+	gravity = list(0, 0.95)
+	grow = 0.05
+
 /obj/effect/temp_visual/above_flare
+	icon = 'icons/effects/64x64.dmi'
 	icon_state = "flare"
 	layer = FLY_LAYER
-	resistance_flags = RESIST_ALL
-	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-	light_system = HYBRID_LIGHT
+	light_system = STATIC_LIGHT
 	light_power = 12
+	light_color = COLOR_VERY_SOFT_YELLOW
 	light_range = 12 //Way brighter than most lights
+	pixel_x = -18
 	pixel_y = 150
 	duration = 90 SECONDS
 
 /obj/effect/temp_visual/above_flare/Initialize(mapload)
 	. = ..()
-	set_light(light_range, light_power)
+	particles = GLOB.flare_particles
 	loc.visible_message(span_warning("You see a tiny flash, and then a blindingly bright light from a flare as it lights off in the sky!"))
 	playsound(loc, 'sound/weapons/guns/fire/flare.ogg', 50, 1, 4)
 	animate(src, time = duration, pixel_y = 0)
+
+/obj/effect/temp_visual/dropship_flyby
+	icon = 'icons/obj/structures/prop/dropship.dmi'
+	icon_state = "fighter_shadow"
+	layer = FLY_LAYER
+	resistance_flags = RESIST_ALL
+	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+	duration = 3 SECONDS
+	pixel_x = -48
+	pixel_y = -120
+	pixel_z = -480
+
+/obj/effect/temp_visual/dropship_flyby/Initialize()
+	. = ..()
+	animate(src, pixel_z = 960, time = 3 SECONDS)
+
+/obj/effect/temp_visual/dropship_flyby/som
+	icon_state = "harbinger_shadow"

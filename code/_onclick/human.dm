@@ -59,6 +59,7 @@
 
 	if(LAZYACCESS(modifiers, "right"))
 		A.attack_hand_alternate(src)
+		SEND_SIGNAL(src, COMSIG_HUMAN_MELEE_UNARMED_ATTACK_ALTERNATE, A)
 		return
 
 	SEND_SIGNAL(src, COMSIG_HUMAN_MELEE_UNARMED_ATTACK, A)
@@ -66,3 +67,8 @@
 	if(species?.spec_unarmedattack(src, A)) //Because species like monkeys dont use attack hand
 		return
 	A.attack_hand(src)
+
+	if(isnull(get_inactive_held_item()))
+		SStutorials.suggest_tutorial(src, /datum/tutorial/switch_hands, modifiers)
+	else if(!isnull(get_active_held_item()))
+		SStutorials.suggest_tutorial(src, /datum/tutorial/drop, modifiers)

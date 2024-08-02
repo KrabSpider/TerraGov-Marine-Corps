@@ -73,6 +73,8 @@
 
 /obj/structure/mopbucket/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, /obj/item/tool/mop))
 		if(reagents.total_volume < 1)
@@ -84,7 +86,7 @@
 		playsound(loc, 'sound/effects/slosh.ogg', 25, 1)
 
 /obj/structure/shipmast
-	name = "\the Ships Mast"
+	name = "Ships Mast"
 	icon = 'icons/obj/structures/structures.dmi'
 	icon_state = "shipmast" //Thank you to Spyroshark and Arachnidnexus
 	desc = "A piece of old earth that was. The plaque reads<br><br><span class='name'>HMS Victory Sailed 1765 to 1922.</span><br><span class='name'>Relaunched 2393.</span><br><span class='name'>On loan from the First Sea Lord.</span><br><br>"
@@ -131,7 +133,7 @@
 	max_integrity = 100
 	resistance_flags = UNACIDABLE
 	hit_sound = 'sound/effects/Glasshit.ogg'
-	destroy_sound = "shatter"
+	destroy_sound = SFX_SHATTER
 	///Whatever is contained in the tank
 	var/obj/occupant
 	///What this tank is replaced by when broken
@@ -154,9 +156,11 @@
 		if(EXPLODE_DEVASTATE)
 			qdel(src)
 		if(EXPLODE_HEAVY)
-			take_damage(100)
+			take_damage(100, BRUTE, BOMB)
 		if(EXPLODE_LIGHT)
-			take_damage(50)
+			take_damage(50, BRUTE, BOMB)
+		if(EXPLODE_WEAK)
+			take_damage(25, BRUTE, BOMB)
 
 ///Releases whatever is inside the tank
 /obj/structure/xenoautopsy/tank/proc/release_occupant()
@@ -216,72 +220,152 @@
 
 /obj/structure/stairs
 	name = "Stairs"
-	icon = 'icons/obj/structures/structures.dmi'
+	icon = 'icons/obj/structures/stairs.dmi'
 	desc = "Stairs.  You walk up and down them."
 	icon_state = "rampbottom"
 	layer = TURF_LAYER
 	density = FALSE
 	opacity = FALSE
 
+/obj/structure/stairs/Initialize(mapload)
+	. = ..()
+	update_icon()
+
+	var/static/list/connections = list(
+		COMSIG_FIND_FOOTSTEP_SOUND = TYPE_PROC_REF(/atom/movable, footstep_override),
+		COMSIG_TURF_CHECK_COVERED = TYPE_PROC_REF(/atom/movable, turf_cover_check),
+	)
+	AddElement(/datum/element/connect_loc, connections)
+
+/obj/structure/stairs/footstep_override(atom/movable/source, list/footstep_overrides)
+	footstep_overrides[FOOTSTEP_CATWALK] = layer
+
+//stand alone stairs
+/obj/structure/stairs/edge
+	icon_state = "rampbottom"
+
+/obj/structure/stairs/edge/update_overlays()
+	. = ..()
+	if(dir == WEST || dir == EAST)
+		var/image/new_overlay = image(icon, src, "[initial(icon_state)]_overlay", layer, dir)
+		new_overlay.pixel_y = -32
+		. += new_overlay
+
+/obj/structure/stairs/railstairs
+	icon_state = "railstairs"
+
+/obj/structure/stairs/railstairs/update_overlays()
+	. = ..()
+	var/image/new_overlay = image(icon, src, "[initial(icon_state)]_overlay", layer, dir)
+	new_overlay.pixel_y = -32
+	if(dir == WEST || dir == EAST)
+		new_overlay.layer = ABOVE_MOB_PLATFORM_LAYER
+	. += new_overlay
+
+/obj/structure/stairs/railstairs_vert
+	icon_state = "railstairs_vert"
+
+//seamless stairs
 /obj/structure/stairs/seamless
 	icon_state = "stairs_seamless"
+
+/obj/structure/stairs/seamless/edge
+	icon_state = "stairs_seamless_edge"
+
+/obj/structure/stairs/seamless/edge/update_overlays()
+	. = ..()
+	if(dir == NORTH || dir == SOUTH)
+		var/image/new_overlay = image(icon, src, "[initial(icon_state)]_overlay", layer, dir)
+		new_overlay.pixel_y = -32
+		. += new_overlay
+
+/obj/structure/stairs/seamless/edge_vert
+	icon_state = "stairs_seamless_edge_vert"
 
 /obj/structure/stairs/seamless/platform
 	icon_state = "railstairs_seamless"
 
-/obj/structure/stairs/seamless/platform/alt
+/obj/structure/stairs/seamless/platform/update_overlays()
+	. = ..()
+	if(dir == WEST || dir == EAST)
+		var/image/new_overlay = image(icon, src, "[initial(icon_state)]_overlay", layer, dir)
+		new_overlay.layer = ABOVE_MOB_PLATFORM_LAYER
+		. += new_overlay
+
+/obj/structure/stairs/seamless/platform/water
+	icon_state = "railstairs_seamless_water"
+
+/obj/structure/stairs/seamless/platform_vert
 	icon_state = "railstairs_seamless_vert"
 
+/obj/structure/stairs/seamless/platform_vert/water
+	icon_state = "railstairs_seamless_vert_water"
 
-/obj/structure/stairs/corner
-	icon_state = "staircorners"
+/obj/structure/stairs/seamless/platform/adobe
+	icon_state = "adobe_stairs"
 
-/obj/structure/stairs/cornerdark //darker version for the darkened ramp bottoms
-	icon_state = "staircornersdark"
+/obj/structure/stairs/seamless/platform/adobe/update_overlays()
+	. = ..()
+	if(dir == WEST || dir == EAST)
+		var/image/new_overlay = image(icon, src, "[initial(icon_state)]_overlay", layer, dir)
+		new_overlay.layer = ABOVE_MOB_PLATFORM_LAYER
+		. += new_overlay
 
-/obj/structure/stairs/cornerdark/seamless //darker version for the darkened ramp bottoms
+/obj/structure/stairs/seamless/platform/adobe/straight
+	icon_state = "adobe_stairs_straight"
+
+/obj/structure/stairs/seamless/platform/adobe_vert
+	icon_state = "adobe_stairs_vertical"
+
+/obj/structure/stairs/seamless/platform/adobe_vert/straight
+	icon_state = "adobe_stairs_vertical_straight"
+
+/obj/structure/stairs/corner_seamless
 	icon_state = "staircorners_seamless"
-
-/obj/structure/stairs/railstairs
-	icon = 'icons/obj/structures/railstairs.dmi'
-	icon_state = "stairdownrailright"
 
 /obj/structure/plasticflaps //HOW DO YOU CALL THOSE THINGS ANYWAY
 	name = "\improper plastic flaps"
 	desc = "Completely impassable - or are they?"
 	icon = 'icons/obj/stationobjs.dmi' //Change this.
 	icon_state = "plasticflaps"
-	density = FALSE
+	density = TRUE
 	anchored = TRUE
 	layer = MOB_LAYER
 	resistance_flags = XENO_DAMAGEABLE
 	max_integrity = 100
 
-/obj/structure/plasticflaps/CanAllowThrough(atom/A, turf/T)
-	. = ..()
-	if(istype(A) && CHECK_BITFIELD(A.flags_pass, PASSGLASS))
+/obj/structure/plasticflaps/CanAllowThrough(atom/movable/mover, turf/T)
+	if(istype(mover) && CHECK_BITFIELD(mover.pass_flags, PASS_GLASS))
 		return prob(60)
 
-	var/obj/structure/bed/B = A
-	if(istype(A, /obj/structure/bed) && LAZYLEN(B.buckled_mobs))//if it's a bed/chair and someone is buckled, it will not pass
+	if(isliving(mover))
+		var/mob/living/M = mover
+		if(M.lying_angle)
+			return TRUE
+		if(M.mob_size <= MOB_SIZE_SMALL)
+			return TRUE
+		if(isxenorunner(M)) //alas, snowflake
+			return TRUE
 		return FALSE
 
-	if(istype(A, /obj/vehicle))	//no vehicles
-		return FALSE
-
-	if(isliving(A)) // You Shall Not Pass!
-		var/mob/living/M = A
-		if(!M.lying_angle && !istype(M, /mob/living/simple_animal/mouse) && !istype(M, /mob/living/carbon/xenomorph/larva) && !istype(M, /mob/living/carbon/xenomorph/runner))  //If your not laying down, or a small creature, no pass. //todo kill shitcode
+	if(isobj(mover))
+		if(LAZYLEN(mover.buckled_mobs))
 			return FALSE
+		if(isvehicle(mover))
+			return FALSE
+
+		return TRUE
+
+	return ..()
 
 /obj/structure/plasticflaps/ex_act(severity)
 	switch(severity)
-		if (1)
+		if(EXPLODE_DEVASTATE)
 			qdel(src)
-		if (2)
+		if(EXPLODE_HEAVY)
 			if (prob(50))
 				qdel(src)
-		if (3)
+		if(EXPLODE_LIGHT, EXPLODE_WEAK)
 			if (prob(5))
 				qdel(src)
 
@@ -300,7 +384,7 @@
 /obj/structure/cryopods
 	name = "hypersleep chamber"
 	icon = 'icons/obj/machines/cryogenics.dmi'
-	icon_state = "body_scanner_0"
+	icon_state = "body_scanner"
 	desc = "A large automated capsule with LED displays intended to put anyone inside into 'hypersleep'."
 	density = TRUE
 	anchored = TRUE

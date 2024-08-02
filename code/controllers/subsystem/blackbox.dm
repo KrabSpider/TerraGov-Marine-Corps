@@ -1,7 +1,7 @@
 SUBSYSTEM_DEF(blackbox)
 	name = "Blackbox"
 	wait = 10 MINUTES
-	runlevels = RUNLEVEL_GAME|RUNLEVEL_POSTGAME
+	runlevels = RUNLEVEL_GAME
 
 	var/list/feedback = list()
 	var/sealed = FALSE
@@ -40,7 +40,7 @@ SUBSYSTEM_DEF(blackbox)
 			return
 
 	if(!GLOB.round_id)
-		SSdbcore.SetRoundID()
+		SSdbcore.InitializeRound()
 
 
 	if(CONFIG_GET(flag/use_exp_tracking))
@@ -86,7 +86,7 @@ SUBSYSTEM_DEF(blackbox)
 	if (!length(sqlrowlist))
 		return
 
-	SSdbcore.MassInsert(format_table_name("feedback"), sqlrowlist, ignore_errors = TRUE, delayed = TRUE, special_columns = special_columns)
+	SSdbcore.MassInsert(format_table_name("feedback"), sqlrowlist, ignore_errors = TRUE, delayed = FALSE, special_columns = special_columns)
 
 
 /datum/controller/subsystem/blackbox/proc/Seal()

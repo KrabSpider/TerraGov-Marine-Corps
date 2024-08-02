@@ -5,7 +5,7 @@
 	icon_state = "xeno_cocoon"
 	density = FALSE
 	layer = BELOW_OBJ_LAYER
-	hit_sound = 'sound/effects/alien_resin_break2.ogg'
+	hit_sound = 'sound/effects/alien/resin_break2.ogg'
 	max_integrity = 400
 	anchored = TRUE
 	obj_flags = CAN_BE_HIT
@@ -32,6 +32,7 @@
 	START_PROCESSING(SSslowprocess, src)
 	addtimer(CALLBACK(src, PROC_REF(life_draining_over), null, TRUE), cocoon_life_time)
 	RegisterSignal(SSdcs, COMSIG_GLOB_DROPSHIP_HIJACKED, PROC_REF(life_draining_over))
+	RegisterSignal(src, COMSIG_MOVABLE_SHUTTLE_CRUSH, PROC_REF(on_shuttle_crush))
 
 /obj/structure/cocoon/examine(mob/user, distance, infix, suffix)
 	. = ..()
@@ -41,9 +42,12 @@
 /obj/structure/cocoon/process()
 	var/psych_points_output = COCOON_PSY_POINTS_REWARD_MIN + ((HIGH_PLAYER_POP - SSmonitor.maximum_connected_players_count) / HIGH_PLAYER_POP * (COCOON_PSY_POINTS_REWARD_MAX - COCOON_PSY_POINTS_REWARD_MIN))
 	psych_points_output = clamp(psych_points_output, COCOON_PSY_POINTS_REWARD_MIN, COCOON_PSY_POINTS_REWARD_MAX)
-	SSpoints.add_psy_points(hivenumber, psych_points_output)
+	SSpoints.add_strategic_psy_points(hivenumber, psych_points_output)
+	SSpoints.add_tactical_psy_points(hivenumber, psych_points_output*0.25)
+	//Gives marine cloneloss for a total of 30.
+	victim.adjustCloneLoss(0.5)
 
-/obj/structure/cocoon/take_damage(damage_amount, damage_type, damage_flag, effects, attack_dir, armour_penetration)
+/obj/structure/cocoon/take_damage(damage_amount, damage_type = BRUTE, armor_type = null, effects = TRUE, attack_dir, armour_penetration = 0, mob/living/blame_mob)
 	. = ..()
 	if(anchored && obj_integrity < max_integrity / 2)
 		unanchor_from_nest()
@@ -53,7 +57,7 @@
 	new /obj/structure/bed/nest(loc)
 	anchored = FALSE
 	update_icon()
-	playsound(loc, "alien_resin_move", 35)
+	playsound(loc, SFX_ALIEN_RESIN_MOVE, 35)
 
 ///Stop producing points and release the victim if needed
 /obj/structure/cocoon/proc/life_draining_over(datum/source, must_release_victim = FALSE)
@@ -75,14 +79,22 @@
 		release_victim()
 	return ..()
 
+/// Signal proc, makes sure the victim gets gibbed if a shuttle lands on the cocoon
+/obj/structure/cocoon/proc/on_shuttle_crush(datum/source, obj/docking_port/mobile/shuttle)
+	SIGNAL_HANDLER
+	release_victim(TRUE)
+
 ///Open the cocoon and move the victim out
-/obj/structure/cocoon/proc/release_victim()
+/obj/structure/cocoon/proc/release_victim(gib = FALSE)
 	REMOVE_TRAIT(victim, TRAIT_STASIS, TRAIT_STASIS)
-	playsound(loc, "alien_resin_move", 35)
+	playsound(loc, SFX_ALIEN_RESIN_MOVE, 35)
 	victim.forceMove(loc)
 	victim.setDir(NORTH)
 	victim.med_hud_set_status()
+	if(gib)
+		victim.gib()
 	victim = null
+	STOP_PROCESSING(SSslowprocess, src)
 
 /obj/structure/cocoon/attacked_by(obj/item/I, mob/living/user, def_zone)
 	if(!anchored && victim)
@@ -93,7 +105,7 @@
 		busy = TRUE
 		var/channel = SSsounds.random_available_channel()
 		playsound(user, "sound/effects/cutting_cocoon.ogg", 30, channel = channel)
-		if(!do_after(user, 8 SECONDS, TRUE, src))
+		if(!do_after(user, 8 SECONDS, NONE, src))
 			busy = FALSE
 			user.stop_sound_channel(channel)
 			return
@@ -104,6 +116,7 @@
 	return ..()
 
 /obj/structure/cocoon/update_icon_state()
+	. = ..()
 	if(anchored)
 		icon_state = "xeno_cocoon"
 		return

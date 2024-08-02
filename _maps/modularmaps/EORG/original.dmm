@@ -388,9 +388,6 @@
 /turf/open/floor/tile/bar,
 /area/deathmatch)
 "bN" = (
-/obj/effect/attach_point/weapon/dropship1{
-	dir = 8
-	},
 /obj/structure/dropship_piece/one/wing/left/bottom,
 /obj/structure/dropship_piece/one/wing/left/bottom,
 /turf/open/ground/coast{
@@ -506,18 +503,12 @@
 	},
 /area/deathmatch)
 "ck" = (
-/obj/effect/attach_point/electronics/dropship1{
-	dir = 1
-	},
 /obj/structure/dropship_piece/one/weapon/rightleft,
 /turf/open/floor/plating/ground/dirtgrassborder/corner{
 	dir = 4
 	},
 /area/deathmatch)
 "cl" = (
-/obj/effect/attach_point/weapon/dropship1{
-	dir = 1
-	},
 /obj/structure/dropship_piece/one/weapon/rightright,
 /turf/open/ground/grass,
 /area/deathmatch)
@@ -621,9 +612,6 @@
 /turf/closed/shuttle/dropship1/finright,
 /area/deathmatch)
 "cJ" = (
-/obj/effect/attach_point/weapon/dropship1{
-	dir = 4
-	},
 /obj/structure/dropship_piece/one/wing/right/bottom,
 /turf/open/ground/grass,
 /area/deathmatch)
@@ -633,9 +621,10 @@
 	},
 /area/deathmatch)
 "cN" = (
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "cQ" = (
 /obj/machinery/door/airlock/dropship_hatch/right,
@@ -723,7 +712,8 @@
 /turf/open/floor/plating/ground/dirt,
 /area/deathmatch)
 "dA" = (
-/turf/open/floor/stairs/rampbottom,
+/obj/structure/stairs/edge,
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "dD" = (
 /obj/structure/flora/ausbushes/ppflowers,
@@ -854,18 +844,20 @@
 /turf/open/floor/plating/asteroidfloor,
 /area/deathmatch)
 "eq" = (
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 8
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "er" = (
 /obj/structure/prop/mainship/valmoric,
 /turf/open/floor/mainship/mono,
 /area/deathmatch)
 "es" = (
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 4
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "et" = (
 /turf/closed/shuttle/dropship1/enginetwo{
@@ -1172,9 +1164,10 @@
 /area/deathmatch)
 "va" = (
 /obj/effect/ai_node,
-/turf/open/floor/stairs/rampbottom{
+/obj/structure/stairs/edge{
 	dir = 1
 	},
+/turf/open/floor/tile/dark,
 /area/deathmatch)
 "wc" = (
 /obj/structure/platform{

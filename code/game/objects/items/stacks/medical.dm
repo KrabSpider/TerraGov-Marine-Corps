@@ -5,7 +5,7 @@
 /obj/item/stack/medical
 	name = "medical pack"
 	singular_name = "medical pack"
-	item_icons = list(
+	worn_icon_list = list(
 		slot_l_hand_str = 'icons/mob/inhands/equipment/medical_left.dmi',
 		slot_r_hand_str = 'icons/mob/inhands/equipment/medical_right.dmi',
 	)
@@ -18,6 +18,10 @@
 	var/skill_level_needed = SKILL_MEDICAL_UNTRAINED
 	///Fumble delay applied without sufficient skill
 	var/unskilled_delay = SKILL_TASK_TRIVIAL
+
+/obj/item/stack/medical/attack_self(mob/user)
+	. = ..()
+	attack(user, user)
 
 /obj/item/stack/medical/attack(mob/living/M, mob/living/user)
 	. = ..()
@@ -63,7 +67,6 @@
 	///Set of wound flags applied by use, including BANDAGE, SALVE, and DISINFECT
 	var/heal_flags = NONE
 
-
 /obj/item/stack/medical/heal_pack/attack(mob/living/M, mob/living/user)
 	. = ..()
 	if(!.) // note this true/false is inverted because we want to get the limb
@@ -80,10 +83,11 @@
 	var/list/patient_limbs = patient.limbs.Copy()
 	patient_limbs -= affecting
 	while(affecting)
-		if(!do_mob(user, patient, SKILL_TASK_VERY_EASY / (unskilled_penalty ** 2), BUSY_ICON_FRIENDLY, BUSY_ICON_MEDICAL, extra_checks = CALLBACK(src, PROC_REF(can_affect_limb), affecting)))
+		if(!do_after(user, SKILL_TASK_VERY_EASY / (unskilled_penalty ** 2), NONE, patient, BUSY_ICON_FRIENDLY, BUSY_ICON_MEDICAL, extra_checks = CALLBACK(src, PROC_REF(can_affect_limb), affecting)))
 			patient.balloon_alert(user, "Stopped tending")
 			return
 		var/affected = heal_limb(affecting, unskilled_penalty)
+		record_healing(user,M)
 		generate_treatment_messages(user, patient, affecting, affected)
 		use(1)
 		affecting = null
@@ -130,8 +134,8 @@
 	if(!success)
 		to_chat(user, span_warning("The wounds on [patient]'s [target_limb.display_name] have already been treated."))
 		return
-	user.visible_message(span_notice("[user] treats the wounds on [patient]'s [target_limb.display_name] with [src]."),
-	span_notice("You treat the wounds on [patient]'s [target_limb.display_name] with [src].") )
+	user.visible_message(span_green("[user] treats the wounds on [patient]'s [target_limb.display_name] with [src]."),
+	span_green("You treat the wounds on [patient]'s [target_limb.display_name] with [src].") )
 
 /obj/item/stack/medical/heal_pack/gauze
 	name = "roll of gauze"
@@ -145,8 +149,8 @@
 	if(!success)
 		to_chat(user, span_warning("The wounds on [patient]'s [target_limb.display_name] have already been treated."))
 		return
-	user.visible_message(span_notice("[user] bandages [patient]'s [target_limb.display_name]."),
-		span_notice("You bandage [patient]'s [target_limb.display_name].") )
+	user.visible_message(span_green("[user] bandages [patient]'s [target_limb.display_name]."),
+		span_green("You bandage [patient]'s [target_limb.display_name].") )
 
 /obj/item/stack/medical/heal_pack/ointment
 	name = "ointment"
@@ -161,8 +165,8 @@
 	if(!success)
 		to_chat(user, span_warning("The wounds on [patient]'s [target_limb.display_name] have already been treated."))
 		return
-	user.visible_message(span_notice("[user] salves wounds on [patient]'s [target_limb.display_name]."),
-	span_notice("You salve wounds on [patient]'s [target_limb.display_name]."))
+	user.visible_message(span_green("[user] salves wounds on [patient]'s [target_limb.display_name]."),
+	span_green("You salve wounds on [patient]'s [target_limb.display_name]."))
 
 /obj/item/stack/medical/heal_pack/gauze/sectoid
 	name = "\improper healing resin pack"
@@ -177,25 +181,9 @@
 
 /obj/item/stack/medical/heal_pack/advanced
 	dir = NORTH
-	flags_atom = DIRLOCK
+	atom_flags = DIRLOCK
 	skill_level_needed = SKILL_MEDICAL_PRACTICED
 	unskilled_delay = SKILL_TASK_EASY
-
-/obj/item/stack/medical/heal_pack/advanced/update_icon_state()
-	if(max_amount < 1 || amount > max_amount)
-		return
-	var/percentage = round(amount / max_amount) * 100
-	switch(percentage)
-		if(1 to 20)
-			setDir(SOUTH)
-		if(21 to 40)
-			setDir(EAST)
-		if(41 to 60)
-			setDir(SOUTHEAST)
-		if(61 to 80)
-			setDir(WEST)
-		if(81 to INFINITY)
-			setDir(NORTH)
 
 /obj/item/stack/medical/heal_pack/advanced/bruise_pack
 	name = "advanced trauma kit"
@@ -209,8 +197,8 @@
 	if(!success)
 		to_chat(user, span_warning("The wounds on [patient]'s [target_limb.display_name] have already been treated."))
 		return
-	user.visible_message(span_notice("[user] cleans [patient]'s [target_limb.display_name] and seals its wounds with bioglue."),
-		span_notice("You clean and seal all the wounds on [patient]'s [target_limb.display_name]."))
+	user.visible_message(span_green("[user] cleans [patient]'s [target_limb.display_name] and seals its wounds with bioglue."),
+		span_green("You clean and seal all the wounds on [patient]'s [target_limb.display_name]."))
 
 /obj/item/stack/medical/heal_pack/advanced/burn_pack
 	name = "advanced burn kit"
@@ -224,8 +212,8 @@
 	if(!success)
 		to_chat(user, span_warning("The wounds on [patient]'s [target_limb.display_name] have already been treated."))
 		return
-	user.visible_message(span_notice("[user] covers the wounds on [patient]'s [target_limb.display_name] with regenerative membrane."),
-	span_notice("You cover the wounds on [patient]'s [target_limb.display_name] with regenerative membrane."))
+	user.visible_message(span_green("[user] covers the wounds on [patient]'s [target_limb.display_name] with regenerative membrane."),
+	span_green("You cover the wounds on [patient]'s [target_limb.display_name] with regenerative membrane."))
 
 /obj/item/stack/medical/splint
 	name = "medical splints"
@@ -239,7 +227,6 @@
 	///How much splint health per medical skill is applied
 	var/applied_splint_health = 15
 
-
 /obj/item/stack/medical/splint/attack(mob/living/M, mob/living/user)
 	. = ..()
 	if(!.) // note this true/false is inverted because we want to get the limb
@@ -249,7 +236,7 @@
 		if(user.do_actions)
 			M.balloon_alert(user, "already busy")
 			return FALSE
-		if(!do_mob(user, M, unskilled_delay, BUSY_ICON_UNSKILLED, BUSY_ICON_MEDICAL))
+		if(!do_after(user, unskilled_delay, NONE, M, BUSY_ICON_UNSKILLED, BUSY_ICON_MEDICAL))
 			return FALSE
 
 	var/datum/limb/affecting = .

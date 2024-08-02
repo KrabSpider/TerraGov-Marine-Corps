@@ -1,11 +1,14 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
+"a" = (
+/turf/open/floor/plating/ground/mars/random/cave,
+/area/bigredv2/caves/south/garbledradio)
 "h" = (
 /obj/effect/landmark/excavation_site_spawner,
 /turf/open/floor/plating/ground/mars/random/cave,
-/area/bigredv2/caves/south)
+/area/bigredv2/caves/south/garbledradio)
 "k" = (
 /turf/open/floor/plating/ground/mars/random/cave/rock,
-/area/bigredv2/caves/south)
+/area/bigredv2/caves/south/garbledradio)
 "q" = (
 /turf/open/floor/plating/ground/mars/random/cave/rock,
 /area/bigredv2/caves/southwest)
@@ -15,14 +18,22 @@
 "w" = (
 /obj/effect/landmark/weed_node,
 /turf/open/floor/plating/ground/mars/random/cave/rock,
-/area/bigredv2/caves/south)
+/area/bigredv2/caves/south/garbledradio)
+"y" = (
+/obj/effect/ai_node,
+/turf/open/floor/plating/ground/mars/random/cave,
+/area/bigredv2/caves/south/garbledradio)
 "z" = (
 /obj/effect/landmark/weed_node,
 /turf/open/floor/plating/ground/mars/random/cave,
 /area/bigredv2/caves/southwest)
 "A" = (
 /turf/open/floor/plating,
-/area/bigredv2/caves/south)
+/area/bigredv2/caves/south/garbledradio)
+"B" = (
+/obj/effect/landmark/weed_node,
+/turf/open/floor/plating/ground/mars/random/cave,
+/area/bigredv2/caves/south/garbledradio)
 "D" = (
 /obj/effect/landmark/lv624/fog_blocker,
 /turf/open/floor/plating/ground/mars/random/cave,
@@ -34,11 +45,16 @@
 "I" = (
 /obj/effect/ai_node,
 /turf/open/floor/plating/ground/mars/random/cave/rock,
-/area/bigredv2/caves/south)
+/area/bigredv2/caves/south/garbledradio)
 "K" = (
 /obj/effect/landmark/weed_node,
 /turf/open/floor/plating/ground/mars/random/cave,
 /area/bigredv2/caves/south)
+"L" = (
+/obj/effect/landmark/weed_node,
+/obj/effect/ai_node,
+/turf/open/floor/plating/ground/mars/random/cave,
+/area/bigredv2/caves/south/garbledradio)
 "M" = (
 /obj/effect/ai_node,
 /turf/open/floor/plating/ground/mars/random/cave,
@@ -66,10 +82,6 @@
 "V" = (
 /turf/open/floor/plating/ground/mars/random/cave,
 /area/bigredv2/caves/southwest)
-"Y" = (
-/obj/machinery/miner/damaged/platinum,
-/turf/open/floor/plating/ground/mars/random/cave,
-/area/bigredv2/caves/south)
 "Z" = (
 /obj/effect/landmark/weed_node,
 /obj/effect/ai_node,
@@ -677,21 +689,21 @@ S
 S
 "}
 (26,1,1) = {"
-K
-u
-u
-u
-K
+B
+a
+a
+a
+B
 S
 H
 S
 S
-u
-u
-u
-u
+a
+a
+a
+a
 k
-u
+a
 h
 S
 S
@@ -701,11 +713,11 @@ S
 S
 "}
 (27,1,1) = {"
-u
-T
-u
-u
-u
+a
+y
+a
+a
+a
 S
 H
 S
@@ -713,11 +725,11 @@ S
 S
 S
 S
-u
-u
-u
-K
-u
+a
+a
+a
+B
+a
 S
 S
 S
@@ -726,10 +738,10 @@ S
 "}
 (28,1,1) = {"
 k
-u
-u
-u
-u
+a
+a
+a
+a
 S
 H
 S
@@ -738,22 +750,22 @@ S
 S
 S
 S
-u
-u
-u
-u
-u
-u
+a
+a
+a
+a
+a
+a
 S
 S
 S
 "}
 (29,1,1) = {"
 k
-K
-u
-u
-u
+B
+a
+a
+a
 S
 H
 S
@@ -762,22 +774,22 @@ S
 S
 S
 S
-u
-T
+a
+y
 w
-u
-T
-u
-u
+a
+y
+a
+a
 S
 S
 "}
 (30,1,1) = {"
-u
-u
-u
-u
-K
+a
+a
+a
+a
+B
 S
 H
 S
@@ -787,21 +799,21 @@ S
 S
 S
 S
-u
-u
-u
-u
-K
-u
-u
+a
+a
+a
+a
+B
+a
+a
 S
 "}
 (31,1,1) = {"
-u
-u
-K
-u
-u
+a
+a
+B
+a
+a
 S
 H
 S
@@ -812,20 +824,20 @@ S
 S
 S
 S
-u
-u
-u
-u
-u
-u
+a
+a
+a
+a
+a
+a
 S
 "}
 (32,1,1) = {"
-u
-u
-u
-u
-u
+a
+a
+a
+a
+a
 S
 H
 S
@@ -836,20 +848,20 @@ S
 S
 S
 S
-u
-u
-K
-u
-u
+a
+a
+B
+a
+a
 u
 u
 "}
 (33,1,1) = {"
-u
-u
-u
-u
-u
+a
+a
+a
+a
+a
 S
 H
 S
@@ -861,18 +873,18 @@ S
 S
 S
 S
-u
-u
-u
-u
+a
+a
+a
+a
 K
 u
 "}
 (34,1,1) = {"
 k
-u
-u
-u
+a
+a
+a
 S
 S
 H
@@ -886,17 +898,17 @@ S
 S
 S
 S
-T
-u
-u
-T
+y
+a
+a
+y
 u
 "}
 (35,1,1) = {"
 k
-u
-K
-u
+a
+B
+a
 S
 S
 H
@@ -910,17 +922,17 @@ S
 S
 S
 S
-u
-u
-u
+a
+a
+a
 k
 u
 "}
 (36,1,1) = {"
 k
-u
-u
-u
+a
+a
+a
 S
 S
 H
@@ -935,16 +947,16 @@ S
 S
 S
 S
-u
-K
-u
+a
+B
+a
 u
 "}
 (37,1,1) = {"
-u
-u
-u
-u
+a
+a
+a
+a
 S
 S
 H
@@ -959,16 +971,16 @@ S
 S
 S
 S
-u
-u
+a
+a
 u
 u
 "}
 (38,1,1) = {"
-u
-T
-u
-u
+a
+y
+a
+a
 S
 S
 H
@@ -982,16 +994,16 @@ S
 S
 S
 S
-K
-u
-u
+B
+a
+a
 u
 u
 "}
 (39,1,1) = {"
-u
-u
-K
+a
+a
+B
 S
 S
 S
@@ -1004,18 +1016,18 @@ S
 S
 S
 S
-u
-u
-u
-u
-u
+a
+a
+a
+a
+a
 u
 u
 "}
 (40,1,1) = {"
-u
-u
-u
+a
+a
+a
 S
 S
 S
@@ -1027,19 +1039,19 @@ S
 S
 S
 S
-K
-u
-u
-u
-Y
-u
+B
+a
+a
+a
+a
+a
 Z
 u
 "}
 (41,1,1) = {"
-u
-u
-u
+a
+a
+a
 S
 S
 S
@@ -1050,19 +1062,19 @@ S
 S
 S
 S
-u
-u
-u
-u
-u
+a
+a
+a
+a
+a
 I
-u
+a
 u
 T
 "}
 (42,1,1) = {"
-u
-u
+a
+a
 S
 S
 S
@@ -1073,19 +1085,19 @@ S
 S
 S
 S
-u
-u
-u
-u
-u
-u
-u
+a
+a
+a
+a
+a
+a
+a
 h
 u
 u
 "}
 (43,1,1) = {"
-u
+a
 S
 S
 S
@@ -1096,14 +1108,14 @@ S
 S
 S
 S
-u
-T
-u
+a
+y
+a
 k
-Z
-u
-u
-T
+L
+a
+a
+y
 w
 S
 S
@@ -1121,11 +1133,11 @@ S
 S
 S
 S
-u
+a
 k
 A
-u
-u
+a
+a
 k
 S
 S

@@ -23,18 +23,19 @@
 	piping_layer = 3
 	icon_state = "he_map-3"
 
-/obj/machinery/atmospherics/components/unary/heat_exchanger/update_icon()
+/obj/machinery/atmospherics/components/unary/heat_exchanger/update_icon_state()
+	. = ..()
 	if(nodes[1])
 		icon_state = "he1"
 		var/obj/machinery/atmospherics/node = nodes[1]
-		add_atom_colour(node.color, FIXED_COLOUR_PRIORITY)
+		add_atom_colour(node.color, FIXED_COLOR_PRIORITY)
 	else
 		icon_state = "he0"
 	PIPING_LAYER_SHIFT(src, piping_layer)
 
 /obj/machinery/atmospherics/components/unary/heat_exchanger/atmosinit()
 	if(!partner)
-		var/partner_connect = turn(dir,180)
+		var/partner_connect = REVERSE_DIR(dir)
 
 		for(var/obj/machinery/atmospherics/components/unary/heat_exchanger/target in get_step(src,partner_connect))
 			if(target.dir & get_dir(src,target))

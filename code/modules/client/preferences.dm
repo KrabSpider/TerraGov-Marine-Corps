@@ -135,13 +135,15 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	var/mute_others_combat_messages = FALSE
 	///Whether to mute xeno health alerts from when other xenos are badly hurt.
 	var/mute_xeno_health_alert_messages = TRUE
+	///Whether we generate a xeno name to show in the chatbox and on the mob.
+	var/show_xeno_rank = TRUE
 
 	///whether the user wants to hear tts
-	var/sound_tts = TRUE
+	var/sound_tts = TTS_SOUND_ENABLED
 	///What tts voice should be used
 	var/tts_voice = "Male 01"
-	///whether to use animal crossing style blblblbl
-	var/sound_tts_blips = FALSE
+	///how much to pitch the tts voice up and down
+	var/tts_pitch = 0
 	///Volume to use for tts
 	var/volume_tts = 100
 
@@ -169,6 +171,11 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	///If the game is in fullscreen mode
 	var/fullscreen_mode = FALSE
 
+	///Whether or not the MC tab of the Stat Panel refreshes fast. This is expensive so make sure you need it.
+	var/fast_mc_refresh = FALSE
+	///When enabled, will split the 'Admin' panel into several tabs.
+	var/split_admin_tabs = TRUE
+
 	/// New TGUI Preference preview
 	var/map_name = "player_pref_map"
 	var/atom/movable/screen/map_view/screen_main
@@ -177,6 +184,11 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	/// If unique action will only act on the item in the active hand. If false, it will try to act on the item on the inactive hand as well in certain conditions.
 	var/unique_action_use_active_hand = TRUE
 
+	///What outfit typepaths we've favorited in the SelectEquipment menu
+	var/list/favorite_outfits = list()
+
+	///List of slot_draw_order
+	var/list/slot_draw_order_pref = list()
 
 /datum/preferences/New(client/C)
 	if(!istype(C))
@@ -210,13 +222,13 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 	random_character()
 	menuoptions = list()
 	key_bindings = deepCopyList(GLOB.hotkey_keybinding_list_by_key) // give them default keybinds and update their movement keys
+	save_keybinds()
 	for(var/i in 1 to CUSTOM_EMOTE_SLOTS)
 		var/datum/custom_emote/emote = new
 		emote.id = i
 		custom_emotes += emote
 	C.set_macros()
 	loadout_manager = new
-
 
 /datum/preferences/can_interact(mob/user)
 	return TRUE
@@ -254,3 +266,4 @@ GLOBAL_LIST_EMPTY(preferences_datums)
 
 	job_preferences[job.title] = level
 	return TRUE
+

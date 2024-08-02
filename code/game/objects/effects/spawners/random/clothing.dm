@@ -12,7 +12,7 @@
 	icon_state = "random_clothes"
 	loot = list(
 		/obj/item/clothing/suit/bio_suit,
-		/obj/item/clothing/suit/bomber,
+		/obj/item/clothing/suit/storage/bomber,
 		/obj/item/clothing/suit/ianshirt,
 		/obj/item/clothing/suit/radiation,
 		/obj/item/clothing/suit/space,
@@ -110,6 +110,19 @@
 		/obj/item/clothing/gloves/red = 30,
 		/obj/item/clothing/gloves/white = 30,
 		/obj/item/clothing/gloves/insulated = 5,
+	)
+
+/obj/effect/spawner/random/clothing/darkgloves
+	name = "dark glove spawner"
+	icon_state = "random_gloves"
+	spawn_loot_chance = 95
+	loot = list(
+		/obj/item/clothing/gloves/black = 40,
+		/obj/item/clothing/gloves/blue = 40,
+		/obj/item/clothing/gloves/brown = 40,
+		/obj/item/clothing/gloves/grey = 40,
+		/obj/item/clothing/gloves/latex = 40,
+		/obj/effect/spawner/random/clothing/coloredgloves = 2,
 	)
 
 /obj/effect/spawner/random/clothing/coloredgloves/latex

@@ -15,6 +15,7 @@ GLOBAL_DATUM_INIT(datacore, /datum/datacore, new)
 	var/list/security = list()
 
 
+// TODO: cleanup
 /datum/datacore/proc/get_manifest(monochrome, ooc)
 	var/list/eng = list()
 	var/list/med = list()
@@ -87,7 +88,7 @@ GLOBAL_DATUM_INIT(datacore, /datum/datacore, new)
 			even = !even
 	if(length(mar) > 0)
 		dat += "<tr><th colspan=3>Marine Personnel</th></tr>"
-		for(var/j in list("Alpha","Bravo","Charlie", "Delta"))
+		for(var/j in LAZYACCESS(SSjob.squads_by_name, FACTION_TERRAGOV))
 			if(length(squads[j]))
 				dat += "<tr><th colspan=3>[j]</th></tr>"
 			for(var/name in mar)
@@ -117,6 +118,39 @@ GLOBAL_DATUM_INIT(datacore, /datum/datacore, new)
 
 	return dat
 
+/// Gathers the information necessary to display the hive's leader/queen status to lobby.
+/datum/datacore/proc/get_xeno_manifest(monochrome)
+	var/even = 0
+
+	var/dat = {"
+	<head><style>
+		.manifest {border-collapse:collapse;}
+		.manifest td, th {border:1px solid [monochrome?"white":"#24252A; background-color:#1B1C1E; color:white"]; padding:.25em}
+		.manifest th {height: 2em; [monochrome?"border-top-width: 3px":"background-color: #123C5E; color:white"]}
+		.manifest tr.head th { [monochrome?"border-top-width: 1px":"background-color: #123C5E;"] }
+		.manifest td:first-child {text-align:right}
+		.manifest tr.alt td {[monochrome?"border-top-width: 2px":"background-color: #36373C"]}
+	</style></head>
+	<table class="manifest" width='350px'>
+	<tr class='head'><th>Caste</th><th>Name</th></tr>
+	"}
+
+	var/datum/hive_status/normal/HN = GLOB.hive_datums[XENO_HIVE_NORMAL]
+	if(HN.living_xeno_ruler)
+		dat += "<tr><th colspan=3>Hive Ruler</th></tr>"
+		dat += "<tr[even ? " class='alt'" : ""]><td>[HN.living_xeno_ruler.xeno_caste.display_name]</td><td>[HN.living_xeno_ruler.name]</td></tr>"
+		even = !even
+
+	if(length(HN.xeno_leader_list) > 0)
+		dat += "<tr><th colspan=3>Hive Leaders</th></tr>"
+		for(var/x in HN.xeno_leader_list)
+			var/mob/living/carbon/xenomorph/leader = x
+			dat += "<tr[even ? " class='alt'" : ""]><td>[leader.xeno_caste.display_name]</td><td>[leader.name]</td></tr>"
+			even = !even
+
+	dat += "</table>"
+
+	return dat
 
 /datum/datacore/proc/manifest()
 	medical = list()
@@ -169,19 +203,8 @@ GLOBAL_DATUM_INIT(datacore, /datum/datacore, new)
 	else
 		assignment = "Unassigned"
 
-	var/id = add_leading("[num2hex(rand(1, 1.6777215E7))]", 6, "0")	//this was the best they could come up with? A large random number? *sigh*
+	var/id = add_leading("[num2hex(randfloat(1, 1.6777215E7), 2)]", 6, "0")	//this was the best they could come up with? A large random number? *sigh* - actual 4407 code lol
 
-	var/image = get_id_photo(H, H.client, show_directions)
-	var/datum/picture/pf = new
-	var/datum/picture/ps = new
-	pf.picture_name = "[H]"
-	ps.picture_name = "[H]"
-	pf.picture_desc = "This is [H]."
-	ps.picture_desc = "This is [H]."
-	pf.picture_image = icon(image, dir = SOUTH)
-	ps.picture_image = icon(image, dir = WEST)
-	var/obj/item/photo/photo_front = new(null, pf)
-	var/obj/item/photo/photo_side = new(null, ps)
 	//General Record
 	var/datum/data/record/G = new()
 	G.fields["id"] = id
@@ -195,8 +218,6 @@ GLOBAL_DATUM_INIT(datacore, /datum/datacore, new)
 	G.fields["species"] = H.get_species()
 	G.fields["citizenship"] = H.citizenship
 	G.fields["religion"] = H.religion
-	G.fields["photo_front"] = photo_front
-	G.fields["photo_side"] = photo_side
 	if(H.gen_record)
 		G.fields["notes"] = H.gen_record
 	else
@@ -207,7 +228,7 @@ GLOBAL_DATUM_INIT(datacore, /datum/datacore, new)
 	var/datum/data/record/M = new()
 	M.fields["id"] = id
 	M.fields["name"] = H.real_name
-	M.fields["b_type"] = H.b_type
+	M.fields["b_type"] = H.blood_type
 	M.fields["mi_dis"] = "None"
 	M.fields["mi_dis_d"] = "No minor disabilities have been declared."
 	M.fields["ma_dis"] = "None"
@@ -242,21 +263,10 @@ GLOBAL_DATUM_INIT(datacore, /datum/datacore, new)
 		S.fields["notes"] = "No notes."
 	security += S
 
-
-/proc/get_id_photo(mob/living/carbon/human/H, client/C, show_directions = list(SOUTH))
-	var/datum/job/J = H.job
-	var/datum/preferences/P
-	if(!C)
-		C = H.client
-	if(C)
-		P = C.prefs
-	return get_flat_human_icon(null, J, P, DUMMY_HUMAN_SLOT_MANIFEST, show_directions)
-
-
 /proc/CreateGeneralRecord()
 	var/datum/data/record/G = new /datum/data/record()
 	G.fields["name"] = "New Record"
-	G.fields["id"] = "[num2hex(rand(1, 1.6777215E7), 6)]"
+	G.fields["id"] = "[num2hex(randfloat(1, 1.6777215E7), 6)]"
 	G.fields["rank"] = "Unassigned"
 	G.fields["real_rank"] = "Unassigned"
 	G.fields["sex"] = "Male"
@@ -293,7 +303,7 @@ GLOBAL_DATUM_INIT(datacore, /datum/datacore, new)
 	var/datum/data/record/M = new
 	M.fields["id"] = null
 	M.fields["name"] = H.real_name
-	M.fields["b_type"] = H.b_type
+	M.fields["b_type"] = H.blood_type
 	M.fields["mi_dis"] = "None"
 	M.fields["mi_dis_d"] = "No minor disabilities have been declared."
 	M.fields["ma_dis"] = "None"

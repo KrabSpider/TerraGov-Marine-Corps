@@ -14,11 +14,13 @@
 		return // should stop you from dragging through windows
 
 	over.MouseDrop_T(src,usr)
+	return TRUE
 
 
 // recieve a mousedrop
 /atom/proc/MouseDrop_T(atom/dropping, mob/user)
-	if(dropping.flags_atom & NOINTERACT)
+	SHOULD_CALL_PARENT(TRUE)
+	if(dropping.atom_flags & NOINTERACT)
 		return TRUE //Already handled
 	SEND_SIGNAL(src, COMSIG_MOUSEDROPPED_ONTO, dropping, user)
 

@@ -20,8 +20,7 @@
 
 /obj/effect/spawner/random/engineering/technology_scanner
 	name = "Random Scanner"
-	icon = 'icons/obj/items/items.dmi'
-	icon_state = "atmos"
+	icon_state = "random_scanner"
 	loot = list(
 		/obj/item/t_scanner = 4,
 		/obj/item/radio = 2,
@@ -32,9 +31,9 @@
 	name = "Random Powercell"
 	icon_state = "random_cell"
 	loot = list(
-		/obj/item/cell/crap = 10,
 		/obj/item/cell = 40,
 		/obj/item/cell/high = 40,
+		/obj/item/cell/crap = 10,
 		/obj/item/cell/super = 9,
 		/obj/item/cell/hyper = 1,
 	)
@@ -49,6 +48,13 @@
 		/obj/item/tool/pickaxe/plasmacutter = 10, //10 in 800 chance of showing up
 	)
 
+/obj/effect/spawner/random/engineering/shovel
+	name = "Random digging instrument spawner"
+	icon_state = "random_shovel"
+	loot = list(
+		/obj/item/tool/shovel = 700,
+		/obj/effect/spawner/random/engineering/pickaxe = 100,
+	)
 
 /obj/effect/spawner/random/engineering/bomb_supply
 	name = "Bomb Supply"
@@ -98,7 +104,7 @@
 /obj/effect/spawner/random/engineering/structure/handheld_lighting
 	name = "handheld lighting spawner"
 	icon_state = "random_lighting"
-	spawn_loot_chance = 60
+	spawn_loot_chance = 80
 	spawn_random_offset = TRUE
 	loot = list(
 		/obj/item/flashlight = 15,
@@ -137,6 +143,13 @@
 		/obj/item/storage/belt/utility/atmostech = 10,
 	)
 
+/obj/effect/spawner/random/engineering/engibelt/emptyornot
+	spawn_loot_chance = 90
+	loot = list(
+		/obj/item/storage/belt/utility/full = 90,
+		/obj/item/storage/belt/utility = 10,
+	)
+
 /obj/effect/spawner/random/engineering/cable
 	name = "Random cable spawner"
 	icon_state = "random_cable"
@@ -160,6 +173,9 @@
 		/obj/item/stack/sheet/metal/medium_stack = 10,
 		/obj/item/stack/sheet/metal/large_stack = 2,
 	)
+
+/obj/effect/spawner/random/engineering/metal/nooffset
+	spawn_random_offset = FALSE
 
 /obj/effect/spawner/random/engineering/plasteel
 	name = "plasteel spawner"
@@ -187,8 +203,8 @@
 	icon_state = "random_glass"
 	spawn_loot_chance = 90
 	loot = list(
-		/obj/item/stack/sheet/glass = 25,
-		/obj/item/stack/sheet/glass/large_stack = 1,
+		/obj/item/stack/sheet/glass/glass = 25,
+		/obj/item/stack/sheet/glass/glass/large_stack = 1,
 	)
 
 /obj/effect/spawner/random/engineering/insulatedgloves
@@ -202,6 +218,11 @@
 		/obj/item/clothing/gloves/insulated = 15,
 	)
 
+/obj/effect/spawner/random/engineering/insulatedgloves/nooffset
+	spawn_scatter_radius = 0
+	spawn_random_offset = FALSE
+	spawn_loot_chance = 65
+
 /obj/effect/spawner/random/engineering/radio
 	name = "radio spawner"
 	icon_state = "random_radio"
@@ -211,7 +232,7 @@
 	)
 
 /obj/effect/spawner/random/engineering/radio/highspawn
-	spawn_loot_chance = 80
+	spawn_loot_chance = 90
 
 
 /obj/effect/spawner/random/engineering/structure/powergenerator
@@ -286,6 +307,13 @@
 		/obj/machinery/portable_atmospherics/scrubber = 1,
 	)
 
+/obj/effect/spawner/random/engineering/structure/atmospherics_portable/icecolony
+	loot = list(
+		/obj/machinery/space_heater = 20,
+		/obj/machinery/portable_atmospherics/pump = 1,
+		/obj/machinery/portable_atmospherics/scrubber = 1,
+	)
+
 /obj/effect/spawner/random/engineering/computercircuit
 	name = "Random computer circuit spawner"
 	icon_state = "random_ccircuit"
@@ -329,3 +357,38 @@
 	spawn_loot_chance = 70
 	loot_subtype_path = /obj/item/stack/sheet/mineral
 	loot = list()
+
+/obj/effect/spawner/random/engineering/extinguisher
+	name = "extinguisher spawner"
+	icon_state = "random_extinguisher"
+	spawn_loot_chance = 95
+	loot = list(
+		/obj/item/tool/extinguisher,
+		/obj/item/tool/extinguisher/mini,
+	)
+
+/obj/effect/spawner/random/engineering/extinguisher/regularweighted
+	name = "extinguisher spawner"
+	spawn_loot_chance = 95
+	loot = list(
+		/obj/item/tool/extinguisher = 10,
+		/obj/item/tool/extinguisher/mini = 2,
+	)
+
+/obj/effect/spawner/random/engineering/extinguisher/miniweighted
+	name = "extinguisher spawner"
+	spawn_loot_chance = 95
+	icon_state = "random_extinguisher_mini"
+	loot = list(
+		/obj/item/tool/extinguisher/mini = 10,
+		/obj/item/tool/extinguisher = 2,
+	)
+
+/obj/effect/spawner/random/engineering/ore_box
+	name = "ore box spawner"
+	icon_state = "random_orebox"
+	spawn_loot_chance = 40
+	loot = list(
+		/obj/structure/ore_box = 10,
+		/obj/effect/spawner/random/engineering/mineral = 1,
+	)

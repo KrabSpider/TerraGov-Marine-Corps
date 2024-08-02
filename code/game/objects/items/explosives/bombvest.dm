@@ -1,15 +1,17 @@
 /obj/item/clothing/suit/storage/marine/boomvest
 	name = "tactical explosive vest"
-	desc = "Obviously someone just strapped a bomb to a marine harness and called it tactical. The light has been removed, and its switch used as the detonator.<br><span class='notice'>Control-Click to set a warcry.</span> <span class='warning'>This harness has no light, toggling it will detonate the vest!</span>"
+	desc = "Obviously someone just strapped a bomb to a marine harness and called it tactical. The light has been removed, and its switch used as the detonator.<br><span class='notice'>Control-Click to set a warcry.</span> <span class='warning'>This harness has no light, toggling it will detonate the vest! Riot shields prevent detonation of the tactical explosive vest!!</span>"
 	icon_state = "boom_vest"
 	soft_armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, BIO = 0, FIRE = 0, ACID = 0)
 	slowdown = 0
-	flags_item_map_variant = NONE
-	flags_armor_features = NONE
+	item_map_variant_flags = NONE
+	armor_features_flags = NONE
 	///Warcry to yell upon detonation
 	var/bomb_message
 	///List of warcries that are not allowed.
 	var/bad_warcries_regex = "allahu ackbar|allah|ackbar"
+	///Time it takes to detonate
+	var/detonate_time = 2 SECONDS
 
 /obj/item/clothing/suit/storage/marine/boomvest/equipped(mob/user, slot)
 	. = ..()
@@ -46,7 +48,7 @@
 		return
 	if(bomb_message)
 		activator.say("[bomb_message]!!")
-	if(!do_after(user, 2 SECONDS, TRUE, src, BUSY_ICON_DANGER, ignore_turf_checks = TRUE))
+	if(!do_after(user, detonate_time, IGNORE_USER_LOC_CHANGE, src, BUSY_ICON_DANGER))
 		return FALSE
 	var/turf/target = get_turf(loc)
 	if(bomb_message) //Checks for a non null bomb message.
@@ -56,11 +58,13 @@
 		message_admins("[activator] has detonated an explosive vest with no warcry at [ADMIN_VERBOSEJMP(target)]")
 		log_game("[activator] has detonated an explosive vest with no warcry at [AREACOORD(target)]")
 
+	activator.record_tactical_unalive()
+
 	for(var/datum/limb/appendage AS in activator.limbs) //Oops we blew all our limbs off
 		if(istype(appendage, /datum/limb/chest) || istype(appendage, /datum/limb/groin) || istype(appendage, /datum/limb/head))
 			continue
 		appendage.droplimb()
-	explosion(target, 2, 2, 6, 5, 5)
+	explosion(target, 2, 2, 6, 7, 5, 5)
 	qdel(src)
 
 /obj/item/clothing/suit/storage/marine/boomvest/attack_hand_alternate(mob/living/user)
@@ -89,6 +93,7 @@
 /obj/item/clothing/suit/storage/marine/boomvest/ob_vest
 	name = "orbital bombardment vest"
 	desc = "This is your lieutenant speaking, I know exactly what those coordinates are for."
+	detonate_time = 1 SECONDS
 
 /obj/item/clothing/suit/storage/marine/boomvest/ob_vest/attack_self(mob/user)
 	var/mob/living/carbon/human/activator = user
@@ -97,7 +102,7 @@
 		return FALSE
 	if(LAZYACCESS(user.do_actions, src))
 		return
-	if(!do_after(user, 1 SECONDS, TRUE, src, BUSY_ICON_DANGER, ignore_turf_checks = TRUE))
+	if(!do_after(user, detonate_time, IGNORE_USER_LOC_CHANGE, src, BUSY_ICON_DANGER))
 		return FALSE
 	var/turf/target = get_turf(loc)
 	activator.say("I'M FIRING IT AS AN OB!!")
@@ -108,5 +113,8 @@
 		if(istype(appendage, /datum/limb/chest) || istype(appendage, /datum/limb/groin) || istype(appendage, /datum/limb/head))
 			continue
 		appendage.droplimb()
-	explosion(target, 15, 15, 15, 15, 15)
+	explosion(target, 15, 0, 0, 0, 15, 15)
 	qdel(src)
+
+/obj/item/clothing/suit/storage/marine/boomvest/fast
+	detonate_time = 0.5 SECONDS

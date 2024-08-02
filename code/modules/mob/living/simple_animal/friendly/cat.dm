@@ -13,7 +13,8 @@
 	speak_chance = 1
 	turns_per_move = 5
 	see_in_dark = 6
-	flags_pass = PASSTABLE
+	allow_pass_flags = PASS_MOB
+	pass_flags = PASS_MOB|PASS_LOW_STRUCTURE
 	mob_size = MOB_SIZE_SMALL
 	response_help = "pets"
 	response_disarm = "gently pushes aside"
@@ -44,7 +45,8 @@
 	icon_living = "kitten"
 	icon_dead = "kitten_dead"
 	density = FALSE
-	flags_pass = PASSMOB
+	allow_pass_flags = PASS_MOB
+	pass_flags = PASS_MOB|PASS_LOW_STRUCTURE
 	mob_size = MOB_SIZE_SMALL
 
 
@@ -110,6 +112,8 @@
 
 /mob/living/simple_animal/cat/MouseDrop(atom/over_object)
 	. = ..()
+	if(!.)
+		return
 
 	if(!ishuman(over_object))
 		return
@@ -135,11 +139,11 @@
 	desc = "Kitty!!"
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "cat2"
-	item_icons = list(
+	worn_icon_list = list(
 		slot_l_hand_str = 'icons/mob/inhands/items/animals_left.dmi',
 		slot_r_hand_str = 'icons/mob/inhands/items/animals_right.dmi',
 	)
-	flags_armor_features = ARMOR_NO_DECAP
+	armor_features_flags = ARMOR_NO_DECAP
 	soft_armor = list(MELEE = 25, BULLET = 25, LASER = 25, ENERGY = 25, BOMB = 10, BIO = 5, FIRE = 50, ACID = 50)
 	var/mob/living/simple_animal/cat/cat
 
@@ -150,7 +154,7 @@
 	return ..()
 
 
-/obj/item/clothing/head/cat/throw_at(atom/target, range, speed, thrower, spin)
+/obj/item/clothing/head/cat/throw_at(atom/target, range, speed, thrower, spin, flying = FALSE, targetted_throw = TRUE)
 	qdel(src)
 
 

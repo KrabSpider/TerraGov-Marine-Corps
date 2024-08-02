@@ -18,7 +18,7 @@
 
 /datum/component/attachment_handler/Initialize(list/slots, list/attachables_allowed, list/attachment_offsets, list/starting_attachments, datum/callback/can_attach, datum/callback/on_attach, datum/callback/on_detach, list/overlays = list())
 	. = ..()
-	if(!isitem(parent))
+	if(!isobj(parent))
 		return COMPONENT_INCOMPATIBLE
 
 	src.slots = slots
@@ -38,11 +38,11 @@
 
 	update_parent_overlay()
 
-	RegisterSignal(parent, COMSIG_PARENT_ATTACKBY, PROC_REF(start_handle_attachment)) //For attaching.
-	RegisterSignal(parent, list(COMSIG_LOADOUT_VENDOR_VENDED_GUN_ATTACHMENT, COMSIG_LOADOUT_VENDOR_VENDED_ATTACHMENT_GUN, COMSIG_LOADOUT_VENDOR_VENDED_ARMOR_ATTACHMENT), PROC_REF(attach_without_user))
+	RegisterSignal(parent, COMSIG_ATOM_ATTACKBY, PROC_REF(start_handle_attachment)) //For attaching.
+	RegisterSignals(parent, list(COMSIG_LOADOUT_VENDOR_VENDED_GUN_ATTACHMENT, COMSIG_LOADOUT_VENDOR_VENDED_ATTACHMENT_GUN, COMSIG_LOADOUT_VENDOR_VENDED_ARMOR_ATTACHMENT), PROC_REF(attach_without_user))
 
 	RegisterSignal(parent, COMSIG_CLICK_ALT, PROC_REF(start_detach)) //For Detaching
-	RegisterSignal(parent, COMSIG_PARENT_QDELETING, PROC_REF(clean_references)) //Dels attachments.
+	RegisterSignal(parent, COMSIG_QDELETING, PROC_REF(clean_references)) //Dels attachments.
 	RegisterSignal(parent, COMSIG_ITEM_APPLY_CUSTOM_OVERLAY, PROC_REF(apply_custom))
 	RegisterSignal(parent, COMSIG_ITEM_UNEQUIPPED, PROC_REF(remove_overlay))
 
@@ -70,9 +70,10 @@
 			return
 
 	var/slot = attachment_data[SLOT]
-	if(!attacher && (!(slot in slots) || !(attachment.type in attachables_allowed))) //No more black market attachment combos.
-		QDEL_NULL(attachment)
-		return
+	if(!CHECK_BITFIELD(attachment_data[FLAGS_ATTACH_FEATURES], ATTACH_BYPASS_ALLOWED_LIST))
+		if(!attacher && (!(slot in slots) || !(attachment.type in attachables_allowed))) //No more black market attachment combos.
+			QDEL_NULL(attachment)
+			return
 
 	var/obj/item/old_attachment = slots[slot]
 
@@ -82,10 +83,8 @@
 		return
 	attacher.temporarilyRemoveItemFromInventory(attachment)
 
-	//Re-try putting old attachment into hands, now that we've cleared them
-	if(old_attachment)
+	if(old_attachment && isturf(old_attachment.loc)) //if we didn't have space in our hands earlier, we try put the old attachment in hand now
 		attacher.put_in_hands(old_attachment)
-
 
 ///Finishes setting up the attachment. This is where the attachment actually attaches. This can be called directly to bypass any checks to directly attach an object.
 /datum/component/attachment_handler/proc/finish_handle_attachment(obj/item/attachment, list/attachment_data, mob/attacker)
@@ -103,11 +102,11 @@
 
 	var/obj/parent_obj = parent
 	///The gun has another gun attached to it
-	if(isgun(attachment) && isgun(parent) )
-		parent_obj:gunattachment = attachment
+	if(isgun(attachment) && isgun(parent))
+		var/obj/item/weapon/gun/gun_parent = parent
+		gun_parent.gunattachment = attachment
 
 	on_attach?.Invoke(attachment, attacker)
-
 	if(attachment_data[ON_ATTACH])
 		var/datum/callback/attachment_on_attach = CALLBACK(attachment, attachment_data[ON_ATTACH])
 		attachment_on_attach.Invoke(parent, attacker)
@@ -157,7 +156,7 @@
 			span_notice("You begin fumbling about, trying to attach [attachment] to [parent]."), null, 4)
 			do_after_icon_type = BUSY_ICON_UNSKILLED
 
-	if(!do_after(user, attach_delay, TRUE, parent, do_after_icon_type))
+	if(!do_after(user, attach_delay, NONE, parent, do_after_icon_type))
 		return FALSE
 	user.visible_message(span_notice("[user] attaches [attachment] to [parent]."),
 	span_notice("You attach [attachment] to [parent]."), null, 4)
@@ -255,7 +254,7 @@
 			span_notice("You begin fumbling about, trying to detach [attachment_to_remove] from [parent]."), null, 4)
 			do_after_icon_type = BUSY_ICON_UNSKILLED
 
-	if(!do_after(user, detach_delay, TRUE, parent, do_after_icon_type))
+	if(!do_after(user, detach_delay, NONE, parent, do_after_icon_type))
 		return
 
 	user.visible_message(span_notice("[user] detaches [attachment_to_remove] to [parent]."),
@@ -290,14 +289,14 @@
 	SIGNAL_HANDLER
 	INVOKE_ASYNC(src, PROC_REF(handle_attachment), attachment, null, TRUE)
 
-///This updates the overlays of the parent and apllies the right ones.
+///This updates the overlays of the parent and applies the right ones.
 /datum/component/attachment_handler/proc/update_parent_overlay(datum/source)
 	SIGNAL_HANDLER
-	var/obj/item/parent_item = parent
+	var/obj/parent_obj = parent
 	for(var/slot in slots) //Cycles through all the slots.
 		var/obj/item/attachment = slots[slot]
 		var/image/overlay = attachable_overlays[slot]
-		parent_item.overlays -= overlay //First removes the existing overlay that occupies the slots overlay.
+		parent_obj.overlays -= overlay //First removes the existing overlay that occupies the slots overlay.
 
 		if(!attachment) //No attachment, no overlay.
 			attachable_overlays[slot] = null
@@ -309,13 +308,13 @@
 		var/icon_state = attachment.icon_state
 		if(attachment_data[OVERLAY_ICON] == attachment.icon)
 			icon_state = attachment.icon_state + "_a"
-		if(CHECK_BITFIELD(attachment_data[FLAGS_ATTACH_FEATURES], ATTACH_SAME_ICON))
+		if(CHECK_BITFIELD(attachment_data[FLAGS_ATTACH_FEATURES], ATTACH_SAME_ICON) || CHECK_BITFIELD(attachment_data[FLAGS_ATTACH_FEATURES], ATTACH_DIFFERENT_MOB_ICON_STATE))
 			icon_state = attachment.icon_state
 			icon = attachment.icon
-			overlay = image(icon, parent_item, icon_state)
+			overlay = image(icon, parent_obj, icon_state)
 			overlay.overlays += attachment.overlays
 		else
-			overlay = image(icon, parent_item, icon_state)
+			overlay = image(icon, parent_obj, icon_state)
 		var/slot_x = 0 //This and slot_y are for the event that the parent did not have an overlay_offsets. In that case the offsets default to 0
 		var/slot_y = 0
 		for(var/attachment_slot in attachment_offsets)
@@ -333,15 +332,15 @@
 		overlay.pixel_y = slot_y - pixel_shift_y
 
 		attachable_overlays[slot] = overlay
-		parent_item.overlays += overlay
+		parent_obj.overlays += overlay
 
 ///Updates the mob sprite of the attachment.
 /datum/component/attachment_handler/proc/apply_custom(datum/source, mutable_appearance/standing)
 	SIGNAL_HANDLER
-	var/obj/item/parent_item = parent
-	if(!ismob(parent_item.loc))
+	var/obj/parent_obj = parent
+	if(!ismob(parent_obj.loc))
 		return
-	var/mob/living/carbon/human/wearer = parent_item.loc
+	var/mob/living/carbon/human/wearer = parent_obj.loc
 	for(var/slot in slots)
 		var/obj/item/attachment = slots[slot]
 		if(!attachment)
@@ -354,7 +353,9 @@
 		var/icon = attachment.icon
 		var/icon_state = attachment.icon_state
 		var/suffix = ""
-		if(!CHECK_BITFIELD(attachment_data[FLAGS_ATTACH_FEATURES], ATTACH_SAME_ICON))
+		if(CHECK_BITFIELD(attachment_data[FLAGS_ATTACH_FEATURES], ATTACH_DIFFERENT_MOB_ICON_STATE))
+			suffix = "_m"
+		else if(!CHECK_BITFIELD(attachment_data[FLAGS_ATTACH_FEATURES], ATTACH_SAME_ICON))
 			if(CHECK_BITFIELD(attachment_data[FLAGS_ATTACH_FEATURES], ATTACH_SEPERATE_MOB_OVERLAY))
 				if(attachment_data[MOB_OVERLAY_ICON] != attachment_data[OVERLAY_ICON])
 					icon = attachment_data[MOB_OVERLAY_ICON]
@@ -379,10 +380,10 @@
 ///Handles the removal of attachment overlays when the item is unequipped
 /datum/component/attachment_handler/proc/remove_overlay()
 	SIGNAL_HANDLER
-	var/obj/item/parent_item = parent
-	if(!ismob(parent_item.loc))
+	var/obj/parent_obj = parent
+	if(!ismob(parent_obj.loc))
 		return
-	var/mob/living/carbon/human/wearer = parent_item.loc
+	var/mob/living/carbon/human/wearer = parent_obj.loc
 	for(var/slot in slots)
 		var/obj/item/attachment = slots[slot]
 		if(!attachment)

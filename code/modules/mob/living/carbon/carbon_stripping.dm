@@ -27,9 +27,6 @@
 
 /// A strippable item for a hand
 /datum/strippable_item/hand
-	// Putting dangerous clothing in our hand is fine.
-	warn_dangerous_clothing = FALSE
-
 	/// Which hand?
 	var/hand_index
 
@@ -51,7 +48,7 @@
 	var/mob/mob_source = source
 
 	if(!mob_source.can_put_in_hand(equipping, hand_index))
-		to_chat(src, "<span class='warning'>\The [equipping] doesn't fit in that place!</span>")
+		to_chat(user, "<span class='warning'>[mob_source] can't hold [equipping] right now!</span>")
 		return FALSE
 
 	return TRUE
@@ -66,7 +63,7 @@
 
 	var/mob/mob_source = source
 
-	if(!do_after(user, equipping.equip_delay_other, source, BUSY_ICON_FRIENDLY))
+	if(!do_after(user, equipping.equip_delay_other, NONE, source, BUSY_ICON_FRIENDLY))
 		return FALSE
 
 	if(!mob_source.can_put_in_hand(equipping, hand_index))
@@ -108,6 +105,9 @@
 	hand_index = 1
 
 /datum/strippable_item/hand/left/get_alternate_action(atom/source, mob/user)
+	var/obj/item/source_item = get_item(source)
+	if(!HAS_TRAIT(source_item, TRAIT_STRAPPABLE))
+		return null
 	return get_strippable_alternate_action_strap(get_item(source), source)
 
 /datum/strippable_item/hand/left/alternate_action(atom/source, mob/user)
@@ -118,6 +118,9 @@
 	hand_index = 2
 
 /datum/strippable_item/hand/right/get_alternate_action(atom/source, mob/user)
+	var/obj/item/source_item = get_item(source)
+	if(!HAS_TRAIT(source_item, TRAIT_STRAPPABLE))
+		return null
 	return get_strippable_alternate_action_strap(get_item(source), source)
 
 /datum/strippable_item/hand/right/alternate_action(atom/source, mob/user)
@@ -125,23 +128,29 @@
 
 /// Getter proc for the alternate action for removing nodrop traits from items with straps
 /datum/strippable_item/proc/get_strippable_alternate_action_strap(obj/item/item, atom/source)
-	if(!is_type_in_typecache(item, strappable_typecache))
-		return
-
-	if(CHECK_BITFIELD(item.flags_item, NODROP))
+	if(HAS_TRAIT_FROM(item, TRAIT_NODROP, STRAPPABLE_ITEM_TRAIT))
 		return "loosen_strap"
 	else
 		return "tighten_strap"
 
 /// The proc that actually does the alternate action
 /datum/strippable_item/proc/strippable_alternate_action_strap(obj/item/item, atom/source, mob/user)
-	if(!is_type_in_typecache(item, strappable_typecache))
+	if(!HAS_TRAIT(item, TRAIT_STRAPPABLE))
+		return
+	
+	if(length(user.do_actions))
+		user.balloon_alert(user, "Busy!")
 		return
 
-	user.balloon_alert_to_viewers("[CHECK_BITFIELD(item.flags_item, NODROP) ? "Loosening" : "Tightening"] strap...")
+	var/strapped = HAS_TRAIT_FROM(item, TRAIT_NODROP, STRAPPABLE_ITEM_TRAIT)
+	user.balloon_alert_to_viewers("[strapped ? "Loosening" : "Tightening"] strap...")
 
-	if(!do_after(user, 3 SECONDS, TRUE, source, BUSY_ICON_FRIENDLY))
+	if(!do_after(user, 3 SECONDS, NONE, source, BUSY_ICON_FRIENDLY))
 		return
 
-	TOGGLE_BITFIELD(item.flags_item, NODROP)
-	user.balloon_alert_to_viewers("[CHECK_BITFIELD(item.flags_item, NODROP) ? "Loosened" : "Tightened"] strap")
+	if(!strapped)
+		ADD_TRAIT(item, TRAIT_NODROP, STRAPPABLE_ITEM_TRAIT)
+		user.balloon_alert_to_viewers("Tightened strap")
+	else
+		REMOVE_TRAIT(item, TRAIT_NODROP, STRAPPABLE_ITEM_TRAIT)
+		user.balloon_alert_to_viewers("Loosened strap")

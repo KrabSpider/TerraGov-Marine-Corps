@@ -1,16 +1,15 @@
 /mob/living/carbon/xenomorph/gorger
-	caste_base_type = /mob/living/carbon/xenomorph/gorger
+	caste_base_type = /datum/xeno_caste/gorger
 	name = "Gorger"
 	desc = "A large, powerfully muscled xeno with seemingly more vitality than others."
-	icon = 'icons/Xeno/2x2_Xenos.dmi'
+	icon = 'icons/Xeno/castes/gorger.dmi'
 	icon_state = "Gorger Walking"
 	health = 600
 	maxHealth = 600
 	plasma_stored = 100
 	pixel_x = -16
-	old_x = -16
 	tier = XENO_TIER_THREE
-	upgrade = XENO_UPGRADE_ZERO
+	upgrade = XENO_UPGRADE_NORMAL
 	mob_size = MOB_SIZE_BIG
 	bubble_icon = "alienroyal"
 

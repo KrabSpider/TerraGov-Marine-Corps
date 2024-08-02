@@ -14,7 +14,7 @@
 	var/list/mob_type_ignore_stat_typecache
 	var/stat_allowed = CONSCIOUS
 	var/sound //Sound to play when emote is called
-	var/flags_emote = NONE
+	var/emote_flags = NONE
 	/// Cooldown between two uses of that emote. Every emote has its own coodldown
 	var/cooldown = 2 SECONDS
 
@@ -62,13 +62,12 @@
 	var/dchatmsg = "[prefix]<b>[user]</b> [msg]"
 
 	var/tmp_sound = get_sound(user)
-	if(tmp_sound && (!(flags_emote & EMOTE_FORCED_AUDIO) || !intentional))
-		playsound(user, tmp_sound, 50, flags_emote & EMOTE_VARY)
+	if(tmp_sound && (!(emote_flags & EMOTE_FORCED_AUDIO) || !intentional))
+		playsound(user, tmp_sound, 50, emote_flags & EMOTE_VARY)
 
 	if(user.client)
-		for(var/i in GLOB.dead_mob_list)
-			var/mob/M = i
-			if(isnewplayer(M) || !M.client)
+		for(var/mob/M AS in GLOB.dead_mob_list)
+			if(!ismob(M) || isnewplayer(M) || !M.client)
 				continue
 			var/T = get_turf(user)
 			if(!(M.client.prefs.toggles_chat & CHAT_GHOSTSIGHT) || (M in viewers(T, null)))
@@ -105,7 +104,7 @@
 
 /datum/emote/proc/select_message_type(mob/user)
 	. = message
-	if(!(flags_emote & EMOTE_MUZZLE_IGNORE) && user.is_muzzled() && emote_type == EMOTE_AUDIBLE)
+	if(!(emote_flags & EMOTE_MUZZLE_IGNORE) && user.is_muzzled() && emote_type == EMOTE_AUDIBLE)
 		return "makes a [pick("strong ", "weak ", "")]noise."
 	if(isxeno(user) && message_alien)
 		. = message_alien
@@ -133,7 +132,7 @@
 		return FALSE
 
 	if(intentional)
-		if(flags_emote & EMOTE_FORCED_AUDIO)
+		if(emote_flags & EMOTE_FORCED_AUDIO)
 			return FALSE
 
 		if(sound || get_sound(user))
@@ -171,7 +170,7 @@
 
 			return FALSE
 
-		if(flags_emote & EMOTE_RESTRAINT_CHECK)
+		if(emote_flags & EMOTE_RESTRAINT_CHECK)
 			if(isliving(user))
 				var/mob/living/L = user
 				if(L.incapacitated())
@@ -180,7 +179,7 @@
 					user.balloon_alert(user, "You cannot [key] while stunned")
 					return FALSE
 
-		if(flags_emote & EMOTE_ARMS_CHECK)
+		if(emote_flags & EMOTE_ARMS_CHECK)
 			///okay snapper
 			var/mob/living/carbon/snapper = user
 			var/datum/limb/left_hand = snapper.get_limb("l_hand")
@@ -189,7 +188,7 @@
 				to_chat(user, span_notice("You cannot [key] without a working hand."))
 				return FALSE
 
-		if((flags_emote & EMOTE_RESTRAINT_CHECK) && user.restrained())
+		if((emote_flags & EMOTE_RESTRAINT_CHECK) && user.restrained())
 			if(!intentional)
 				return FALSE
 			user.balloon_alert(user, "You cannot [key] while restrained")

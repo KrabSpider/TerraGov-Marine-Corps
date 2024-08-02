@@ -5,7 +5,7 @@
 	if(reagents && !CHECK_BITFIELD(species.species_flags, NO_CHEM_METABOLIZATION))
 		var/datum/internal_organ/liver/L
 		if(species?.has_organ["liver"])
-			L = internal_organs_by_name["liver"]
+			L = get_organ_slot(ORGAN_SLOT_LIVER)
 		var/overdosable = CHECK_BITFIELD(species.species_flags, NO_OVERDOSE) ? FALSE : TRUE
 		if(!(status_flags & GODMODE)) //godmode doesn't work as intended anyway
 			reagents.metabolize(src, overdosable, L ? FALSE : TRUE)
@@ -48,7 +48,7 @@
 					E.germ_level++
 
 	//Hard to stay upright
-	if(leg_tally > 0 && prob(2.5 * leg_tally))
+	if(leg_tally > 0 && prob(2.5 * leg_tally) && !is_buckled())
 		if(!(species.species_flags & NO_PAIN))
 			emote("pain")
 		visible_message(span_warning("[src] collapses to the ground!"),	\

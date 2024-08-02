@@ -8,9 +8,11 @@
 	layer = WINDOW_FRAME_LAYER
 	density = TRUE
 	resistance_flags = DROPSHIP_IMMUNE | XENO_DAMAGEABLE
+	allow_pass_flags = PASS_LOW_STRUCTURE|PASSABLE|PASS_WALKOVER
 	max_integrity = 150
-	climbable = 1 //Small enough to vault over, but you do need to vault over it
-	climb_delay = 15 //One second and a half, gotta vault fast
+	climbable = TRUE
+	climb_delay = 1.5 SECONDS
+	soft_armor = list(MELEE = 0, BULLET = 70, LASER = 70, ENERGY = 70, BOMB = 50, BIO = 100, FIRE = 50, ACID = 0)
 	var/obj/item/stack/sheet/sheet_type = /obj/item/stack/sheet/glass/reinforced
 	var/obj/structure/window/framed/mainship/window_type = /obj/structure/window/framed/mainship
 	var/basestate = "window"
@@ -26,15 +28,6 @@
 		SMOOTH_GROUP_SURVIVAL_TITANIUM_WALLS,
 	)
 
-/obj/structure/window_frame/CanAllowThrough(atom/movable/mover, turf/target)
-	. = ..()
-	if(climbable && CHECK_BITFIELD(mover.flags_pass, PASSTABLE))
-		return TRUE
-
-	var/obj/structure/S = locate(/obj/structure) in get_turf(mover)
-	if(S?.climbable)
-		return TRUE
-
 /obj/structure/window_frame/Initialize(mapload, from_window_shatter)
 	. = ..()
 	var/weed_found
@@ -46,12 +39,19 @@
 		qdel(weed_found)
 		new /obj/alien/weeds/weedwall/window/frame(loc) //after smoothing to get the correct junction value
 
+	var/static/list/connections = list(
+		COMSIG_OBJ_TRY_ALLOW_THROUGH = PROC_REF(can_climb_over),
+		COMSIG_FIND_FOOTSTEP_SOUND = TYPE_PROC_REF(/atom/movable, footstep_override),
+		COMSIG_TURF_CHECK_COVERED = TYPE_PROC_REF(/atom/movable, turf_cover_check),
+	)
+	AddElement(/datum/element/connect_loc, connections)
 
 /obj/structure/window_frame/proc/update_nearby_icons()
 	QUEUE_SMOOTH_NEIGHBORS(src)
 
 /obj/structure/window_frame/update_icon()
 	QUEUE_SMOOTH(src)
+	return ..()
 
 /obj/structure/window_frame/Destroy()
 	density = FALSE
@@ -64,6 +64,8 @@
 
 /obj/structure/window_frame/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, sheet_type))
 		var/obj/item/stack/sheet/sheet = I
@@ -74,7 +76,7 @@
 		span_notice("You start installing a new window on the frame."))
 		playsound(src, 'sound/items/deconstruct.ogg', 25, 1)
 
-		if(!do_after(user, 20, TRUE, src, BUSY_ICON_BUILD))
+		if(!do_after(user, 2 SECONDS, NONE, src, BUSY_ICON_BUILD))
 			return
 
 		user.visible_message(span_notice("[user] installs a new glass window on the frame."), \
@@ -83,36 +85,31 @@
 		new window_type(loc) //This only works on Theseus windows!
 		qdel(src)
 
-	else if(istype(I, /obj/item/grab))
-		var/obj/item/grab/G = I
-		if(isxeno(user))
-			return
+/obj/structure/window_frame/grab_interact(obj/item/grab/grab, mob/user, base_damage = BASE_OBJ_SLAM_DAMAGE, is_sharp = FALSE)
+	. = ..()
+	if(.)
+		return
+	if(!isliving(grab.grabbed_thing))
+		return
+	if(user.do_actions)
+		return
+	if(user.grab_state < GRAB_AGGRESSIVE)
+		to_chat(user, span_warning("You need a better grip to do that!"))
+		return
 
-		if(!isliving(G.grabbed_thing))
-			return
-
-		var/mob/living/M = G.grabbed_thing
-		if(user.grab_state < GRAB_AGGRESSIVE)
-			to_chat(user, span_warning("You need a better grip to do that!"))
-			return
-
-		if(get_dist(src, M) > 1)
-			to_chat(user, span_warning("[M] needs to be next to [src]."))
-			return
-
-		if(user.do_actions)
-			return
-
-		user.visible_message(span_notice("[user] starts pulling [M] onto [src]."),
-		span_notice("You start pulling [M] onto [src]!"))
-		var/oldloc = loc
-		if(!do_mob(user, M, 20, BUSY_ICON_GENERIC) || loc != oldloc)
-			return
-		M.Paralyze(40)
-		user.visible_message(span_warning("[user] pulls [M] onto [src]."),
-		span_notice("You pull [M] onto [src]."))
-		M.forceMove(loc)
-
+	var/mob/living/grabbed_mob = grab.grabbed_thing
+	if(get_dist(src, grabbed_mob) > 1)
+		to_chat(user, span_warning("[grabbed_mob] needs to be next to [src]."))
+		return
+	user.visible_message(span_notice("[user] starts pulling [grabbed_mob] onto [src]."),
+	span_notice("You start pulling [grabbed_mob] onto [src]!"))
+	if(!do_after(user, 2 SECONDS, NONE, grabbed_mob, BUSY_ICON_GENERIC))
+		return
+	grabbed_mob.Paralyze(2 SECONDS)
+	user.visible_message(span_warning("[user] pulls [grabbed_mob] onto [src]."),
+	span_notice("You pull [grabbed_mob] onto [src]."))
+	grabbed_mob.forceMove(loc)
+	return TRUE
 
 /obj/structure/window_frame/mainship
 	icon = 'icons/obj/smooth_objects/ship_window_frame.dmi'
@@ -151,11 +148,24 @@
 /obj/structure/window_frame/colony/reinforced/weakened
 	max_integrity = 150
 
+/obj/structure/window_frame/colony/cm_frame
+	icon = 'icons/obj/smooth_objects/cmwindowframe.dmi'
+	icon_state = "cmwindowframe-0"
+	basestate = "cmwindowframe"
+	base_icon_state = "cmwindowframe"
+	max_integrity = 300
+
 /obj/structure/window_frame/chigusa
 	icon = 'icons/obj/smooth_objects/chigusa_window_frame.dmi'
 	icon_state = "chigusa_window_frame-0"
 	basestate = "chigusa_window_frame"
 	base_icon_state = "chigusa_window_frame"
+
+/obj/structure/window_frame/kutjevo
+	icon = 'icons/obj/smooth_objects/kutjevo_window_frame.dmi'
+	icon_state = "col_window_frame-0"
+	base_icon_state = "col_window_frame"
+	basestate = "col_window_frame"
 
 /obj/structure/window_frame/wood
 	icon = 'icons/obj/smooth_objects/wood_window_frame.dmi'
@@ -175,7 +185,7 @@
 
 /obj/structure/window_frame/prison/hull
 	climbable = FALSE
-	flags_pass = NONE
+	allow_pass_flags = NONE
 	reinforced = TRUE
 	resistance_flags = INDESTRUCTIBLE|UNACIDABLE
 
@@ -189,3 +199,33 @@
 		SMOOTH_GROUP_SURVIVAL_TITANIUM_WALLS,
 		SMOOTH_GROUP_CANTERBURY,
 	)
+
+/obj/structure/window_frame/kutjevo
+	icon = 'icons/obj/smooth_objects/kutjevo_window_frame.dmi'
+	icon_state = "col_window_frame-0"
+	base_icon_state = "col_window_frame"
+	basestate = "col_window_frame"
+
+/obj/structure/window_frame/hybrisa
+	smoothing_flags = SMOOTH_BITMASK
+	smoothing_groups = list(SMOOTH_GROUP_WINDOW_FRAME, SMOOTH_GROUP_CANTERBURY)
+	canSmoothWith = list(
+		SMOOTH_GROUP_WINDOW_FULLTILE,
+		SMOOTH_GROUP_AIRLOCK,
+		SMOOTH_GROUP_WINDOW_FRAME,
+		SMOOTH_GROUP_SURVIVAL_TITANIUM_WALLS,
+		SMOOTH_GROUP_CANTERBURY,
+	)
+
+/obj/structure/window_frame/junk_frame
+	icon = 'icons/obj/smooth_objects/junk_window_frame.dmi'
+	icon_state = "chigusa_wall-0"
+	base_icon_state = "chigusa_wall"
+	basestate = "chigusa_wall"
+
+/obj/structure/window_frame/urban
+	icon = 'icons/obj/smooth_objects/urban_window_frame.dmi'
+	icon_state = "col_window_frame-0"
+	base_icon_state = "col_window_frame"
+
+/obj/structure/window_frame/urban/colony/engineering/reinforced

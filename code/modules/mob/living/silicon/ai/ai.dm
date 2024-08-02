@@ -9,7 +9,7 @@
 	icon_state = "ai"
 	bubble_icon = "robot"
 	anchored = TRUE
-	move_resist = MOVE_FORCE_OVERPOWERING
+	move_resist = MOVE_FORCE_NORMAL
 	density = TRUE
 	canmove = FALSE
 	status_flags = CANSTUN|CANKNOCKOUT
@@ -63,9 +63,15 @@
 	///used for cooldown when AI pings the location of a xeno or xeno structure
 	COOLDOWN_DECLARE(last_pinged_marines)
 
+	///stores the last time the AI manually scanned the planet. we don't do cooldown_declare because we need the world time for our game panel
+	var/last_ai_bioscan
+
 
 /mob/living/silicon/ai/Initialize(mapload, ...)
 	. = ..()
+
+	if(!CONFIG_GET(flag/allow_ai))
+		return INITIALIZE_HINT_QDEL
 
 	track = new(src)
 	builtInCamera = new(src)
@@ -79,15 +85,17 @@
 	laws += "Protect: Protect the personnel of your assigned vessel, and all other TerraGov personnel to the best of your abilities, with priority as according to their rank and role."
 	laws += "Preserve: Do not allow unauthorized personnel to tamper with your equipment."
 
+	var/list/iconstates = GLOB.ai_core_display_screens
+	icon_state = resolve_ai_icon(pick(iconstates))
+
 	mini = new
 	mini.give_action(src)
 	create_eye()
 
 	if(!job)
-		var/datum/job/terragov/silicon/ai/ai_job = SSjob.type_occupations[/datum/job/terragov/silicon/ai]
+		var/datum/job/terragov/silicon/ai/ai_job = SSjob.GetJobType(/datum/job/terragov/silicon/ai)
 		if(!ai_job)
 			stack_trace("Unemployment has reached to an AI, who has failed to find a job.")
-		apply_assigned_role_to_spawn(ai_job)
 
 	GLOB.ai_list += src
 	var/datum/atom_hud/H = GLOB.huds[DATA_HUD_SQUAD_TERRAGOV]
@@ -129,19 +137,6 @@
 	GLOB.ai_list -= src
 	QDEL_NULL(builtInCamera)
 	QDEL_NULL(track)
-	UnregisterSignal(src, COMSIG_ORDER_SELECTED)
-	UnregisterSignal(src, COMSIG_MOB_CLICK_ALT)
-
-	UnregisterSignal(SSdcs, COMSIG_GLOB_OB_LASER_CREATED)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_CAS_LASER_CREATED)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_RAILGUN_LASER_CREATED)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_SHUTTLE_TAKEOFF)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_DROPSHIP_CONTROLS_CORRUPTED)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_MINI_DROPSHIP_DESTROYED)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_DISK_GENERATED)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_NUKE_START)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_CLONE_PRODUCED)
-	UnregisterSignal(SSdcs, COMSIG_GLOB_HOLOPAD_AI_CALLED)
 	QDEL_NULL(mini)
 	return ..()
 
@@ -238,14 +233,13 @@
 /mob/living/silicon/ai/proc/toggle_camera_light()
 	if(camera_light_on)
 		for(var/obj/machinery/camera/C in lit_cameras)
-			C.set_light(0)
+			C.set_light(initial(C.light_range), initial(C.light_power))
 			lit_cameras = list()
 		to_chat(src, span_notice("Camera lights deactivated."))
 	else
 		light_cameras()
 		to_chat(src, span_notice("Camera lights activated."))
 	camera_light_on = !camera_light_on
-
 
 /mob/living/silicon/ai/proc/light_cameras()
 	var/list/obj/machinery/camera/add = list()
@@ -268,6 +262,14 @@
 		C.Togglelight(1)
 		lit_cameras |= C
 
+/mob/living/silicon/ai/proc/supply_interface()
+	var/datum/supply_ui/SU
+	if(!SU)
+		SU = new(src)
+		SU.shuttle_id = SHUTTLE_SUPPLY
+		SU.home_id = "supply_home"
+		SU.faction = src.faction
+	return SU.interact(src)
 
 /mob/living/silicon/ai/proc/camera_visibility(mob/camera/aiEye/moved_eye)
 	GLOB.cameranet.visibility(moved_eye, client, all_eyes, moved_eye.use_static)
@@ -280,11 +282,11 @@
 	return (GLOB.cameranet && GLOB.cameranet.checkTurfVis(get_turf_pixel(A)))
 
 /mob/living/silicon/ai/proc/relay_speech(message, atom/movable/speaker, datum/language/message_language, raw_message, radio_freq, list/spans, message_mode)
-	raw_message = lang_treat(speaker, message_language, raw_message, spans, message_mode)
 	var/start = "Relayed Speech: "
 	var/namepart = "[speaker.GetVoice()][speaker.get_alt_name()]"
 	var/hrefpart = "<a href='?src=[REF(src)];track=[html_encode(namepart)]'>"
 	var/jobpart
+	var/speech_part = lang_treat(speaker, message_language, raw_message, spans, message_mode)
 
 	if(iscarbon(speaker))
 		var/mob/living/carbon/S = speaker
@@ -293,8 +295,10 @@
 	else
 		jobpart = "Unknown"
 
-	var/rendered = "<i><span class='game say'>[start][span_name("[hrefpart][namepart] ([jobpart])</a> ")][span_message("[raw_message]")]</span></i>"
 
+	var/rendered = "<i><span class='game say'>[start][span_name("[hrefpart][namepart] ([jobpart])</a> ")][span_message("[speech_part]")]</span></i>"
+
+	create_chat_message(speaker, message_language, raw_message, spans, message_mode)
 	show_message(rendered, 2)
 
 
@@ -337,49 +341,56 @@
 			clear_fullscreen("remote_view", 0)
 
 /mob/living/silicon/ai/update_sight()
-	. = ..()
 	if(HAS_TRAIT(src, TRAIT_SEE_IN_DARK))
 		see_in_dark = max(see_in_dark, 8)
 		lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
 		eyeobj.see_in_dark = max(eyeobj.see_in_dark, 8)
 		eyeobj.lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
-		return
+		return ..()
+	see_in_dark = initial(see_in_dark)
+	lighting_alpha = initial(lighting_alpha)
 	eyeobj.see_in_dark = initial(eyeobj.see_in_dark)
 	eyeobj.lighting_alpha = initial(eyeobj.lighting_alpha)
-	see_in_dark = initial(see_in_dark)
-	lighting_alpha = initial(lighting_alpha) // yes you really have to change both the eye and the ai vars
+	return ..()
 
-
-/mob/living/silicon/ai/Stat()
+/mob/living/silicon/ai/get_status_tab_items()
 	. = ..()
 
-	if(statpanel("Game"))
+	if(stat != CONSCIOUS)
+		. += "System status: Nonfunctional"
+		return
 
-		if(stat != CONSCIOUS)
-			stat("System status:", "Nonfunctional")
-			return
+	. += "System integrity: [(health + 100) / 2]%"
+	. += ""
+	. += "- Operation information -"
+	. += "Current orbit: [GLOB.current_orbit]"
 
-		stat("System integrity:", "[(health + 100) / 2]%")
-		stat("<BR>- Operation information - <BR>")
-		stat("Current orbit:", "[GLOB.current_orbit]")
+	if(!GLOB.marine_main_ship?.orbital_cannon?.chambered_tray)
+		. += "Orbital bombardment status: No ammo chambered in the cannon."
+	else
+		. += "Orbital bombardment warhead: [GLOB.marine_main_ship.orbital_cannon.tray.warhead.name] Detected"
 
-		if(!GLOB.marine_main_ship?.orbital_cannon?.chambered_tray)
-			stat("<b>Orbital bombardment status:</b>", "<font color='red'>No ammo chambered in the cannon.</font><br>")
+	. += "Current supply points: [round(SSpoints.supply_points[FACTION_TERRAGOV])]"
+
+	. += "Current dropship points: [round(SSpoints.dropship_points)]"
+
+	. += "Current alert level: [GLOB.marine_main_ship.get_security_level()]"
+
+	if(SSticker.mode)
+		. += "Number of living marines: [SSticker.mode.count_humans_and_xenos()[1]]"
+
+	if(GLOB.marine_main_ship?.rail_gun?.last_firing_ai + COOLDOWN_RAILGUN_FIRE > world.time)
+		. += "Railgun status: Cooling down, next fire in [(GLOB.marine_main_ship?.rail_gun?.last_firing_ai + COOLDOWN_RAILGUN_FIRE - world.time)/10] seconds."
+	else
+		. += "Railgun status: Railgun is ready to fire."
+
+		if(last_ai_bioscan + COOLDOWN_AI_BIOSCAN > world.time)
+			. += "AI bioscan status: Instruments recalibrating, next scan in [(last_ai_bioscan  + COOLDOWN_AI_BIOSCAN - world.time)/10] seconds." //about 10 minutes
 		else
-			stat("Orbital bombardment warhead:", "[GLOB.marine_main_ship.orbital_cannon.tray.warhead.name] Detected<BR>")
-
-		stat("Current supply points:", "[round(SSpoints.supply_points[FACTION_TERRAGOV])]")
-
-		stat("Current dropship points:", "[round(SSpoints.dropship_points)]")
-
-		stat("Current alert level:", "[GLOB.marine_main_ship.get_security_level()]")
-
-		stat("Number of living marines:", "[SSticker.mode.count_humans_and_xenos()[1]]")
-
-		if(GLOB.marine_main_ship?.rail_gun?.last_firing_ai + COOLDOWN_RAILGUN_FIRE > world.time)
-			stat("Railgun status:", "Cooling down, next fire in [(GLOB.marine_main_ship?.rail_gun?.last_firing_ai + COOLDOWN_RAILGUN_FIRE - world.time)/10] seconds.")
-		else
-			stat("Railgun status:", "Railgun is ready to fire.")
+			. += "AI bioscan status: Instruments are ready to scan the planet."
+	var/status_value = SSevacuation?.get_status_panel_eta()
+	if(status_value)
+		. += "Evacuation in: [status_value]"
 
 /mob/living/silicon/ai/fully_replace_character_name(oldname, newname)
 	. = ..()
@@ -420,11 +431,10 @@
 ///Called for associating the AI with artillery
 /mob/living/silicon/ai/proc/associate_artillery(mortar)
 	if(linked_artillery)
-		UnregisterSignal(linked_artillery, COMSIG_PARENT_QDELETING)
-		linked_artillery = null
-		return FALSE
+		UnregisterSignal(linked_artillery, COMSIG_QDELETING)
+		linked_artillery.unset_targeter()
 	linked_artillery = mortar
-	RegisterSignal(linked_artillery, COMSIG_PARENT_QDELETING, PROC_REF(clean_artillery_refs))
+	RegisterSignal(linked_artillery, COMSIG_QDELETING, PROC_REF(clean_artillery_refs))
 	return TRUE
 
 ///Proc called when linked_mortar is deleted.
@@ -467,7 +477,7 @@
 /// Signal handler to clear vehicle and stop remote control
 /datum/action/control_vehicle/proc/clear_vehicle()
 	SIGNAL_HANDLER
-	UnregisterSignal(vehicle, COMSIG_PARENT_QDELETING)
+	UnregisterSignal(vehicle, COMSIG_QDELETING)
 	vehicle.on_unlink()
 	vehicle = null
 	var/mob/living/silicon/ai/ai = owner
@@ -478,7 +488,7 @@
 
 /datum/action/control_vehicle/proc/link_with_vehicle(obj/vehicle/unmanned/_vehicle)
 	vehicle = _vehicle
-	RegisterSignal(vehicle, COMSIG_PARENT_QDELETING, PROC_REF(clear_vehicle))
+	RegisterSignal(vehicle, COMSIG_QDELETING, PROC_REF(clear_vehicle))
 	vehicle.on_link()
 	owner.AddComponent(/datum/component/remote_control, vehicle, vehicle.turret_type, vehicle.can_interact)
 	SEND_SIGNAL(owner, COMSIG_REMOTECONTROL_TOGGLE, owner)

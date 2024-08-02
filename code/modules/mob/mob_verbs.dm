@@ -82,7 +82,7 @@
 		return
 
 	var/mob/new_player/M = new /mob/new_player()
-	if(SSticker.mode?.flags_round_type & MODE_TWO_HUMAN_FACTIONS)
+	if(SSticker.mode?.round_type_flags & MODE_TWO_HUMAN_FACTIONS)
 		M.faction = faction
 	if(!client)
 		qdel(M)
@@ -235,3 +235,18 @@
 	set category = "IC"
 
 	stop_pulling()
+
+/mob/verb/point_to(atom/pointed_atom as mob|obj|turf in view())
+	set name = "Point To"
+	set category = "Object"
+
+	if(client && !(pointed_atom in view(client.view, src)))
+		return FALSE
+	if(!pointed_atom.mouse_opacity)
+		return FALSE
+	if(TIMER_COOLDOWN_CHECK(src, COOLDOWN_POINT))
+		return FALSE
+
+	TIMER_COOLDOWN_START(src, COOLDOWN_POINT, 1 SECONDS)
+	point_to_atom(pointed_atom)
+	return TRUE

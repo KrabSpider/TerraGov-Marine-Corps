@@ -8,18 +8,16 @@
 
 ///Return true if the item was found in a linked vendor and successfully bought
 /proc/buy_item_in_vendor(obj/item/item_to_buy_type, datum/loadout_seller/seller, mob/living/user)
-
-	if(seller.faction != FACTION_NEUTRAL && is_type_in_typecache(item_to_buy_type, GLOB.hvh_restricted_items_list))
-		return FALSE
-
+	var/user_job = user.job.title
+	user_job = replacetext(user_job, "Fallen ", "") //So that jobs in valhalla can vend their job-appropriate gear.
 	//If we can find it for in a shared vendor, we buy it
-	for(var/type in (GLOB.loadout_linked_vendor[seller.faction] + GLOB.loadout_linked_vendor[user.job.title]))
+	for(var/type in (GLOB.loadout_linked_vendor[seller.faction] + GLOB.loadout_linked_vendor[user_job]))
 		for(var/datum/vending_product/item_datum AS in GLOB.vending_records[type])
 			if(item_datum.product_path == item_to_buy_type && item_datum.amount != 0)
 				item_datum.amount--
 				return TRUE
 
-	var/list/job_specific_list = GLOB.loadout_role_essential_set[user.job.title]
+	var/list/job_specific_list = GLOB.loadout_role_essential_set[user_job]
 
 	//If we still have our essential kit, and the item is in there, we take one from it
 	if(seller.buying_choices_left[CAT_ESS] && islist(job_specific_list) && job_specific_list[item_to_buy_type] > seller.unique_items_list[item_to_buy_type])
@@ -27,7 +25,7 @@
 		return TRUE
 
 	//If it's in a clothes vendor that uses buying bitfield, we check if we still have that field and we use it
-	job_specific_list = GLOB.job_specific_clothes_vendor[user.job.title]
+	job_specific_list = GLOB.job_specific_clothes_vendor[user_job]
 	if(!islist(job_specific_list))
 		return FALSE
 	var/list/item_info = job_specific_list[item_to_buy_type]
@@ -35,7 +33,7 @@
 		return TRUE
 
 	//Lastly, we try to use points to buy from a job specific points vendor
-	var/list/listed_products = GLOB.job_specific_points_vendor[user.job.title]
+	var/list/listed_products = GLOB.job_specific_points_vendor[user_job]
 	if(!listed_products)
 		return FALSE
 	for(var/item_type in listed_products)
@@ -88,10 +86,6 @@
 		return /datum/item_representation/gun
 	if(ispath(item_type, /obj/item/clothing/suit/modular))
 		return /datum/item_representation/armor_suit/modular_armor
-	if(ispath(item_type, /obj/item/armor_module/greyscale))
-		return /datum/item_representation/armor_module/colored
-	if(ispath(item_type, /obj/item/armor_module/armor))
-		return /datum/item_representation/armor_module/armor
 	if(ispath(item_type, /obj/item/armor_module/storage))
 		return /datum/item_representation/armor_module/storage
 	if(ispath(item_type, /obj/item/storage))
@@ -134,8 +128,7 @@
 		return
 	if(!user.assigned_squad)
 		return
-	var/headset_type = faction == FACTION_TERRAGOV_REBEL ? /obj/item/radio/headset/mainship/marine/rebel : /obj/item/radio/headset/mainship/marine
-	user.equip_to_slot_or_del(new headset_type(null, user.assigned_squad, user.job.type), SLOT_EARS, override_nodrop = TRUE)
+	user.equip_to_slot_or_del(new /obj/item/radio/headset/mainship/marine(null, user.assigned_squad, user.job.type), SLOT_EARS, override_nodrop = TRUE)
 
 /// Will check if the selected category can be bought according to the category choices left
 /proc/can_buy_category(category, category_choices)

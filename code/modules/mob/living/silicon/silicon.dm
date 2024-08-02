@@ -18,6 +18,7 @@
 
 /mob/living/silicon/Initialize(mapload)
 	. = ..()
+	GLOB.silicon_mobs += src
 	radio = new(src)
 	if(SStts.tts_enabled)
 		voice = pick(SStts.available_speakers)
@@ -25,6 +26,7 @@
 
 /mob/living/silicon/Destroy()
 	QDEL_NULL(radio)
+	GLOB.silicon_mobs -= src
 	return ..()
 
 
@@ -69,10 +71,11 @@
 
 
 /mob/living/silicon/contents_explosion(severity)
-	return
+	return ..()
 
 
 /mob/living/silicon/emp_act(severity)
+	. = ..()
 	switch(severity)
 		if(1)
 			Stun(rand(10 SECONDS, 20 SECONDS))
@@ -84,14 +87,8 @@
 
 	to_chat(src, span_danger("*BZZZT*"))
 	to_chat(src, span_warning("Warning: Electromagnetic pulse detected."))
-	return ..()
 
-
-/mob/living/silicon/stun_effect_act(stun_amount, agony_amount, def_zone)
-	return
-
-
-/mob/living/silicon/apply_effect(effect = 0, effecttype = STUN, blocked = 0, updating_health = FALSE)
+/mob/living/silicon/apply_effect(effect = 0, effecttype = STUN, updating_health = FALSE)
 	return FALSE
 
 
@@ -144,8 +141,6 @@
 		if("Squad HUD")
 			if(GLOB.huds[faction] == FACTION_TERRAGOV)
 				H = DATA_HUD_SQUAD_TERRAGOV
-			else if(GLOB.huds[faction] == FACTION_TERRAGOV_REBEL)
-				H = DATA_HUD_SQUAD_REBEL
 			else if(GLOB.huds[faction] == FACTION_SOM)
 				H = DATA_HUD_SQUAD_SOM
 			HUD_nbr = 3
@@ -164,24 +159,21 @@
 
 /mob/living/silicon/ex_act(severity)
 	flash_act()
-
+	if(stat == DEAD)
+		return
 	switch(severity)
 		if(EXPLODE_DEVASTATE)
-			if(stat == DEAD)
-				return
 			adjustBruteLoss(100)
 			adjustFireLoss(100)
 			if(!anchored)
 				gib()
 		if(EXPLODE_HEAVY)
-			if(stat == DEAD)
-				return
 			adjustBruteLoss(60)
 			adjustFireLoss(60)
 		if(EXPLODE_LIGHT)
-			if(stat == DEAD)
-				return
 			adjustBruteLoss(30)
+		if(EXPLODE_WEAK)
+			adjustBruteLoss(15)
 
 	UPDATEHEALTH(src)
 

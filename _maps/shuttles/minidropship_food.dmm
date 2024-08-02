@@ -7,18 +7,18 @@
 /area/shuttle/minidropship)
 "c" = (
 /obj/machinery/computer/camera_advanced/shuttle_docker/minidropship,
-/obj/machinery/camera/autoname/mainship,
+/obj/machinery/camera/autoname/mainship/dropship_two,
 /turf/open/floor/iron/white/textured_half,
 /area/shuttle/minidropship)
 "d" = (
 /obj/machinery/door_control{
+	dir = 8;
 	id = "minidropship_podlock";
 	name = "inner door-control";
-	dir = 8;
 	pixel_x = 25;
 	pixel_y = 8
 	},
-/obj/item/clothing/suit/chef/classic,
+/obj/item/clothing/suit/storage/chef/classic,
 /obj/item/tool/kitchen/rollingpin,
 /obj/item/clothing/head/chefhat,
 /turf/open/floor/iron/white/textured_half{
@@ -68,6 +68,7 @@
 	},
 /area/shuttle/minidropship)
 "o" = (
+/obj/machinery/holopad,
 /turf/open/floor/iron/white/textured_half,
 /area/shuttle/minidropship)
 "q" = (
@@ -109,7 +110,6 @@
 	dir = 2;
 	id = "minidropship_podlock"
 	},
-/obj/structure/barricade/plasteel,
 /obj/machinery/door/poddoor/shutters/transit/nonsmoothing{
 	dir = 1
 	},

@@ -10,13 +10,13 @@
 	w_class = WEIGHT_CLASS_TINY
 	force = 5
 	throwforce = 8
-	item_icons = list(
+	worn_icon_list = list(
 		slot_l_hand_str = 'icons/mob/inhands/items/civilian_left.dmi',
 		slot_r_hand_str = 'icons/mob/inhands/items/civilian_right.dmi',
 	)
-	item_state = "shard-glass"
+	worn_icon_state = "shard-glass"
 	attack_verb = list("stabbed", "slashed", "sliced", "cut")
-	var/source_sheet_type = /obj/item/stack/sheet/glass
+	var/source_sheet_type = /obj/item/stack/sheet/glass/glass
 	var/shardsize
 
 /obj/item/shard/suicide_act(mob/user)
@@ -50,6 +50,8 @@
 
 /obj/item/shard/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(iswelder(I))
 		var/obj/item/tool/weldingtool/WT = I
@@ -84,7 +86,7 @@
 	var/mob/living/M = AM
 	if(M.status_flags & INCORPOREAL)  //Flying over shards doesn't break them
 		return
-	if (CHECK_MULTIPLE_BITFIELDS(M.flags_pass, HOVERING))
+	if (CHECK_MULTIPLE_BITFIELDS(M.pass_flags, HOVERING))
 		return
 
 	pick(playsound(loc, 'sound/effects/shard1.ogg', 35, TRUE), playsound(loc, 'sound/effects/shard2.ogg', 35, TRUE), playsound(loc, 'sound/effects/shard3.ogg', 35, TRUE), playsound(loc, 'sound/effects/shard4.ogg', 35, TRUE), playsound(loc, 'sound/effects/shard5.ogg', 35, TRUE))
@@ -103,14 +105,14 @@
 	if(H.species.species_flags & ROBOTIC_LIMBS || H.species.species_flags & IS_INSULATED)
 		return
 
-	if(!H.shoes && !(H.wear_suit?.flags_armor_protection & FEET))
+	if(!H.shoes && !(H.wear_suit?.armor_protection_flags & FEET))
 		INVOKE_ASYNC(src, PROC_REF(pierce_foot), H)
 
 /obj/item/shard/proc/pierce_foot(mob/living/carbon/human/target)
 	var/datum/limb/affecting = target.get_limb(pick("l_foot", "r_foot"))
 	if(affecting.limb_status & LIMB_ROBOT)
 		return
-	target.Paralyze(60)
+	target.Paralyze(6 SECONDS)
 
 	if(affecting.take_damage_limb(5))
 		UPDATEHEALTH(target)

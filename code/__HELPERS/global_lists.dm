@@ -9,46 +9,17 @@
 GLOBAL_LIST_INIT(poster_designs, subtypesof(/datum/poster))
 
 
-// Pill icons
-GLOBAL_LIST_EMPTY(randomized_pill_icons)
-
 //////////////////////////
 /////Initial Building/////
 //////////////////////////
 
-/proc/make_datum_references_lists()
-	// Hair - Initialise all /datum/sprite_accessory/hair into an list indexed by hair-style name
-	for(var/path in subtypesof(/datum/sprite_accessory/hair))
-		var/datum/sprite_accessory/hair/H = new path()
-		GLOB.hair_styles_list[H.name] = H
+/proc/init_sprite_accessories()
+	init_sprite_accessory_subtypes(/datum/sprite_accessory/hair, GLOB.hair_styles_list)
+	init_sprite_accessory_subtypes(/datum/sprite_accessory/hair_gradient, GLOB.hair_gradients_list)
+	init_sprite_accessory_subtypes(/datum/sprite_accessory/facial_hair, GLOB.facial_hair_styles_list)
+	init_sprite_accessory_subtypes(/datum/sprite_accessory/moth_wings, GLOB.moth_wings_list)
 
-	// Hair Gradients - Initialise all /datum/sprite_accessory/hair_gradient into an list indexed by gradient-style name
-	for(var/path in subtypesof(/datum/sprite_accessory/hair_gradient))
-		var/datum/sprite_accessory/hair_gradient/H = new path()
-		GLOB.hair_gradients_list[H.name] = H
-
-	// Facial Hair - Initialise all /datum/sprite_accessory/facial_hair into an list indexed by facialhair-style name
-	for(var/path in subtypesof(/datum/sprite_accessory/facial_hair))
-		var/datum/sprite_accessory/facial_hair/H = new path()
-		GLOB.facial_hair_styles_list[H.name] = H
-
-	// Species specific
-	for(var/path in subtypesof(/datum/sprite_accessory/moth_wings)) //todo use init accesries
-		var/datum/sprite_accessory/moth_wings/wings = new path()
-		GLOB.moth_wings_list[wings.name] = wings
-
-	// Ethnicity - Initialise all /datum/ethnicity into a list indexed by ethnicity name
-	for(var/path in subtypesof(/datum/ethnicity))
-		var/datum/ethnicity/E = new path()
-		GLOB.ethnicities_list[E.name] = E
-
-	// Surgery Steps - Initialize all /datum/surgery_step into a list
-	for(var/T in subtypesof(/datum/surgery_step))
-		var/datum/surgery_step/S = new T
-		GLOB.surgery_steps += S
-
-	sort_surgeries()
-
+/proc/init_species()
 	var/rkey = 0
 
 	// Species
@@ -60,48 +31,8 @@ GLOBAL_LIST_EMPTY(randomized_pill_icons)
 		if(S.joinable_roundstart)
 			GLOB.roundstart_species[S.name] = S
 
-	// Our ammo stuff is initialized here.
-	var/blacklist = list(/datum/ammo/energy, /datum/ammo/bullet/shotgun, /datum/ammo/xeno)
-	for(var/t in subtypesof(/datum/ammo) - blacklist)
-		var/datum/ammo/A = new t
-		GLOB.ammo_list[A.type] = A
 
-	for(var/X in subtypesof(/datum/xeno_caste))
-		var/datum/xeno_caste/C = new X
-		if(!(C.caste_type_path in GLOB.xeno_caste_datums))
-			GLOB.xeno_caste_datums[C.caste_type_path] = list()
-		GLOB.xeno_caste_datums[C.caste_type_path][C.upgrade] = C
-
-	for(var/H in subtypesof(/datum/hive_status))
-		var/datum/hive_status/HS = new H
-		GLOB.hive_datums[HS.hivenumber] = HS
-
-	// Initializes static ui data used by all hive status UI
-	var/list/per_tier_counter = list()
-	for(var/caste_type_path AS in GLOB.xeno_caste_datums)
-		var/datum/xeno_caste/caste = GLOB.xeno_caste_datums[caste_type_path][XENO_UPGRADE_BASETYPE]
-		var/type_path = initial(caste.caste_type_path)
-
-		GLOB.hive_ui_caste_index[type_path] = length(GLOB.hive_ui_static_data) //Starts from 0.
-
-		var/icon/xeno_minimap = icon('icons/UI_icons/map_blips.dmi', initial(caste.minimap_icon))
-		var/tier = initial(caste.tier)
-		if(tier == XENO_TIER_MINION)
-			continue
-		if(isnull(per_tier_counter[tier]))
-			per_tier_counter[tier] = 0
-
-		GLOB.hive_ui_static_data += list(list(
-			"name" = initial(caste.caste_name),
-			"is_queen" = type_path == /mob/living/carbon/xenomorph/queen,
-			"minimap" = icon2base64(xeno_minimap),
-			"sort_mod" = per_tier_counter[tier]++,
-			"tier" = GLOB.tier_as_number[tier],
-			"is_unique" = caste.maximum_active_caste == 1,
-			"can_transfer_plasma" = CHECK_BITFIELD(initial(caste.can_flags), CASTE_CAN_BE_GIVEN_PLASMA),
-			"evolution_max" = initial(caste.evolution_threshold)
-		))
-
+/proc/init_language_datums()
 	for(var/L in subtypesof(/datum/language))
 		var/datum/language/language = L
 		if(!initial(language.key))
@@ -113,26 +44,18 @@ GLOBAL_LIST_EMPTY(randomized_pill_icons)
 
 		GLOB.language_datum_instances[language] = instance
 
+/proc/init_emote_list()
 	//Emotes
 	for(var/path in subtypesof(/datum/emote))
 		var/datum/emote/E = new path()
 		E.emote_list[E.key] = E
 
-	init_keybindings()
-
-	for(var/i in 1 to 21)
-		GLOB.randomized_pill_icons += "pill[i]"
-	shuffle(GLOB.randomized_pill_icons)
-
-	shuffle(GLOB.fruit_icon_states)
-	shuffle(GLOB.reagent_effects)
-
+/proc/init_chemistry()
 	for(var/path in subtypesof(/datum/reagent))
 		var/datum/reagent/D = new path()
 		GLOB.chemical_reagents_list[path] = D
 
 	for(var/path in subtypesof(/datum/chemical_reaction))
-
 		var/datum/chemical_reaction/D = new path()
 		var/list/reaction_ids = list()
 
@@ -142,8 +65,6 @@ GLOBAL_LIST_EMPTY(randomized_pill_icons)
 			for(var/reaction in D.required_reagents)
 				reaction_ids += reaction
 
-
-
 		// Create filters based on each reagent id in the required reagents list
 		for(var/id in reaction_ids)
 			if(!GLOB.chemical_reactions_list[id])
@@ -151,6 +72,7 @@ GLOBAL_LIST_EMPTY(randomized_pill_icons)
 			GLOB.chemical_reactions_list[id] += D
 			break // Don't bother adding ourselves to other reagent ids, it is redundant
 
+/proc/init_namepool()
 	for(var/path in typesof(/datum/namepool))
 		var/datum/namepool/NP = new path
 		GLOB.namepool[path] = NP
@@ -159,12 +81,106 @@ GLOBAL_LIST_EMPTY(randomized_pill_icons)
 		var/datum/operation_namepool/NP = new path
 		GLOB.operation_namepool[path] = NP
 
-	/// Minimap icons for UI display
-	for(var/icon_state in GLOB.playable_icons)
-		GLOB.minimap_icons[icon_state] = icon2base64(icon('icons/UI_icons/map_blips.dmi', icon_state, frame = 1))
 
-	return TRUE
+/// These should be replaced with proper _INIT macros
+/proc/make_datum_reference_lists()
+	populate_seed_list()
+	init_sprite_accessories()
+	init_species()
+	init_language_datums()
+	init_emote_list()
+	init_chemistry()
+	init_namepool()
+	init_keybindings()
+	init_crafting_recipes()
+	init_crafting_recipes_atoms()
 
+/// Inits crafting recipe lists
+/proc/init_crafting_recipes(list/crafting_recipes)
+	for(var/path in subtypesof(/datum/crafting_recipe))
+		if(ispath(path, /datum/crafting_recipe/stack))
+			continue
+		var/datum/crafting_recipe/recipe = new path()
+		var/is_cooking = (recipe.category in GLOB.crafting_category_food)
+		recipe.reqs = sort_list(recipe.reqs, GLOBAL_PROC_REF(cmp_crafting_req_priority))
+		if(recipe.name != "" && recipe.result)
+			if(is_cooking)
+				GLOB.cooking_recipes += recipe
+			else
+				GLOB.crafting_recipes += recipe
+
+	var/list/global_stack_recipes = list(
+		//sheet recipes
+		/obj/item/stack/sheet/metal = GLOB.metal_recipes,
+		/obj/item/stack/sheet/glass = GLOB.glass_recipes,
+		/obj/item/stack/sheet/plasteel = GLOB.plasteel_recipes,
+		/obj/item/stack/sheet/wood = GLOB.wood_recipes,
+		/obj/item/stack/sheet/cardboard = GLOB.cardboard_recipes,
+		//sheet/mineral recipes
+		/obj/item/stack/sheet/mineral/iron = GLOB.iron_recipes,
+		/obj/item/stack/sheet/mineral/sandstone = GLOB.sandstone_recipes,
+		/obj/item/stack/sheet/mineral/diamond = GLOB.diamond_recipes,
+		/obj/item/stack/sheet/mineral/uranium = GLOB.uranium_recipes,
+		/obj/item/stack/sheet/mineral/phoron = GLOB.phoron_recipes,
+		/obj/item/stack/sheet/mineral/plastic = GLOB.plastic_recipes,
+		/obj/item/stack/sheet/mineral/gold = GLOB.gold_recipes,
+		/obj/item/stack/sheet/mineral/silver = GLOB.silver_recipes,
+	)
+
+	for(var/stack in global_stack_recipes)
+		for(var/stack_recipe in global_stack_recipes[stack])
+			if(istype(stack_recipe, /datum/stack_recipe_list))
+				var/datum/stack_recipe_list/stack_recipe_list = stack_recipe
+				for(var/nested_recipe in stack_recipe_list.recipes)
+					if(!nested_recipe)
+						continue
+					var/datum/crafting_recipe/stack/recipe = new/datum/crafting_recipe/stack(stack, nested_recipe)
+					if(recipe.name != "" && recipe.result)
+						GLOB.crafting_recipes += recipe
+			else
+				if(!stack_recipe)
+					continue
+				var/datum/crafting_recipe/stack/recipe = new/datum/crafting_recipe/stack(stack, stack_recipe)
+				if(recipe.name != "" && recipe.result)
+					GLOB.crafting_recipes += recipe
+
+/// Inits atoms used in crafting recipes
+/proc/init_crafting_recipes_atoms()
+	var/list/recipe_lists = list(
+		GLOB.crafting_recipes,
+		GLOB.cooking_recipes,
+	)
+	var/list/atom_lists = list(
+		GLOB.crafting_recipes_atoms,
+		GLOB.cooking_recipes_atoms,
+	)
+
+	for(var/list_index in 1 to length(recipe_lists))
+		var/list/recipe_list = recipe_lists[list_index]
+		var/list/atom_list = atom_lists[list_index]
+		for(var/datum/crafting_recipe/recipe as anything in recipe_list)
+			// Result
+			atom_list |= recipe.result
+			// Ingredients
+			for(var/atom/req_atom as anything in recipe.reqs)
+				atom_list |= req_atom
+			// Catalysts
+			for(var/atom/req_atom as anything in recipe.chem_catalysts)
+				atom_list |= req_atom
+			// Reaction data - required container
+			if(recipe.reaction)
+				var/required_container = initial(recipe.reaction.required_container)
+				if(required_container)
+					atom_list |= required_container
+			// Tools
+			for(var/atom/req_atom as anything in recipe.tool_paths)
+				atom_list |= req_atom
+			// Machinery
+			for(var/atom/req_atom as anything in recipe.machinery)
+				atom_list |= req_atom
+			// Structures
+			for(var/atom/req_atom as anything in recipe.structures)
+				atom_list |= req_atom
 
 //creates every subtype of prototype (excluding prototype) and adds it to list L.
 //if no list/L is provided, one is created.

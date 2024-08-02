@@ -1,7 +1,9 @@
+#define MAX_BRAINLOSS 200
+
 //Updates the mob's health from limbs and mob damage variables
 /mob/living/carbon/human/updatehealth()
 	if(status_flags & GODMODE)
-		health = species.total_health
+		health = maxHealth
 		set_stat(CONSCIOUS)
 		return
 	var/total_burn = 0
@@ -14,14 +16,14 @@
 	var/tox_l = ((species.species_flags & NO_POISON) ? 0 : getToxLoss())
 	var/clone_l = getCloneLoss()
 
-	health = species.total_health - oxy_l - tox_l - clone_l - total_burn - total_brute
+	health = maxHealth - oxy_l - tox_l - clone_l - total_burn - total_brute
 
 	update_stat()
 	med_pain_set_perceived_health()
 	med_hud_set_health()
 	med_hud_set_status()
 
-	var/health_deficiency = max((maxHealth - health), staminaloss)
+	var/health_deficiency = max(1 - (health / maxHealth) * 100, staminaloss)
 
 	if(health_deficiency >= 50)
 		add_movespeed_modifier(MOVESPEED_ID_DAMAGE_SLOWDOWN, TRUE, 0, NONE, TRUE, health_deficiency / 50)
@@ -35,10 +37,10 @@
 		return FALSE	//godmode
 
 	if(species?.has_organ["brain"])
-		var/datum/internal_organ/brain/sponge = internal_organs_by_name["brain"]
+		var/datum/internal_organ/brain/sponge = get_organ_slot(ORGAN_SLOT_BRAIN)
 		if(sponge)
 			sponge.take_damage(amount, silent)
-			sponge.damage = clamp(sponge.damage, 0, maxHealth*2)
+			sponge.damage = clamp(sponge.damage, 0, MAX_BRAINLOSS)
 			brainloss = sponge.damage
 		else
 			brainloss = 200
@@ -51,9 +53,9 @@
 		return FALSE	//godmode
 
 	if(species?.has_organ["brain"])
-		var/datum/internal_organ/brain/sponge = internal_organs_by_name["brain"]
+		var/datum/internal_organ/brain/sponge = get_organ_slot(ORGAN_SLOT_BRAIN)
 		if(sponge)
-			sponge.damage = clamp(amount, 0, maxHealth*2)
+			sponge.damage = clamp(amount, 0, MAX_BRAINLOSS)
 			brainloss = sponge.damage
 		else
 			brainloss = 200
@@ -66,9 +68,9 @@
 		return FALSE	//godmode
 
 	if(species?.has_organ["brain"])
-		var/datum/internal_organ/brain/sponge = internal_organs_by_name["brain"]
+		var/datum/internal_organ/brain/sponge = get_organ_slot(ORGAN_SLOT_BRAIN)
 		if(sponge) //Make sure they actually have a brain
-			brainloss = min(sponge.damage,maxHealth*2)
+			brainloss = min(sponge.damage, MAX_BRAINLOSS)
 		else
 			brainloss = 200 //No brain!
 	else
@@ -142,12 +144,12 @@
 
 
 /mob/living/carbon/human/getCloneLoss()
-	if(species.species_flags & (IS_SYNTHETIC|NO_SCAN|ROBOTIC_LIMBS))
+	if(species.species_flags & (IS_SYNTHETIC|NO_SCAN))
 		cloneloss = 0
 	return ..()
 
 /mob/living/carbon/human/setCloneLoss(amount)
-	if(species.species_flags & (IS_SYNTHETIC|NO_SCAN|ROBOTIC_LIMBS))
+	if(species.species_flags & (IS_SYNTHETIC|NO_SCAN))
 		cloneloss = 0
 	else
 		..()
@@ -155,7 +157,7 @@
 /mob/living/carbon/human/adjustCloneLoss(amount)
 	..()
 
-	if(species.species_flags & (IS_SYNTHETIC|NO_SCAN|ROBOTIC_LIMBS))
+	if(species.species_flags & (IS_SYNTHETIC|NO_SCAN))
 		cloneloss = 0
 		return
 
@@ -310,7 +312,7 @@ This function restores all limbs.
 	//replace missing internal organs
 	for(var/organ_slot in species.has_organ)
 		var/internal_organ_type = species.has_organ[organ_slot]
-		if(!internal_organs_by_name[organ_slot])
+		if(!get_organ_slot(organ_slot))
 			var/datum/internal_organ/IO = new internal_organ_type(src)
 			internal_organs_by_name[organ_slot] = IO
 
@@ -339,3 +341,29 @@ This function restores all limbs.
 	if(status_flags & (GODMODE))
 		return
 	return species.apply_damage(damage, damagetype, def_zone, blocked, sharp, edge, updating_health, penetration, src)
+
+/mob/living/carbon/human/get_soft_armor(armor_type, proj_def_zone)
+	if(!proj_def_zone)
+		return ..()
+
+	var/datum/limb/affected_limb
+
+	if(isorgan(proj_def_zone))
+		affected_limb = proj_def_zone
+	else
+		affected_limb = get_limb(proj_def_zone)
+
+	return affected_limb.soft_armor.getRating(armor_type)
+
+/mob/living/carbon/human/get_hard_armor(armor_type, proj_def_zone)
+	if(!proj_def_zone)
+		return ..()
+
+	var/datum/limb/affected_limb
+
+	if(isorgan(proj_def_zone))
+		affected_limb = proj_def_zone
+	else
+		affected_limb = get_limb(proj_def_zone)
+
+	return affected_limb.hard_armor.getRating(armor_type)

@@ -3,11 +3,12 @@
 	name = "bookcase"
 	icon = 'icons/obj/structures/structures.dmi'
 	icon_state = "book-0"
+	max_integrity = 200
 	resistance_flags = XENO_DAMAGEABLE
 	anchored = TRUE
 	density = TRUE
 	opacity = TRUE
-	flags_pass = PASSAIR
+	allow_pass_flags = PASS_AIR
 
 /obj/structure/bookcase/Initialize(mapload)
 	. = ..()
@@ -18,6 +19,8 @@
 
 /obj/structure/bookcase/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, /obj/item/book))
 		user.drop_held_item()
@@ -67,7 +70,8 @@
 				qdel(src)
 
 
-/obj/structure/bookcase/update_icon()
+/obj/structure/bookcase/update_icon_state()
+	. = ..()
 	if(length(contents) < 5)
 		icon_state = "book-[length(contents)]"
 	else

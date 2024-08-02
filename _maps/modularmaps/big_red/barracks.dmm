@@ -537,7 +537,7 @@
 	},
 /area/bigredv2/outside/admin_building)
 "wi" = (
-/obj/machinery/computer/communications,
+/obj/effect/spawner/random/machinery/random_broken_computer/small/comms,
 /obj/structure/table,
 /turf/open/floor/tile/dark,
 /area/bigredv2/outside/admin_building)
@@ -663,7 +663,7 @@
 /turf/open/floor/wood,
 /area/bigredv2/outside/admin_building)
 "Cu" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /turf/open/floor/wood,
 /area/bigredv2/outside/admin_building)
 "CU" = (
@@ -774,13 +774,13 @@
 /area/bigredv2/outside/admin_building)
 "GM" = (
 /obj/structure/table,
-/obj/machinery/computer/communications,
+/obj/effect/spawner/random/machinery/random_broken_computer/small/comms,
 /turf/open/floor/tile/dark/blue2{
 	dir = 6
 	},
 /area/bigredv2/outside/admin_building)
 "GX" = (
-/obj/machinery/alarm{
+/obj/machinery/air_alarm{
 	dir = 1
 	},
 /obj/structure/cable,
@@ -822,7 +822,7 @@
 "Ir" = (
 /obj/structure/table,
 /obj/item/tool/pen/red,
-/obj/structure/paper_bin,
+/obj/effect/spawner/random/misc/paperbin,
 /turf/open/floor/tile/white,
 /area/bigredv2/outside/admin_building)
 "IN" = (
@@ -939,7 +939,7 @@
 /turf/open/floor/tile/white,
 /area/bigredv2/outside/admin_building)
 "Mj" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/machinery/light{
 	dir = 8
 	},
@@ -1044,7 +1044,6 @@
 /turf/open/floor/wood,
 /area/bigredv2/outside/admin_building)
 "OE" = (
-/obj/structure/cable,
 /obj/structure/cable,
 /obj/machinery/atmospherics/pipe/simple/green/hidden{
 	dir = 4
@@ -1170,7 +1169,7 @@
 	},
 /area/bigredv2/outside/admin_building)
 "Ue" = (
-/obj/structure/table/woodentable,
+/obj/structure/table/wood,
 /obj/machinery/light,
 /turf/open/floor/wood,
 /area/bigredv2/outside/admin_building)
@@ -1198,8 +1197,8 @@
 /turf/open/floor/tile/white,
 /area/bigredv2/outside/admin_building)
 "UL" = (
-/obj/structure/table/woodentable,
-/obj/structure/paper_bin,
+/obj/structure/table/wood,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /obj/machinery/light,
 /turf/open/floor/wood,
@@ -1210,7 +1209,7 @@
 /area/bigredv2/outside/admin_building)
 "Va" = (
 /obj/structure/table,
-/obj/structure/paper_bin,
+/obj/effect/spawner/random/misc/paperbin,
 /obj/item/tool/pen,
 /obj/machinery/light,
 /turf/open/floor/tile/dark/blue2,

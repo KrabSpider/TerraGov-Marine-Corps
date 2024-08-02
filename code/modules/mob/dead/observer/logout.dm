@@ -1,6 +1,6 @@
 /mob/dead/observer/Logout()
-	GLOB.observer_list -= src
-
+	UnregisterSignal(src, COMSIG_MOVABLE_Z_CHANGED)
+	SSmobs.dead_players_by_zlevel[z] -= src
 
 	. = ..()
 

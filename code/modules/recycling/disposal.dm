@@ -15,6 +15,7 @@
 	density = TRUE
 	active_power_usage = 3500 //The pneumatic pump power. 3 HP ~ 2200W
 	idle_power_usage = 100
+	allow_pass_flags = PASS_LOW_STRUCTURE|PASSABLE
 	var/mode = 1 //Item mode 0=off 1=charging 2=charged
 	var/flush = 0 //True if flush handle is pulled
 	var/obj/structure/disposalpipe/trunk/trunk = null //The attached pipe trunk
@@ -52,11 +53,11 @@
 ///Set the trunk of the disposal
 /obj/machinery/disposal/proc/set_trunk(obj/future_trunk)
 	if(trunk)
-		UnregisterSignal(trunk, COMSIG_PARENT_QDELETING)
+		UnregisterSignal(trunk, COMSIG_QDELETING)
 	trunk = null
 	if(future_trunk)
 		trunk = future_trunk
-		RegisterSignal(trunk, COMSIG_PARENT_QDELETING, PROC_REF(clean_trunk))
+		RegisterSignal(trunk, COMSIG_QDELETING, PROC_REF(clean_trunk))
 
 ///Signal handler to clean trunk to prevent harddel
 /obj/machinery/disposal/proc/clean_trunk()
@@ -66,6 +67,8 @@
 //Attack by item places it in to disposal
 /obj/machinery/disposal/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(machine_stat & BROKEN)
 		return
@@ -99,7 +102,7 @@
 
 			playsound(loc, 'sound/items/welder2.ogg', 25, 1)
 			to_chat(user, span_notice("You start slicing the floorweld off the disposal unit."))
-			if(!do_after(user, 20, TRUE, src, BUSY_ICON_BUILD, extra_checks = CALLBACK(W, /obj/item/tool/weldingtool/proc/isOn)))
+			if(!do_after(user, 20, NONE, src, BUSY_ICON_BUILD, extra_checks = CALLBACK(W, TYPE_PROC_REF(/obj/item/tool/weldingtool, isOn))))
 				return
 
 			to_chat(user, span_notice("You sliced the floorweld off the disposal unit."))
@@ -114,7 +117,7 @@
 		var/obj/item/storage/bag/trash/T = I
 		to_chat(user, span_notice("You empty the bag into [src]."))
 		for(var/obj/item/O in T.contents)
-			T.remove_from_storage(O, src, user)
+			T.storage_datum.remove_from_storage(O, src, user)
 		T.update_icon()
 		update()
 
@@ -127,7 +130,7 @@
 		user.visible_message(span_warning("[user] starts putting [GM] into [src]."),
 		span_warning("You start putting [GM] into [src]."))
 
-		if(!do_after(user, 20, TRUE, src, BUSY_ICON_HOSTILE) || G.grabbed_thing != GM)
+		if(!do_after(user, 20, NONE, src, BUSY_ICON_HOSTILE) || G.grabbed_thing != GM)
 			return
 
 		GM.forceMove(src)
@@ -145,6 +148,7 @@
 
 //Mouse drop another mob or self
 /obj/machinery/disposal/MouseDrop_T(mob/target, mob/user)
+	. = ..()
 	// Check the user, if they can do all the things, are they close, alive?
 	if(isAI(user) || isxeno(user) || !isliving(user) || get_dist(user, target) > 1 || !in_range(user, src) || user.incapacitated(TRUE))
 		return
@@ -159,7 +163,7 @@
 	else
 		visible_message("<span class ='warning'>[user] starts stuffing [target] into the disposal.</span>")
 
-	if(!do_after(user, 4 SECONDS, FALSE, target, BUSY_ICON_HOSTILE))
+	if(!do_after(user, 4 SECONDS, IGNORE_HELD_ITEM, target, BUSY_ICON_HOSTILE))
 		return
 
 	if(target == user)
@@ -195,7 +199,7 @@
 	user.forceMove(loc)
 	if(isliving(user))
 		var/mob/living/L = user
-		L.Stun(40)
+		L.Stun(4 SECONDS)
 	if(!user.lying_angle)
 		user.visible_message("<span class='warning'>[user] suddenly climbs out of [src]!",
 		"<span class='warning'>You climb out of [src] and get your bearings!")
@@ -221,11 +225,11 @@
 
 	if(!isAI(user))  //AI can't pull flush handle
 		if(flush)
-			dat += "Disposal handle: <A href='?src=\ref[src];handle=0'>Disengage</A> <B>Engaged</B>"
+			dat += "Disposal handle: <A href='?src=[text_ref(src)];handle=0'>Disengage</A> <B>Engaged</B>"
 		else
-			dat += "Disposal handle: <B>Disengaged</B> <A href='?src=\ref[src];handle=1'>Engage</A>"
+			dat += "Disposal handle: <B>Disengaged</B> <A href='?src=[text_ref(src)];handle=1'>Engage</A>"
 
-		dat += "<BR><HR><A href='?src=\ref[src];eject=1'>Eject contents</A><HR>"
+		dat += "<BR><HR><A href='?src=[text_ref(src)];eject=1'>Eject contents</A><HR>"
 
 	if(mode <= 0)
 		dat += "Pump: <B>Off</B> On</A><BR>"
@@ -282,7 +286,7 @@
 				"<span class='warning'>You get pushed out of [src] and get your bearings!")
 			if(isliving(M))
 				var/mob/living/L = M
-				L.Stun(40)
+				L.Stun(4 SECONDS)
 	update()
 
 //Pipe affected by explosion
@@ -409,7 +413,6 @@
 		qdel(H)
 
 /obj/machinery/disposal/CanAllowThrough(atom/movable/mover, turf/target)
-	. = ..()
 	if(istype(mover, /obj/item) && mover.throwing)
 		var/obj/item/I = mover
 		if(prob(75))
@@ -417,7 +420,7 @@
 			visible_message(span_notice("[I] lands into [src]."))
 		else
 			visible_message(span_warning("[I] bounces off of [src]'s rim!"))
-		return 0
+		return FALSE
 	else
 		return ..()
 
@@ -510,7 +513,7 @@
 	if(!T)
 		return null
 
-	var/fdir = turn(dir, 180) //Flip the movement direction
+	var/fdir = REVERSE_DIR(dir) //Flip the movement direction
 	for(var/obj/structure/disposalpipe/P in T)
 		if(fdir & P.dpdir) //Find pipe direction mask that matches flipped dir
 			return P
@@ -606,7 +609,7 @@
 
 //Returns the direction of the next pipe object, given the entrance dir by default, returns the bitmask of remaining directions
 /obj/structure/disposalpipe/proc/nextdir(fromdir)
-	return dpdir & (~turn(fromdir, 180))
+	return dpdir & (~REVERSE_DIR(fromdir))
 
 //Transfer the holder through this pipe segment, overriden for special behaviour
 /obj/structure/disposalpipe/proc/transfer(obj/structure/disposalholder/H)
@@ -654,10 +657,8 @@
 		return
 	if(isfloorturf(T)) //intact floor, pop the tile
 		var/turf/open/floor/F = T
-		if(!F.is_plating())
-			if(!F.broken && !F.burnt)
-				new F.floor_tile.type(H)//Add to holder so it will be thrown with other stuff
-			F.make_plating()
+		if(F.has_tile())
+			F.remove_tile()
 
 	if(direction) //Direction is specified
 		if(isspaceturf(T)) //If ended in space, then range is unlimited
@@ -696,13 +697,15 @@
 		if(EXPLODE_DEVASTATE)
 			qdel(src)
 		if(EXPLODE_HEAVY)
-			take_damage(rand(5, 15))
+			take_damage(rand(5, 15), BRUTE, BOMB)
 		if(EXPLODE_LIGHT)
-			take_damage(rand(0, 15))
+			take_damage(rand(0, 15), BRUTE, BOMB)
 
 //Attack by item. Weldingtool: unfasten and convert to obj/disposalconstruct
 /obj/structure/disposalpipe/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	var/turf/T = loc
 	if(T.intact_tile)
@@ -774,7 +777,7 @@
 	. = ..()
 
 	if(icon_state == "pipe-s")
-		dpdir = dir|turn(dir, 180)
+		dpdir = dir|REVERSE_DIR(dir)
 	else
 		dpdir = dir|turn(dir, -90)
 	update()
@@ -946,9 +949,9 @@
 /obj/structure/disposalpipe/junction/Initialize(mapload)
 	. = ..()
 	if(icon_state == "pipe-j1")
-		dpdir = dir|turn(dir, -90)|turn(dir, 180)
+		dpdir = dir|turn(dir, -90)|REVERSE_DIR(dir)
 	else if(icon_state == "pipe-j2")
-		dpdir = dir|turn(dir, 90)|turn(dir, 180)
+		dpdir = dir|turn(dir, 90)|REVERSE_DIR(dir)
 	else //Pipe-y
 		dpdir = dir|turn(dir,90)|turn(dir, -90)
 	update()
@@ -961,7 +964,7 @@
 
 //Next direction to move, if coming in from secondary dirs, then next is primary dir, if coming in from primary dir, then next is equal chance of other dirs
 /obj/structure/disposalpipe/junction/nextdir(fromdir)
-	var/flipdir = turn(fromdir, 180)
+	var/flipdir = REVERSE_DIR(fromdir)
 	if(flipdir != dir)	//Came from secondary dir
 		return dir		//So exit through primary
 	else				//Came from primary
@@ -992,7 +995,7 @@
 
 /obj/structure/disposalpipe/tagger/Initialize(mapload)
 	. = ..()
-	dpdir = dir|turn(dir, 180)
+	dpdir = dir|REVERSE_DIR(dir)
 	if(sort_tag)
 		GLOB.tagger_locations |= sort_tag
 	updatename()
@@ -1012,6 +1015,8 @@
 
 /obj/structure/disposalpipe/tagger/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, /obj/item/destTagger))
 		var/obj/item/destTagger/O = I
@@ -1072,7 +1077,7 @@
 
 /obj/structure/disposalpipe/sortjunction/proc/updatedir()
 	posdir = dir
-	negdir = turn(posdir, 180)
+	negdir = REVERSE_DIR(posdir)
 
 	if(icon_state == "pipe-j1s")
 		sortdir = turn(posdir, -90)
@@ -1083,6 +1088,8 @@
 
 /obj/structure/disposalpipe/sortjunction/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(istype(I, /obj/item/destTagger))
 		var/obj/item/destTagger/O = I
@@ -1166,11 +1173,11 @@
 ///Set the linked atom
 /obj/structure/disposalpipe/trunk/proc/set_linked(obj/to_link)
 	if(linked)
-		UnregisterSignal(linked, COMSIG_PARENT_QDELETING)
+		UnregisterSignal(linked, COMSIG_QDELETING)
 	linked = null
 	if(to_link)
 		linked = to_link
-		RegisterSignal(linked, COMSIG_PARENT_QDELETING, PROC_REF(clean_linked))
+		RegisterSignal(linked, COMSIG_QDELETING, PROC_REF(clean_linked))
 
 ///Signal handler to clean linked from harddeling
 /obj/structure/disposalpipe/trunk/proc/clean_linked()
@@ -1305,6 +1312,8 @@
 
 /obj/structure/disposaloutlet/attackby(obj/item/I, mob/user, params)
 	. = ..()
+	if(.)
+		return
 
 	if(isscrewdriver(I))
 		mode = !mode
@@ -1324,7 +1333,7 @@
 		playsound(loc, 'sound/items/welder2.ogg', 25, 1)
 		to_chat(user, span_notice("You start slicing the floorweld off the disposal outlet."))
 
-		if(!do_after(user, 20, TRUE, src, BUSY_ICON_BUILD, extra_checks = CALLBACK(W, /obj/item/tool/weldingtool/proc/isOn)))
+		if(!do_after(user, 20, NONE, src, BUSY_ICON_BUILD, extra_checks = CALLBACK(W, TYPE_PROC_REF(/obj/item/tool/weldingtool, isOn))))
 			return
 
 		to_chat(user, span_notice("You sliced the floorweld off the disposal outlet."))

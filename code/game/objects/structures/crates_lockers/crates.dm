@@ -9,8 +9,18 @@
 	mob_storage_capacity = 0
 	storage_capacity = 100
 	closet_flags = CLOSET_ALLOW_OBJS|CLOSET_ALLOW_DENSE_OBJ
+	allow_pass_flags = PASS_LOW_STRUCTURE|PASSABLE|PASS_WALKOVER
 	open_sound = 'sound/machines/click.ogg'
 	close_sound = 'sound/machines/click.ogg'
+
+/obj/structure/closet/crate/Initialize(mapload, ...)
+	. = ..()
+	var/static/list/connections = list(
+		COMSIG_OBJ_TRY_ALLOW_THROUGH = PROC_REF(can_climb_over),
+		COMSIG_FIND_FOOTSTEP_SOUND = TYPE_PROC_REF(/atom/movable, footstep_override),
+		COMSIG_TURF_CHECK_COVERED = TYPE_PROC_REF(/atom/movable, turf_cover_check),
+	)
+	AddElement(/datum/element/connect_loc, connections)
 
 /obj/structure/closet/crate/can_close()
 	. = ..()
@@ -20,24 +30,13 @@
 		return FALSE
 	return TRUE
 
-/obj/structure/closet/crate/CanAllowThrough(atom/movable/mover, turf/target)
-	. = ..()
-	if(istype(mover) && CHECK_BITFIELD(mover.flags_pass, PASSTABLE))
-		return TRUE
-
-	var/obj/structure/S = locate(/obj/structure) in get_turf(mover)
-	if(S?.climbable && !(S.flags_atom & ON_BORDER) && climbable && isliving(mover)) //Climbable non-border objects allow you to universally climb over others
-		return TRUE
-	if(opened) //Open crate, you can cross over it
-		return TRUE
-
 /obj/structure/closet/crate/open(mob/living/user)
 	. = ..()
 	if(!.)
 		return
 
 	if(climbable)
-		structure_shaken()
+		INVOKE_ASYNC(src, PROC_REF(structure_shaken))
 		climbable = FALSE //Open crate is not a surface that works when climbing around
 
 /obj/structure/closet/crate/close()
@@ -95,8 +94,7 @@
 	icon_opened = "open_explosives"
 	icon_closed = "closed_explosives"
 
-/obj/structure/closet/crate/explosives/whiskeyoutpost/Initialize(mapload)
-	. = ..()
+/obj/structure/closet/crate/explosives/whiskeyoutpost/PopulateContents()
 	new /obj/item/explosive/grenade/stick(src)
 	new /obj/item/explosive/grenade/stick(src)
 	new /obj/item/explosive/grenade/stick(src)
@@ -115,8 +113,7 @@
 	new /obj/item/explosive/grenade/phosphorus/upp(src)
 	new /obj/item/explosive/grenade/phosphorus/upp(src)
 
-/obj/structure/closet/crate/explosives/whiskeyoutposttwo/Initialize(mapload)
-	. = ..()
+/obj/structure/closet/crate/explosives/whiskeyoutposttwo/PopulateContents()
 	new /obj/structure/closet/crate/explosives(src)
 	new /obj/item/storage/box/visual/grenade/razorburn(src)
 	new /obj/item/storage/box/visual/grenade/razorburn(src)
@@ -142,8 +139,7 @@
 	icon_opened = "open_hydro"
 	icon_closed = "closed_hydro"
 
-/obj/structure/closet/crate/hydroponics/prespawned/Initialize(mapload)
-	. = ..()
+/obj/structure/closet/crate/hydroponics/prespawned/PopulateContents()
 	new /obj/item/reagent_containers/spray/plantbgone(src)
 	new /obj/item/reagent_containers/spray/plantbgone(src)
 	new /obj/item/tool/minihoe(src)
@@ -174,8 +170,7 @@
 	name = "RCD crate"
 	desc = "A crate for the storage of the RCD."
 
-/obj/structure/closet/crate/rcd/Initialize(mapload)
-	. = ..()
+/obj/structure/closet/crate/rcd/PopulateContents()
 	new /obj/item/ammo_rcd(src)
 	new /obj/item/ammo_rcd(src)
 	new /obj/item/ammo_rcd(src)
@@ -189,8 +184,7 @@
 	desc = "A crate of emergency rations."
 	name = "Emergency Rations"
 
-/obj/structure/closet/crate/freezer/rations/Initialize(mapload)
-	. = ..()
+/obj/structure/closet/crate/freezer/rations/PopulateContents()
 	new /obj/item/storage/box/donkpockets(src)
 	new /obj/item/storage/box/donkpockets(src)
 
@@ -201,8 +195,7 @@
 	icon_opened = "open_radioactive"
 	icon_closed = "closed_radioactive"
 
-/obj/structure/closet/crate/radiation/Initialize(mapload)
-	. = ..()
+/obj/structure/closet/crate/radiation/PopulateContents()
 	new /obj/item/clothing/suit/radiation(src)
 	new /obj/item/clothing/head/radiation(src)
 	new /obj/item/clothing/suit/radiation(src)
@@ -229,10 +222,22 @@
 /obj/structure/closet/crate/trashcart
 	name = "Trash Cart"
 	desc = "A heavy, metal trashcart with wheels."
-	icon = 'icons/obj/items/storage/storage.dmi'
 	icon_state = "closed_trashcart"
 	icon_opened = "open_trashcart"
 	icon_closed = "closed_trashcart"
+
+/obj/structure/closet/crate/trashcart/Initialize(mapload, ...)
+	. = ..()
+	if(opened)
+		density = FALSE
+
+/obj/structure/closet/crate/trashcart/food
+	desc = "A heavy, metal foodcart with wheels."
+	icon = 'icons/obj/structures/prop/urban/urbanrandomprops.dmi';
+	icon_state = "foodcart2"
+	icon_closed = "foodcart2"
+	icon_opened = "foodcart2_open"
+	name = "food cart"
 
 /obj/structure/closet/crate/wayland
 	name = "Wayland crate"
@@ -266,7 +271,6 @@
 /obj/structure/closet/crate/mass_produced_crate
 	name = "Mass Produced Crate"
 	desc = "A rectangular steel crate. Cannot be welded for metal."
-	icon = 'icons/obj/structures/crates.dmi'
 	icon_state = "closed_basic"
 	icon_opened = "open_basic"
 	icon_closed = "closed_basic"
